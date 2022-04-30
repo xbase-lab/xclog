@@ -58,14 +58,9 @@ impl ParsableFromStream for CompileSwift {
 }
 
 #[tokio::test]
+#[tracing_test::traced_test]
 async fn test() {
     use crate::parser::util::test::to_stream_test;
-
-    #[cfg(feature = "tracing")]
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::TRACE)
-        .init();
-
     let step = to_stream_test! {
         CompileSwift,
         r#"CompileSwift normal arm64 /path/to/file.swift (in target 'DemoTarget' from project 'DemoProject')
