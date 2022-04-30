@@ -35,6 +35,7 @@ pub(crate) mod test {
                 .to_string();
 
             let step = $t::parse_from_stream(line, &mut stream).await.unwrap();
+            #[cfg(feature = "tracing")]
             tracing::info!("Result: {:#?}", step);
             step
         }};

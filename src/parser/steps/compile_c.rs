@@ -47,6 +47,7 @@ impl ParsableFromStream for CompileC {
             .map(ToString::to_string)
             .ok_or_else(|| Error::EOF("CompileC".into(), "path".into()))?;
 
+        #[cfg(feature = "tracing")]
         tracing::trace!("left {}", chunks.as_str());
 
         let description = Description::from_line(line)?;
@@ -66,7 +67,7 @@ impl ParsableFromStream for CompileC {
 }
 
 #[tokio::test]
-#[tracing_test::traced_test]
+#[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 

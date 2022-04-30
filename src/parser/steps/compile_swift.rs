@@ -58,7 +58,7 @@ impl ParsableFromStream for CompileSwift {
 }
 
 #[tokio::test]
-#[tracing_test::traced_test]
+#[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
     use crate::parser::util::test::to_stream_test;
     let step = to_stream_test! {
