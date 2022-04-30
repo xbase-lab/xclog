@@ -81,7 +81,7 @@ async fn test() {
         CompileAssetCatalog,
 r#"CompileAssetCatalog /path/to/build/Debug-iphoneos/TargetName.app /path/to/resources/Assets.xcassets (in target 'TargetName' from project 'ProjectName')
     cd /path/to/project
-    /Applications/Xcode.app/Contents/Developer/usr/bin/actool --output-format human-readable-text --notices --warnings --export-dependency-info /path/to/build/TargetName.build/Debug-iphoneos/TargetName.build/assetcatalog_dependencies --output-partial-info-plist /path/to/build/TargetName.build/Debug-iphoneos/TargetName.build/assetcatalog_generated_info.plist --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 15.0 --platform iphoneos --compile /path/to/build/Debug-iphoneos/TargetName.app /path/to/resources/Assets.xcassets
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool ...
 2022-04-28 20:00:56.701 ibtoold[26330:10896383] DEBUG: Added to environment: {
     TMPDIR = "/var/folders/lm/jgnf6c7941qbrz4r6j5qscx00000gn/T/B69BD433-9BEC-4F5B-BF62-48A4B0DE4C88";
 }
@@ -101,19 +101,20 @@ r#"CompileAssetCatalog /path/to/build/Debug-iphoneos/TargetName.app /path/to/res
         PathBuf::from("/path/to/resources/Assets.xcassets"),
         step.path
     );
-    assert_eq!(
-        vec![PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/AppIcon60x60@2x.png"),
-        PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/AppIcon76x76@2x~ipad.png"),
-        PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/Assets.car"),
-        PathBuf::from("/path/to/build/TargetName.build/Debug-iphoneos/TargetName.build/assetcatalog_generated_info.plist")
-        ],
+    assert_eq! {
+        vec! {
+            PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/AppIcon60x60@2x.png"),
+            PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/AppIcon76x76@2x~ipad.png"),
+            PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/Assets.car"),
+            PathBuf::from("/path/to/build/TargetName.build/Debug-iphoneos/TargetName.build/assetcatalog_generated_info.plist")
+        },
         step.results
-    );
-    assert_eq!(
-        vec![
+    };
+    assert_eq! {
+        vec!{
             "76x76@1x app icons only apply to iPad apps targeting releases of iOS prior to 10.0."
                 .to_string()
-        ],
+        },
         step.notices
-    );
+    };
 }
