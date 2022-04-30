@@ -1,5 +1,5 @@
-use super::{
-    description::Description, util::consume_empty_lines, Error, OutputStream, ParsableFromStream,
+use super::super::{
+    util::consume_empty_lines, Description, Error, OutputStream, ParsableFromStream,
 };
 use async_trait::async_trait;
 use std::path::PathBuf;
@@ -91,4 +91,3 @@ async fn test() {
     assert_eq!(PathBuf::from("path/to/input/bridge.c"), step.path);
     assert_eq!(PathBuf::from("path/to/output/bridge.o"), step.output_path);
 }
-

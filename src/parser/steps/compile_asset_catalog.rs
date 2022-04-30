@@ -1,4 +1,4 @@
-use super::{description::Description, Error, OutputStream, ParsableFromStream};
+use super::super::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
 use std::path::PathBuf;
 use tap::Pipe;

@@ -1,4 +1,4 @@
-use super::{consume_empty_lines, Error, OutputStream, ParsableFromStream};
+use super::super::{consume_empty_lines, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
 use tap::Pipe;
 use tokio_stream::StreamExt;

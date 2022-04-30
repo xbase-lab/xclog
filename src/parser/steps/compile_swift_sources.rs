@@ -1,4 +1,4 @@
-use super::{description::Description, Error, OutputStream, ParsableFromStream};
+use super::super::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
 use tap::Pipe;
 use tokio_stream::StreamExt;
@@ -6,10 +6,10 @@ use tokio_stream::StreamExt;
 #[derive(Debug)]
 /// Aggregated swift files compilation
 pub struct CompileSwiftSources {
-    compiler: String,
-    arch: String,
-    description: Description,
-    command: String,
+    pub compiler: String,
+    pub arch: String,
+    pub description: Description,
+    pub command: String,
 }
 
 #[async_trait]

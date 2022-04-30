@@ -1,4 +1,4 @@
-use super::{description::Description, Error, OutputStream, ParsableFromStream};
+use super::super::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
 use std::path::PathBuf;
 use tap::Pipe;
@@ -7,10 +7,10 @@ use tokio_stream::StreamExt;
 /// Swift file compilation step
 #[derive(Debug)]
 pub struct CompileSwift {
-    arch: String,
-    description: Description,
-    path: PathBuf,
-    command: String,
+    pub arch: String,
+    pub description: Description,
+    pub path: PathBuf,
+    pub command: String,
 }
 
 #[async_trait]
