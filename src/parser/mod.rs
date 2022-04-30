@@ -1,17 +1,20 @@
 mod description;
 mod error;
+mod invocation;
+mod step;
 mod util;
 
 use async_trait::async_trait;
 use std::io;
-use util::*;
 
 pub use error::Error;
-pub type OutputReader = dyn tokio_stream::Stream<Item = Result<String, io::Error>> + Unpin + Send;
+pub use util::*;
+
+pub type OutputStream = dyn tokio_stream::Stream<Item = Result<String, io::Error>> + Unpin + Send;
 
 #[async_trait]
-pub trait ParsableCompileStep {
-    async fn parse(line: String, stream: &mut OutputReader) -> Result<Self, Error>
+pub trait ParsableFromStream {
+    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error>
     where
         Self: Sized + Send;
 }

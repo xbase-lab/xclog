@@ -13,7 +13,7 @@ regex                 = { version = "1.5",    optional = true }
 lazy_static           = { version = "1.4.0",  optional = true }
 
 # Async Runtime
-tokio                 = "1.18.0" 
+tokio                 = {version = "1.18.0", features = [ "rt-multi-thread", "macros" ] } 
 tokio-stream          = { version = "0.1.8", features = ["io-util"] }
 parity-tokio-ipc      = "0.9.0" 
 async-trait           = "0.1.52" 
@@ -26,5 +26,5 @@ tracing-subscriber    = { version = "0.3.9",  features = ["env-filter"], optiona
 
 [features]
 default = [ ]
-regex = [ "dep:regex", "lazy_static" ]
+regex   = [ "dep:regex", "lazy_static" ]
 tracing = [ "dep:tracing", "tracing-appender", "tracing-subscriber" ]
