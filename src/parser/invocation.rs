@@ -33,7 +33,6 @@ impl ParsableFromStream for Invocation {
 #[tokio::test]
 async fn test() {
     use crate::parser::util::test::to_stream_test;
-    use tap::Tap;
 
     #[cfg(feature = "tracing")]
     tracing_subscriber::fmt()

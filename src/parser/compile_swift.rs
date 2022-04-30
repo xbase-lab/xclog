@@ -60,7 +60,6 @@ impl ParsableFromStream for CompileSwift {
 #[tokio::test]
 async fn test() {
     use crate::parser::util::test::to_stream_test;
-    use tap::Tap;
 
     #[cfg(feature = "tracing")]
     tracing_subscriber::fmt()

@@ -1,4 +1,5 @@
 mod code_sign;
+mod compile_asset_catalog;
 mod compile_c;
 mod compile_swift;
 mod compile_swift_sources;
