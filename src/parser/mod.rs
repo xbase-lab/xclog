@@ -1,4 +1,5 @@
 mod compile_swift;
+mod compile_swift_sources;
 mod description;
 mod error;
 mod invocation;

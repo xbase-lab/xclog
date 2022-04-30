@@ -1,4 +1,4 @@
-use super::{Error, OutputStream};
+use super::OutputStream;
 use tokio_stream::StreamExt;
 
 /// Ignore stream content til the line is empty
@@ -14,6 +14,8 @@ pub async fn consume_empty_lines(stream: &mut OutputStream) {
 pub(crate) mod test {
     macro_rules! to_stream_test {
         ($t:ident, $text:literal) => {{
+            use tap::Tap;
+            use tokio_stream::StreamExt;
             let sample = $text
                 .split("\n")
                 .map(ToString::to_string)
