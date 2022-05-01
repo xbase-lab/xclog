@@ -9,6 +9,7 @@ mod copy_swiftlibs;
 mod invocation;
 mod ld;
 mod precompile_swift_bridging_header;
+mod process_info_plist_file;
 mod script_execution;
 mod validate;
 
@@ -23,5 +24,6 @@ pub use copy_swiftlibs::CopySwiftLibs;
 pub use invocation::Invocation;
 pub use ld::Ld;
 pub use precompile_swift_bridging_header::PrecompileSwiftBridgingHeader;
+pub use process_info_plist_file::ProcessInfoPlistFile;
 pub use script_execution::ScriptExecution;
 pub use validate::Validate;
