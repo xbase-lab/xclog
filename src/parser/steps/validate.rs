@@ -4,8 +4,8 @@ use std::path::PathBuf;
 use tap::Pipe;
 use tokio_stream::StreamExt;
 
-#[derive(Debug)]
 /// Validate app
+#[derive(Debug)]
 pub struct Validate {
     pub description: Description,
     pub path: PathBuf,
