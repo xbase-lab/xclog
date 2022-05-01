@@ -1,5 +1,5 @@
 use super::super::{
-    util::consume_empty_lines, Description, Error, OutputStream, ParsableFromStream,
+    util::consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
 };
 use async_trait::async_trait;
 use std::path::PathBuf;
@@ -52,7 +52,7 @@ impl ParsableFromStream for CompileC {
 
         let description = Description::from_line(line)?;
 
-        consume_empty_lines(stream).await;
+        consume_till_empty_line(stream).await;
 
         Self {
             compiler,

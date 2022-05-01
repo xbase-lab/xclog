@@ -1,4 +1,4 @@
-use crate::parser::util::consume_empty_lines;
+use crate::parser::util::consume_till_empty_line;
 use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
 use std::path::PathBuf;
@@ -22,7 +22,7 @@ impl ParsableFromStream for Ld {
 
         let description = Description::from_line(line)?;
 
-        consume_empty_lines(stream).await;
+        consume_till_empty_line(stream).await;
 
         Self { description, path }.pipe(Ok)
     }

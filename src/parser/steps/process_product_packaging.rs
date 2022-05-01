@@ -1,4 +1,6 @@
-use crate::parser::{consume_empty_lines, Description, Error, OutputStream, ParsableFromStream};
+use crate::parser::{
+    consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
+};
 use async_trait::async_trait;
 use std::collections::HashMap;
 use tap::Pipe;
@@ -55,7 +57,7 @@ impl ParsableFromStream for ProcessProductPackaging {
             }
         }
 
-        consume_empty_lines(stream).await;
+        consume_till_empty_line(stream).await;
 
         Self {
             description,

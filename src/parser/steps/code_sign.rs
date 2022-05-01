@@ -1,5 +1,5 @@
 use super::super::{
-    util::consume_empty_lines, Description, Error, OutputStream, ParsableFromStream,
+    util::consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
 };
 use async_trait::async_trait;
 use std::path::PathBuf;
@@ -29,7 +29,7 @@ impl ParsableFromStream for CodeSign {
         let description = Description::from_line(line)?;
 
         // Skip exports
-        consume_empty_lines(stream).await;
+        consume_till_empty_line(stream).await;
 
         let identity = if let Some(Ok(line)) = stream.next().await {
             line.trim()
@@ -56,7 +56,7 @@ impl ParsableFromStream for CodeSign {
         };
 
         // Skip emptry lines
-        consume_empty_lines(stream).await;
+        consume_till_empty_line(stream).await;
 
         let sign_key = if let Some(Ok(line)) = stream.next().await {
             line.trim()

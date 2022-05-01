@@ -1,4 +1,6 @@
-use crate::parser::{consume_empty_lines, Description, Error, OutputStream, ParsableFromStream};
+use crate::parser::{
+    consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
+};
 use async_trait::async_trait;
 use tap::Pipe;
 
@@ -25,7 +27,7 @@ impl ParsableFromStream for ScriptExecution {
 
         let description = Description::from_line(line)?;
 
-        consume_empty_lines(stream).await;
+        consume_till_empty_line(stream).await;
 
         Self {
             name: name.join(" "),

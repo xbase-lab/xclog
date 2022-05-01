@@ -2,7 +2,7 @@ use super::OutputStream;
 use tokio_stream::StreamExt;
 
 /// Ignore stream content til the line is empty
-pub async fn consume_empty_lines(stream: &mut OutputStream) {
+pub async fn consume_till_empty_line(stream: &mut OutputStream) {
     while let Ok(Some(line)) = stream.try_next().await {
         if line.trim().is_empty() {
             break;
