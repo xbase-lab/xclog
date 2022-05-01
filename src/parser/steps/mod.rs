@@ -5,6 +5,7 @@ mod compile_storyboard;
 mod compile_swift;
 mod compile_swift_sources;
 mod compile_xib;
+mod copy_swiftlibs;
 mod invocation;
 mod precompile_swift_bridging_header;
 
@@ -15,5 +16,6 @@ pub use compile_storyboard::CompileStoryboard;
 pub use compile_swift::CompileSwift;
 pub use compile_swift_sources::CompileSwiftSources;
 pub use compile_xib::CompileXIB;
+pub use copy_swiftlibs::CopySwiftLibs;
 pub use invocation::Invocation;
 pub use precompile_swift_bridging_header::PrecompileSwiftBridgingHeader;
