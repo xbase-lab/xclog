@@ -4,6 +4,7 @@ mod compile_c;
 mod compile_storyboard;
 mod compile_swift;
 mod compile_swift_sources;
+mod compile_xib;
 mod invocation;
 
 pub use code_sign::CodeSign;
@@ -12,4 +13,5 @@ pub use compile_c::CompileC;
 pub use compile_storyboard::CompileStoryboard;
 pub use compile_swift::CompileSwift;
 pub use compile_swift_sources::CompileSwiftSources;
+pub use compile_xib::CompileXIB;
 pub use invocation::Invocation;
