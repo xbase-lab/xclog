@@ -15,6 +15,7 @@ mod link_storyboards;
 mod precompile_swift_bridging_header;
 mod process_info_plist_file;
 mod process_product_packaging;
+mod register_execution_policy_exception;
 mod script_execution;
 mod validate;
 
@@ -35,5 +36,6 @@ pub use link_storyboards::LinkStoryboards;
 pub use precompile_swift_bridging_header::PrecompileSwiftBridgingHeader;
 pub use process_info_plist_file::ProcessInfoPlistFile;
 pub use process_product_packaging::ProcessProductPackaging;
+pub use register_execution_policy_exception::RegisterExecutionPolicyException;
 pub use script_execution::ScriptExecution;
 pub use validate::Validate;
