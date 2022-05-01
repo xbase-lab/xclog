@@ -12,7 +12,7 @@ pub async fn consume_empty_lines(stream: &mut OutputStream) {
 
 #[cfg(test)]
 pub(crate) mod test {
-    macro_rules! to_stream_test {
+    macro_rules! try_to_stream_test {
         ($t:ident, $text:literal) => {{
             use tap::Tap;
             use tokio_stream::StreamExt;
@@ -34,10 +34,18 @@ pub(crate) mod test {
                 .as_str()
                 .to_string();
 
-            let step = $t::parse_from_stream(line, &mut stream).await.unwrap();
+            let step = $t::parse_from_stream(line, &mut stream).await;
             #[cfg(feature = "tracing")]
             tracing::info!("Result: {:#?}", step);
             step
+        }};
+    }
+
+    pub(crate) use try_to_stream_test;
+
+    macro_rules! to_stream_test {
+        ($t:ident, $text:literal) => {{
+            crate::parser::util::test::try_to_stream_test!($t, $text).unwrap()
         }};
     }
 
