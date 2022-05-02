@@ -21,11 +21,11 @@ impl ParsableFromStream for MergeSwiftModule {
             arch: chunks
                 .next()
                 .map(ToString::to_string)
-                .ok_or_else(|| Error::EOF("GenerateDSYMFile".into(), "arch".into()))?,
+                .ok_or_else(|| Error::EOF("MergeSwiftModule".into(), "arch".into()))?,
             output_path: chunks
                 .next()
                 .map(PathBuf::from)
-                .ok_or_else(|| Error::EOF("GenerateDSYMFile".into(), "output_path".into()))?,
+                .ok_or_else(|| Error::EOF("MergeSwiftModule".into(), "output_path".into()))?,
             description: Description::from_line(line)?,
         }
         .pipe(Ok)
