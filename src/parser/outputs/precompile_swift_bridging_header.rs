@@ -1,5 +1,6 @@
 use crate::parser::util::consume_till_empty_line;
 use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
+use crate::runner::ProcessUpdate;
 use async_trait::async_trait;
 use std::path::PathBuf;
 use tap::Pipe;
@@ -17,7 +18,7 @@ impl ParsableFromStream for PrecompileSwiftBridgingHeader {
     async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
         let mut path = None;
 
-        while let Some(Ok(line)) = stream.next().await {
+        while let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
             let line = line.trim();
             if line.is_empty() {
                 break;

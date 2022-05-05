@@ -1,3 +1,5 @@
+use crate::runner::ProcessUpdate;
+
 use super::super::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
 use tap::Pipe;
@@ -31,7 +33,7 @@ impl ParsableFromStream for CompileSwiftSources {
         let description = Description::from_line(line)?;
         let mut cmd = None;
 
-        while let Some(Ok(line)) = stream.next().await {
+        while let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
             let line = line.trim();
             if line.is_empty() {
                 break;

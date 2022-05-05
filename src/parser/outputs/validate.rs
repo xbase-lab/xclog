@@ -1,4 +1,7 @@
-use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
+use crate::{
+    parser::{Description, Error, OutputStream, ParsableFromStream},
+    runner::ProcessUpdate,
+};
 use async_trait::async_trait;
 use std::path::PathBuf;
 use tap::Pipe;
@@ -23,7 +26,7 @@ impl ParsableFromStream for Validate {
 
         let mut skip = false;
         let description = Description::from_line(line)?;
-        while let Some(Ok(line)) = stream.next().await {
+        while let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
             if line.contains("-no-validate-extension") {
                 skip = true;
             }

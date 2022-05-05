@@ -1,3 +1,5 @@
+use crate::runner::ProcessUpdate;
+
 use super::super::{consume_till_empty_line, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
 use tap::Pipe;
@@ -13,8 +15,8 @@ pub struct Invocation {
 #[async_trait]
 impl ParsableFromStream for Invocation {
     async fn parse_from_stream(_: String, stream: &mut OutputStream) -> Result<Self, Error> {
-        match stream.try_next().await {
-            Ok(Some(args)) => {
+        match stream.next().await {
+            Some(ProcessUpdate::Stdout(args)) => {
                 consume_till_empty_line(stream).await;
                 let mut chunks = args.trim().split_whitespace();
                 let command = chunks

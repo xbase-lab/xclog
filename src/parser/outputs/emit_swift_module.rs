@@ -1,4 +1,7 @@
-use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
+use crate::{
+    parser::{Description, Error, OutputStream, ParsableFromStream},
+    runner::ProcessUpdate,
+};
 use async_trait::async_trait;
 use std::path::PathBuf;
 use tap::Pipe;
@@ -23,7 +26,7 @@ impl ParsableFromStream for EmitSwiftModule {
             .map(ToString::to_string)
             .ok_or_else(|| Error::EOF("EmitSwiftModule".into(), "arch".into()))?;
 
-        while let Some(Ok(line)) = _stream.next().await {
+        while let Some(ProcessUpdate::Stdout(line)) = _stream.next().await {
             let line = line.trim();
             if line.is_empty() {
                 break;
