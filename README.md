@@ -3,6 +3,7 @@
 `xcodebuild` command wrapper, runner and log parser.
 
 - [ ] Parse stream from running xcodebuild command.
-- [ ] Wrap and parse xcodebuild.
+- [ ] impl TryFrom<String>.
 - [ ] Provide runners to consume and process parsed stream of xcodebuild output.
-- [ ] track compliation time
+- [ ] Track compilation time.
+- [ ] Write usage example.
