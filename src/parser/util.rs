@@ -3,8 +3,8 @@ use tokio_stream::StreamExt;
 
 /// Ignore stream content til the line is empty
 pub async fn consume_till_empty_line(stream: &mut OutputStream) {
-    while let Ok(Some(line)) = stream.try_next().await {
-        if line.trim().is_empty() {
+    while let Some(s) = stream.next().await {
+        if s.trim().is_empty() {
             break;
         }
     }
@@ -18,14 +18,12 @@ pub(crate) mod test {
             use tokio_stream::StreamExt;
             let sample = $text
                 .split("\n")
-                .map(ToString::to_string)
-                .map(Ok)
-                .collect::<Vec<Result<String, std::io::Error>>>();
+                .map(|s| crate::runner::ProcessUpdate::Stdout(s.into()))
+                .collect::<Vec<crate::runner::ProcessUpdate>>();
             let mut stream = tokio_stream::iter(sample);
             let line = stream
                 .next()
                 .await
-                .unwrap()
                 .unwrap()
                 .split_whitespace()
                 .tap_mut(|s| {

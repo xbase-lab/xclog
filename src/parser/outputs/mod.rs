@@ -21,9 +21,6 @@ mod register_execution_policy_exception;
 mod script_execution;
 mod validate;
 
-mod step;
-pub use step::Step;
-
 pub use code_sign::CodeSign;
 pub use compile_asset_catalog::CompileAssetCatalog;
 pub use compile_c::CompileC;
