@@ -1,4 +1,5 @@
 use std::ffi;
+use std::path::Path;
 
 use anyhow::Result;
 use futures::{stream::Stream, stream::StreamExt};
@@ -29,14 +30,15 @@ impl std::ops::Deref for ProcessUpdate {
 }
 
 #[allow(dead_code)]
-async fn spawn_stream<I, S>(
-    root: &str,
+async fn spawn_stream<P, I, S>(
+    root: P,
     args: I,
 ) -> Result<(
     LinesStream<BufReader<ChildStdout>>,
     LinesStream<BufReader<ChildStderr>>,
 )>
 where
+    P: AsRef<Path>,
     I: IntoIterator<Item = S>,
     S: AsRef<ffi::OsStr>,
 {
@@ -75,10 +77,11 @@ where
     Ok(readers)
 }
 
-pub async fn spawn<I, S>(root: &str, args: I) -> Result<impl Stream<Item = crate::parser::Step>>
+pub async fn spawn<P, I, S>(root: P, args: I) -> Result<impl Stream<Item = crate::parser::Step>>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<ffi::OsStr>,
+    P: AsRef<Path>,
 {
     let mut child = tokio::process::Command::new("/usr/bin/xcodebuild")
         .args(args)
