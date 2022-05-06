@@ -11,7 +11,7 @@ use tokio_stream::StreamExt;
 pub struct CompileSwift {
     pub arch: String,
     pub description: Description,
-    pub path: PathBuf,
+    pub path: Option<PathBuf>,
     pub command: String,
 }
 
@@ -27,7 +27,7 @@ impl ParsableFromStream for CompileSwift {
             .to_string();
 
         let path = match chunks.next() {
-            Some(path) => PathBuf::from(path),
+            Some(path) => path.to_string(),
             None => return Err(Error::EOF("CompileSwift".into(), "path".into())),
         };
 
@@ -52,7 +52,12 @@ impl ParsableFromStream for CompileSwift {
         Self {
             arch,
             description,
-            path,
+            path: if path.eq("(in") {
+                // TODO: Parse compile commands for CompileSwift that doesn't contains path
+                None
+            } else {
+                Some(PathBuf::from(path))
+            },
             command,
         }
         .pipe(Ok)
@@ -75,7 +80,7 @@ async fn test() {
     assert_eq!("arm64", step.arch);
     assert_eq!("DemoTarget", &step.description.target);
     assert_eq!("DemoProject", &step.description.project);
-    assert_eq!(PathBuf::from("/path/to/file.swift"), step.path);
+    assert_eq!(Some(PathBuf::from("/path/to/file.swift")), step.path);
     assert_eq!(
         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c ...",
         &step.command
@@ -84,12 +89,13 @@ async fn test() {
 
 impl Display for CompileSwift {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{} Compiling `{}`",
-            self.description,
-            self.path.file_name().unwrap().to_str().unwrap(),
-        )
+        write!(f, "{} Compiling ", self.description,)?;
+        if let Some(path) = &self.path {
+            write!(f, "`{}`", path.file_name().unwrap().to_str().unwrap())?;
+        } else {
+            write!(f, "`Swift Files`")?;
+        }
+        Ok(())
     }
 }
 
@@ -102,9 +108,9 @@ async fn fmt() {
             project: "DAB".into(),
             target: "iOS".into(),
         },
-        path: PathBuf::from("/path/to/file.swift"),
+        path: Some(PathBuf::from("/path/to/file.swift")),
         command: "".into(),
     };
 
-    assert_eq!("[DAB.iOS] Compiling    `file.swift`", &format!("{}", data),);
+    assert_eq!("[DAB.iOS] Compiling `file.swift`", &format!("{}", data),);
 }
