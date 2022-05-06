@@ -38,9 +38,11 @@ pub async fn parse_step_from_stream(
                 || cmd == "MkDir"
                 || cmd == "Copy"
                 || cmd == "WriteAuxiliaryFile"
+                || cmd == "Build"
                 || cmd == "Analyze"
                 || cmd == "cd"
                 || cmd == "RegisterExecutionPolicyException"
+                || cmd == "Resolve"
             {
                 consume_till_empty_line(stream).await;
                 return Ok(None);
@@ -54,6 +56,11 @@ pub async fn parse_step_from_stream(
         "Command" => Invocation::parse_from_stream(line, stream)
             .await
             .map(Step::Invocation),
+        "Resolved" if line.contains("source packages") => {
+            ResolvedSourcePackages::parse_from_stream(line, stream)
+                .await
+                .map(Step::ResolvedSourcePackages)
+        }
         "CompileSwift" => CompileSwift::parse_from_stream(line, stream)
             .await
             .map(Step::CompileSwift),

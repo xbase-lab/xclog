@@ -27,6 +27,7 @@ impl Display for Step {
             Step::Note(v) => write!(f, "[Note]  {v}"),
             Step::MergeSwiftModule(v) => Display::fmt(v, f),
             Step::EmitSwiftModule(v) => Display::fmt(v, f),
+            Step::ResolvedSourcePackages(v) => Display::fmt(v, f),
             Step::Error(v) => {
                 if !v.contains("plug-in") {
                     write!(f, "[Error]  {v}")

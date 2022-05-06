@@ -39,6 +39,8 @@ pub enum Step {
     ProcessInfoPlistFile(ProcessInfoPlistFile),
     /// Packaging step
     ProcessProductPackaging(ProcessProductPackaging),
+    /// Packaging step
+    ResolvedSourcePackages(ResolvedSourcePackages),
     /// Validate app
     Validate(Validate),
     /// TODO: Libtool was used to create a static library
