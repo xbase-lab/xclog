@@ -73,7 +73,7 @@ impl Display for ProcessProductPackaging {
 
         write!(
             f,
-            "{} Packaging   ----------------------------------------------------\n",
+            "{} Packaging   ----------------------------------------------------",
             description
         )?;
 

@@ -11,6 +11,7 @@ impl Display for Step {
             Step::CompileC(v) => Display::fmt(v, f),
             Step::CodeSign(v) => Display::fmt(v, f),
             Step::CompileAssetCatalog(v) => Display::fmt(v, f),
+            Step::RegisterWithLaunchServices(v) => Display::fmt(v, f),
             Step::CompileStoryboard(v) => Display::fmt(v, f),
             Step::CompileXIB(v) => Display::fmt(v, f),
             Step::Ld(v) => Display::fmt(v, f),

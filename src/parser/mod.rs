@@ -56,6 +56,9 @@ pub async fn parse_step_from_stream(
         "Command" => Invocation::parse_from_stream(line, stream)
             .await
             .map(Step::Invocation),
+        "RegisterWithLaunchServices" => RegisterWithLaunchServices::parse_from_stream(line, stream)
+            .await
+            .map(Step::RegisterWithLaunchServices),
         "Resolved" if line.contains("source packages") => {
             ResolvedSourcePackages::parse_from_stream(line, stream)
                 .await
@@ -163,6 +166,33 @@ async fn spawn_and_parse() {
     spawn_once(root, &["clean"]).await.unwrap();
 
     let mut stream = spawn(root, &["build"]).await.unwrap();
+
+    while let Some(step) = StreamExt::next(&mut stream).await {
+        println!("{}", step)
+    }
+}
+
+#[tokio::test]
+#[tracing_test::traced_test]
+async fn libc() {
+    let root = "/Users/tami5/repos/swift/yabaimaster";
+    use crate::runner::{spawn, spawn_once};
+    use futures::StreamExt;
+
+    spawn_once(root, &["clean"]).await.unwrap();
+
+    let mut stream = spawn(
+        root,
+        &[
+            "-configuration",
+            "Release",
+            "-arch",
+            "arm64",
+            r#"SYMROOT=/Users/tami5/repos/swift/yabaimaster/build"#,
+        ],
+    )
+    .await
+    .unwrap();
 
     while let Some(step) = StreamExt::next(&mut stream).await {
         println!("{}", step)

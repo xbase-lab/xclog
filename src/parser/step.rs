@@ -69,4 +69,6 @@ pub enum Step {
     Error(String),
     /// Exit Code
     Exit(String),
+    /// Register Launch Services
+    RegisterWithLaunchServices(RegisterWithLaunchServices),
 }
