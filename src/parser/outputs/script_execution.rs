@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::parser::{
     consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
 };
@@ -34,6 +36,11 @@ impl ParsableFromStream for ScriptExecution {
             description,
         }
         .pipe(Ok)
+    }
+}
+impl Display for ScriptExecution {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} Executing   {}", self.description, self.name)
     }
 }
 

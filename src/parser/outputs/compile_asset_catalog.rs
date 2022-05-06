@@ -2,7 +2,7 @@ use crate::runner::ProcessUpdate;
 
 use super::super::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
 use tokio_stream::StreamExt;
 
@@ -119,4 +119,21 @@ r#"CompileAssetCatalog /path/to/build/Debug-iphoneos/TargetName.app /path/to/res
         },
         step.notices
     };
+    assert_eq!(
+        "[ProjectName.TargetName] Compiling    `Assets.xcassets`",
+        step.to_string()
+    );
+}
+
+impl Display for CompileAssetCatalog {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Compiling   {}",
+            self.description,
+            self.path.file_name().unwrap().to_string_lossy()
+        )?;
+
+        Ok(())
+    }
 }

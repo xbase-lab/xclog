@@ -1,6 +1,7 @@
 use crate::parser::util::consume_till_empty_line;
 use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
+use std::fmt::Display;
 use std::path::PathBuf;
 use tap::Pipe;
 
@@ -28,6 +29,17 @@ impl ParsableFromStream for Ld {
     }
 }
 
+impl Display for Ld {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Linking     {}",
+            self.description,
+            self.path.file_name().unwrap().to_string_lossy()
+        )
+    }
+}
+
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
@@ -47,4 +59,9 @@ async fn test() {
         PathBuf::from("$ROOT/build/Debug-iphoneos/DemoTarget.app/DemoTarget"),
         step.path
     );
+
+    assert_eq!(
+        "[DemoProject.DemoTarget] Linking   `DemoTarget`",
+        step.to_string()
+    )
 }

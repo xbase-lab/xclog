@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::runner::ProcessUpdate;
 
 use super::super::{consume_till_empty_line, Error, OutputStream, ParsableFromStream};
@@ -50,4 +52,26 @@ async fn test() {
         &step.command
     );
     assert_eq!(vec!["build".to_string()], step.arguments);
+}
+
+impl Display for Invocation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[Running] {} {}",
+            self.command.split("/").last().unwrap(),
+            self.arguments.join(" "),
+        )
+    }
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "tracing", tracing_test::traced_test)]
+async fn fmt() {
+    let data = Invocation {
+        command: "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild".into(),
+        arguments: vec!["build".into()],
+    };
+
+    assert_eq!("[Running] xcodebuild build", &format!("{}", data),);
 }

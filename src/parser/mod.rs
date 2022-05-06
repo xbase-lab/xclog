@@ -40,6 +40,7 @@ pub async fn parse_step_from_stream(
                 || cmd == "WriteAuxiliaryFile"
                 || cmd == "Analyze"
                 || cmd == "cd"
+                || cmd == "RegisterExecutionPolicyException"
             {
                 consume_till_empty_line(stream).await;
                 return Ok(None);
@@ -83,9 +84,6 @@ pub async fn parse_step_from_stream(
             .await
             .map(Step::CopySwiftLibs),
         "Ld" => Ld::parse_from_stream(line, stream).await.map(Step::Ld),
-        "RegisterExecutionPolicyException" => {
-            RegisterExecutionPolicyException::new(line).map(Step::RegisterExecutionPolicyException)
-        }
         "CpResource" => CopyResource::parse_from_stream(line, stream)
             .await
             .map(Step::CopyResource),
@@ -102,19 +100,6 @@ pub async fn parse_step_from_stream(
         "EmitSwiftModule" => EmitSwiftModule::parse_from_stream(line, stream)
             .await
             .map(Step::EmitSwiftModule),
-
-        "Note" | "note:" => {
-            if line.eq("Planning") {
-                Step::Planning.pipe(Ok)
-            } else if line.eq("Using new build system") {
-                Step::NewBuildSystem.pipe(Ok)
-            } else if line.ne("Build preparation complete") {
-                Step::Note(line).pipe(Ok)
-            } else {
-                return Ok(None);
-            }
-        }
-
         "PhaseScriptExecution" => ScriptExecution::parse_from_stream(line, stream)
             .await
             .map(Step::ScriptExecution),
@@ -138,9 +123,22 @@ pub async fn parse_step_from_stream(
         "**" if line.contains("CLEAN SUCCEEDED") => Step::CleanSucceed.pipe(Ok),
         "**" if line.contains("TEST SUCCEEDED") => Step::TestSucceed.pipe(Ok),
         "**" if line.contains("TEST FAILED") => Step::TestFailed.pipe(Ok),
-        _ => {
+        "Note" | "note:" => {
+            if line.eq("Planning") {
+                Step::Planning.pipe(Ok)
+            } else if line.eq("Using new build system") {
+                Step::NewBuildSystem.pipe(Ok)
+            } else if line.contains("suppress this warning") {
+                return Ok(None);
+            } else if line.ne("Build preparation complete") {
+                Step::Note(line).pipe(Ok)
+            } else {
+                return Ok(None);
+            }
+        }
+        cmd => {
             #[cfg(feature = "tracing")]
-            tracing::trace!("Skipping {cmd}");
+            tracing::error!("Skipping: {cmd}");
             consume_till_empty_line(stream).await;
             return Ok(None);
         }
@@ -160,6 +158,6 @@ async fn spawn_and_parse() {
         .unwrap();
 
     while let Some(step) = stream.next().await {
-        tracing::info!("{:#?}", step)
+        println!("{}", step)
     }
 }

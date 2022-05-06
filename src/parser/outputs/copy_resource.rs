@@ -1,6 +1,6 @@
 use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
 
 /// Resource file was copied
@@ -30,6 +30,20 @@ impl ParsableFromStream for CopyResource {
     }
 }
 
+impl Display for CopyResource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Copying     {}",
+            self.description,
+            self.path
+                .strip_prefix(self.path.ancestors().nth(2).unwrap())
+                .unwrap()
+                .display()
+        )
+    }
+}
+
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
@@ -51,4 +65,8 @@ async fn test() {
         PathBuf::from("$ROOT/build/Debug-iphoneos/DemoTarget.app/EnWords.txt"),
         step.output_path
     );
+    assert_eq!(
+        "[DemoProject.DemoTarget] Copying   `Resources/EnWords.txt`",
+        step.to_string()
+    )
 }

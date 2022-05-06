@@ -2,7 +2,7 @@ use crate::parser::{
     consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
 };
 use async_trait::async_trait;
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
 
 /// Info plist process step
@@ -30,6 +30,20 @@ impl ParsableFromStream for ProcessInfoPlistFile {
     }
 }
 
+impl Display for ProcessInfoPlistFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Processing  {}",
+            self.description,
+            self.path
+                .strip_prefix(self.path.ancestors().nth(2).unwrap())
+                .unwrap()
+                .display()
+        )
+    }
+}
+
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
@@ -46,4 +60,8 @@ async fn test() {
     assert_eq!("DemoTarget", &step.description.target);
     assert_eq!("DemoProject", &step.description.project);
     assert_eq!(PathBuf::from("$ROOT/Resources/Info.plist"), step.path);
+    assert_eq!(
+        step.to_string(),
+        "[DemoProject.DemoTarget] Processing `Resources/Info.plist`"
+    );
 }

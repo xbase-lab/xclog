@@ -1,6 +1,7 @@
 use crate::parser::Description;
 use crate::parser::{Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
+use std::fmt::Display;
 use std::path::PathBuf;
 use tap::Pipe;
 
@@ -26,6 +27,20 @@ impl ParsableFromStream for GenerateDSYMFile {
     }
 }
 
+impl Display for GenerateDSYMFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Generating    {}",
+            self.description,
+            self.output_path
+                .strip_prefix(self.output_path.ancestors().nth(3).unwrap())
+                .unwrap()
+                .display()
+        )
+    }
+}
+
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
@@ -46,4 +61,8 @@ async fn test() {
         PathBuf::from("$ROOT/build/Release/DemoTarget.app.dSYM"),
         step.output_path
     );
+    assert_eq!(
+        step.to_string(),
+        "[DemoProject.DemoTarget] Generating `build/Release/DemoTarget.app.dSYM`"
+    )
 }

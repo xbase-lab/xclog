@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use super::Error;
 
 #[derive(Debug)]
@@ -23,5 +25,11 @@ impl Description {
         let project = project.ok_or_else(|| Error::EOF("Description".into(), "project".into()))?;
 
         Ok(Self { project, target })
+    }
+}
+
+impl Display for Description {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{}.{}]", self.project, self.target,)
     }
 }

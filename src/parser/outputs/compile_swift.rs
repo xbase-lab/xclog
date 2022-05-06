@@ -2,7 +2,7 @@ use crate::runner::ProcessUpdate;
 
 use super::super::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
 use tokio_stream::StreamExt;
 
@@ -80,4 +80,31 @@ async fn test() {
         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c ...",
         &step.command
     );
+}
+
+impl Display for CompileSwift {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Compiling   {}",
+            self.description,
+            self.path.file_name().unwrap().to_str().unwrap(),
+        )
+    }
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "tracing", tracing_test::traced_test)]
+async fn fmt() {
+    let data = CompileSwift {
+        arch: "x86".into(),
+        description: Description {
+            project: "DAB".into(),
+            target: "iOS".into(),
+        },
+        path: PathBuf::from("/path/to/file.swift"),
+        command: "".into(),
+    };
+
+    assert_eq!("[DAB.iOS] Compiling    `file.swift`", &format!("{}", data),);
 }

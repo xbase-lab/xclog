@@ -2,6 +2,7 @@ use crate::parser::util::consume_till_empty_line;
 use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
 use crate::runner::ProcessUpdate;
 use async_trait::async_trait;
+use std::fmt::Display;
 use std::path::PathBuf;
 use tap::Pipe;
 use tokio_stream::StreamExt;
@@ -53,6 +54,20 @@ impl ParsableFromStream for PrecompileSwiftBridgingHeader {
     }
 }
 
+impl Display for PrecompileSwiftBridgingHeader {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Precompiling Bridging Header {}",
+            self.description,
+            self.path
+                .strip_prefix(self.path.ancestors().nth(2).unwrap())
+                .unwrap()
+                .display()
+        )
+    }
+}
+
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
@@ -68,4 +83,8 @@ async fn test() {
     assert_eq!("DemoTarget", &step.description.target);
     assert_eq!("DemoProject", &step.description.project);
     assert_eq!(PathBuf::from("$ROOT/src/bridge.h"), step.path);
+    assert_eq!(
+        step.to_string(),
+        "[DemoProject.DemoTarget] Precompiling Bridging Header `src/bridge.h`"
+    )
 }

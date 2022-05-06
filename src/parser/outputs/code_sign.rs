@@ -4,7 +4,7 @@ use super::super::{
     util::consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
 };
 use async_trait::async_trait;
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
 use tokio_stream::StreamExt;
 
@@ -89,7 +89,7 @@ async fn test() {
 
     let step = to_stream_test! {
         CodeSign,
-r#"CodeSign /Users/tami5/repos/swift/wordle/build/Debug-iphoneos/Wordle.app (in target 'DemoTarget' from project 'DemoProject')
+r#"CodeSign path/to/build/Debug-iphoneos/DemoTarget.app (in target 'DemoTarget' from project 'DemoProject')
     cd /path/to/project
     export CODESIGN_ALLOCATE\=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/codesign_allocate
     
@@ -97,7 +97,7 @@ r#"CodeSign /Users/tami5/repos/swift/wordle/build/Debug-iphoneos/Wordle.app (in 
     Provisioning Profile: "iOS Team Provisioning Profile: tami5.DemoProject"
                           (42dd5b24-0395-46bb-bb88-2aed95a7831b)
     
-    /usr/bin/codesign --force --sign XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --entitlements /Users/tami5/repos/swift/wordle/build/Wordle.build/Debug-iphoneos/Wordle.build/Wordle.app.xcent --timestamp\=none --generate-entitlement-der /Users/tami5/repos/swift/wordle/build/Debug-iphoneos/Wordle.app
+    /usr/bin/codesign --force --sign XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --entitlements path/to/build/DemoTarget.build/Debug-iphoneos/DemoTarget.build/DemoTarget.app.xcent --timestamp\=none --generate-entitlement-der path/to/build/Debug-iphoneos/DemoTarget.app
 
        "#
     };
@@ -112,4 +112,35 @@ r#"CodeSign /Users/tami5/repos/swift/wordle/build/Debug-iphoneos/Wordle.app (in 
         &step.profile
     );
     assert_eq!("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", &step.sign_key);
+}
+
+impl Display for CodeSign {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Signing     {}",
+            self.description,
+            self.dir.file_name().unwrap().to_str().unwrap(),
+        )
+    }
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "tracing", tracing_test::traced_test)]
+async fn fmt() {
+    let data = CodeSign {
+        description: Description {
+            project: "Project".into(),
+            target: "Target".into(),
+        },
+        identity: "Apple Development: email@email.com (XXXXXXXXXX)".into(),
+        profile: "iOS Team Provisioning Profile: tami5.DemoProject".into(),
+        dir: "/path/to/Target.App".into(),
+        sign_key: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX".into(),
+    };
+
+    assert_eq!(
+        "[Project.Target] Signing     `Target.App`",
+        &format!("{}", data),
+    );
 }

@@ -3,7 +3,7 @@ use crate::{
     runner::ProcessUpdate,
 };
 use async_trait::async_trait;
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 use tap::Pipe;
 use tokio_stream::StreamExt;
 
@@ -67,6 +67,35 @@ impl ParsableFromStream for ProcessProductPackaging {
         .pipe(Ok)
     }
 }
+impl Display for ProcessProductPackaging {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let description = self.description.to_string();
+
+        write!(
+            f,
+            "{} Packaging   ----------------------------------------------------\n",
+            description
+        )?;
+
+        {
+            let mut sorted = self.entitlements.iter().collect::<Vec<_>>();
+            sorted.sort_by_key(|a| a.0);
+            sorted
+        }
+        .iter()
+        .try_for_each(|(key, value)| {
+            writeln!(f, "{} Entitlement {} = {}", description, key, value)
+        })?;
+
+        write!(
+            f,
+            "{} Packaging   ----------------------------------------------------",
+            description
+        )?;
+
+        Ok(())
+    }
+}
 
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
@@ -98,6 +127,7 @@ async fn test() {
         )]),
         sample_one.entitlements
     );
+    assert_eq!("[DemoProject.DemoTarget] Packaging   ----------------------------------------------------\n[DemoProject.DemoTarget] Entitlement `com.apple.security.get-task-allow` = 1\n[DemoProject.DemoTarget] Packaging   ----------------------------------------------------", sample_one.to_string());
 
     let sample_two = to_stream_test! {
         ProcessProductPackaging,
@@ -133,4 +163,5 @@ r#"ProcessProductPackaging "" $ROOT/build/DemoTarget.build/Debug-iphoneos/DemoTa
         ]),
         sample_two.entitlements
     );
+    assert_eq!("[DemoProject.DemoTarget] Packaging   ----------------------------------------------------n[DemoProject.DemoTarget] Entitlement `application-identifier` = 7N5BMV2F5G.tami5.DemoTarget\n[DemoProject.DemoTarget] Entitlement `com.apple.developer.team-identifier` = 7N5BMV2F5G\n[DemoProject.DemoTarget] Entitlement `get-task-allow` = 1\n[DemoProject.DemoTarget] Packaging   ----------------------------------------------------", sample_two.to_string())
 }

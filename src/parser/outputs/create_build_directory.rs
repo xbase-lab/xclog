@@ -1,6 +1,6 @@
 use crate::parser::{consume_till_empty_line, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
 
 /// Build Directory Creation Step
@@ -21,6 +21,12 @@ impl ParsableFromStream for CreateBuildDirectory {
     }
 }
 
+impl Display for CreateBuildDirectory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[Create Build Directory]    {}", self.path.display())
+    }
+}
+
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
@@ -35,4 +41,9 @@ async fn test() {
 "# 
     };
     assert_eq!(PathBuf::from("$ROOT/build/Release"), step.path);
+
+    assert_eq!(
+        step.to_string(),
+        "[Create Build Directory] `$ROOT/build/Release`"
+    )
 }

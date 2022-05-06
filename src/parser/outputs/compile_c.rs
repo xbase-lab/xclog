@@ -2,11 +2,11 @@ use super::super::{
     util::consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
 };
 use async_trait::async_trait;
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
 
-#[derive(Debug)]
 /// Clang compilation step
+#[derive(Debug)]
 pub struct CompileC {
     pub compiler: String,
     pub description: Description,
@@ -87,4 +87,36 @@ async fn test() {
     assert_eq!("c", &step.lang);
     assert_eq!(PathBuf::from("path/to/input/bridge.c"), step.path);
     assert_eq!(PathBuf::from("path/to/output/bridge.o"), step.output_path);
+}
+
+impl Display for CompileC {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Compiling   {}",
+            self.description,
+            self.path.file_name().unwrap().to_str().unwrap()
+        )
+    }
+}
+
+#[tokio::test]
+#[cfg_attr(feature = "tracing", tracing_test::traced_test)]
+async fn fmt() {
+    let data = CompileC {
+        compiler: "com.apple.compilers.llvm.clang.1_0.compiler".into(),
+        description: Description {
+            project: "DemoProject".into(),
+            target: "DemoTarget".into(),
+        },
+        output_path: "".into(),
+        path: PathBuf::from("/path/to/file.c"),
+        arch: "arm".into(),
+        lang: "c".into(),
+    };
+
+    assert_eq!(
+        "[DemoProject.DemoTarget] Compiling    `file.c`",
+        &format!("{}", data),
+    );
 }

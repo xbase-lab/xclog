@@ -39,8 +39,6 @@ pub enum Step {
     ProcessInfoPlistFile(ProcessInfoPlistFile),
     /// Packaging step
     ProcessProductPackaging(ProcessProductPackaging),
-    /// Register Execution policy
-    RegisterExecutionPolicyException(RegisterExecutionPolicyException),
     /// Validate app
     Validate(Validate),
     /// TODO: Libtool was used to create a static library
@@ -67,8 +65,6 @@ pub enum Step {
     TestFailed,
     /// Error from stderr or error:
     Error(String),
-    /// Raw String
-    Raw(String),
     /// Exit Code
     Exit(String),
 }

@@ -1,6 +1,7 @@
 use crate::parser::util::consume_till_empty_line;
 use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
+use std::fmt::Display;
 use std::path::PathBuf;
 use tap::Pipe;
 
@@ -28,6 +29,17 @@ impl ParsableFromStream for CompileStoryboard {
     }
 }
 
+impl Display for CompileStoryboard {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Compiling   {}",
+            self.description,
+            self.path.file_name().unwrap().to_string_lossy()
+        )
+    }
+}
+
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
@@ -45,4 +57,8 @@ async fn test() {
     assert_eq!("DemoTarget", &step.description.target);
     assert_eq!("DemoProject", &step.description.project);
     assert_eq!(PathBuf::from("/path/to/a.storyboard"), step.path);
+    assert_eq!(
+        "[DemoProject.DemoTarget] Compiling `a.storyboard`",
+        step.to_string()
+    )
 }

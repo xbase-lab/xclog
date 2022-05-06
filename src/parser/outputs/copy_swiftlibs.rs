@@ -1,6 +1,7 @@
 use crate::parser::util::consume_till_empty_line;
 use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
+use std::fmt::Display;
 use std::path::PathBuf;
 use tap::Pipe;
 
@@ -28,6 +29,12 @@ impl ParsableFromStream for CopySwiftLibs {
     }
 }
 
+impl Display for CopySwiftLibs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} Copying     Swift Libraries", self.description,)
+    }
+}
+
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
@@ -50,4 +57,8 @@ async fn test() {
         PathBuf::from("$ROOT/build/Release/DemoTarget.app"),
         step.path
     );
+    assert_eq!(
+        step.to_string(),
+        "[DemoProject.DemoTarget] Copying swift libraries ..."
+    )
 }

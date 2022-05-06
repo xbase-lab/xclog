@@ -3,7 +3,7 @@ use crate::{
     runner::ProcessUpdate,
 };
 use async_trait::async_trait;
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
 use tokio_stream::StreamExt;
 
@@ -54,6 +54,17 @@ impl ParsableFromStream for EmitSwiftModule {
     }
 }
 
+impl Display for EmitSwiftModule {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Emitting    {}",
+            self.description,
+            self.output_path.file_name().unwrap().to_string_lossy()
+        )
+    }
+}
+
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
@@ -73,5 +84,10 @@ async fn test() {
     assert_eq!(
         PathBuf::from("$ROOT/build/DemoTarget.build/Debug-iphoneos/DemoTarget.build/Objects-normal/arm64/DemoTarget.swiftmodule"),
         step.output_path
+    );
+
+    assert_eq!(
+        "[DemoProject.DemoTarget] Emitting  `DemoTarget.swiftmodule`",
+        step.to_string()
     );
 }

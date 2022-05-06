@@ -3,7 +3,7 @@ use crate::{
     runner::ProcessUpdate,
 };
 use async_trait::async_trait;
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
 use tokio_stream::StreamExt;
 
@@ -45,6 +45,19 @@ impl ParsableFromStream for Validate {
     }
 }
 
+impl Display for Validate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let status = if self.skip { "[skipped]" } else { "" };
+        write!(
+            f,
+            "{} Validating  {} {}",
+            self.description,
+            self.path.file_name().unwrap().to_string_lossy(),
+            status
+        )
+    }
+}
+
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
@@ -64,4 +77,8 @@ async fn test() {
         step.path
     );
     assert_eq!(true, step.skip);
+    assert_eq!(
+        "[DemoProject.DemoTarget] Validating `DemoTarget.app` [skipped]",
+        step.to_string()
+    )
 }

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::runner::ProcessUpdate;
 
 use super::super::{Description, Error, OutputStream, ParsableFromStream};
@@ -57,6 +59,12 @@ impl ParsableFromStream for CompileSwiftSources {
             })?,
         }
         .pipe(Ok)
+    }
+}
+
+impl Display for CompileSwiftSources {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} Compiling   Swift Sources", self.description,)
     }
 }
 

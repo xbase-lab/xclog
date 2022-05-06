@@ -1,6 +1,6 @@
 use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
 
 /// Resource file was copied
@@ -32,6 +32,17 @@ impl ParsableFromStream for MergeSwiftModule {
     }
 }
 
+impl Display for MergeSwiftModule {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} Merging    {}",
+            self.description,
+            self.output_path.file_name().unwrap().to_string_lossy()
+        )
+    }
+}
+
 #[tokio::test]
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
@@ -51,5 +62,9 @@ async fn test() {
     assert_eq!(
         PathBuf::from("/path/to/build/Objects-normal/x86_64/helloworld.swiftmodule"),
         step.output_path
+    );
+    assert_eq!(
+        "[DemoProject.DemoTarget] Merging    `helloworld.swiftmodule`",
+        step.to_string()
     );
 }
