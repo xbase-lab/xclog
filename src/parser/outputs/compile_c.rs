@@ -47,9 +47,6 @@ impl ParsableFromStream for CompileC {
             .map(ToString::to_string)
             .ok_or_else(|| Error::EOF("CompileC".into(), "path".into()))?;
 
-        #[cfg(feature = "tracing")]
-        tracing::trace!("left {}", chunks.as_str());
-
         let description = Description::from_line(line)?;
 
         consume_till_empty_line(stream).await;

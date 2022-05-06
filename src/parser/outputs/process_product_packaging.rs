@@ -71,7 +71,7 @@ impl Display for ProcessProductPackaging {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let description = self.description.to_string();
 
-        write!(
+        writeln!(
             f,
             "{} Packaging   ----------------------------------------------------",
             description
