@@ -49,8 +49,6 @@ pub enum Step {
     Note(String),
     /// Planning phase
     Planning,
-    /// New Build System
-    NewBuildSystem,
     /// Swift Module was merged
     MergeSwiftModule(MergeSwiftModule),
     /// Swift Module was emitted
@@ -67,6 +65,8 @@ pub enum Step {
     TestFailed,
     /// Error from stderr or error:
     Error(String),
+    /// Error from warning:
+    Warning(String),
     /// Exit Code
     Exit(String),
     /// Register Launch Services

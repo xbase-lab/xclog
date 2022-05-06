@@ -137,7 +137,7 @@ pub async fn parse_step_from_stream(
             if line.eq("Planning") {
                 Step::Planning.pipe(Ok)
             } else if line.eq("Using new build system") {
-                Step::NewBuildSystem.pipe(Ok)
+                return Ok(None);
             } else if line.contains("suppress this warning") {
                 return Ok(None);
             } else if line.ne("Build preparation complete") {

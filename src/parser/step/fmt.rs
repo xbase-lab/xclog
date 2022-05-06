@@ -42,7 +42,6 @@ impl Display for Step {
             ),
             Step::LibTool => write!(f, "LibTool"),
             Step::Planning => write!(f, "[Planning]"),
-            Step::NewBuildSystem => write!(f, "[New Build System]"),
             Step::BuildSucceed => write!(f, "[Succeed]"),
             Step::BuildFailed => write!(f, "[Failed]"),
             Step::CleanSucceed => write!(f, "[Succeed]"),
