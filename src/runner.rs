@@ -150,8 +150,9 @@ where
     .pipe(Ok)
 }
 
-pub async fn spawn_once<I, S>(root: &str, args: I) -> Result<()>
+pub async fn spawn_once<P, I, S>(root: P, args: I) -> Result<()>
 where
+    P: AsRef<Path>,
     I: IntoIterator<Item = S>,
     S: AsRef<ffi::OsStr>,
 {
