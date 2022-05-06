@@ -146,6 +146,11 @@ pub async fn parse_step_from_stream(
                 return Ok(None);
             }
         }
+        "warning:" => {
+            let warn = Step::Warning(line).pipe(Ok);
+            consume_till_empty_line(stream).await;
+            warn
+        }
         cmd => {
             #[cfg(feature = "tracing")]
             tracing::error!("Skipping: {cmd}");

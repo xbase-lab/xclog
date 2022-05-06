@@ -25,9 +25,10 @@ impl Display for Step {
             Step::ProcessInfoPlistFile(v) => Display::fmt(v, f),
             Step::ProcessProductPackaging(v) => Display::fmt(v, f),
             Step::Validate(v) => Display::fmt(v, f),
-            Step::Note(v) => write!(f, "[Note]  {v}"),
+            Step::Note(v) => write!(f, "[Note] {v}"),
             Step::MergeSwiftModule(v) => Display::fmt(v, f),
             Step::EmitSwiftModule(v) => Display::fmt(v, f),
+            Step::Warning(v) => write!(f, "[Warning] {v}"),
             Step::ResolvedSourcePackages(v) => Display::fmt(v, f),
             Step::Error(v) => {
                 if !v.contains("plug-in") {
