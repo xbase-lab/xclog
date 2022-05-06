@@ -30,6 +30,6 @@ impl Description {
 
 impl Display for Description {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[{}.{}]", self.project, self.target,)
+        write!(f, "[{}]", self.target,)
     }
 }
