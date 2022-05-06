@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, path::PathBuf};
 
 use crate::runner::ProcessUpdate;
 
@@ -12,6 +12,7 @@ use tokio_stream::StreamExt;
 pub struct CompileSwiftSources {
     pub compiler: String,
     pub arch: String,
+    pub root: PathBuf,
     pub description: Description,
     pub command: String,
 }
@@ -33,15 +34,18 @@ impl ParsableFromStream for CompileSwiftSources {
             .ok_or_else(|| Error::EOF("CompileSwiftSources".into(), "compiler".into()))?;
 
         let description = Description::from_line(line)?;
-        let mut cmd = None;
+        let (mut cmd, mut root) = (None, None);
 
         while let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
             let line = line.trim();
             if line.is_empty() {
                 break;
             }
+            if line.starts_with("cd") {
+                root = line.strip_prefix("cd ").map(PathBuf::from);
+            }
 
-            if line.starts_with("export") || line.starts_with("cd") {
+            if line.starts_with("export") {
                 continue;
             }
 
@@ -53,6 +57,7 @@ impl ParsableFromStream for CompileSwiftSources {
         Self {
             arch,
             compiler,
+            root: root.ok_or_else(|| Error::Failure("root not found".into()))?,
             description,
             command: cmd.ok_or_else(|| {
                 Error::Failure("command for CompileSwiftSources not found".into())
@@ -89,6 +94,7 @@ remark: Incremental compilation has been disabled: it is not compatible with who
     assert_eq!("DemoTarget", &step.description.target);
     assert_eq!("DemoProject", &step.description.project);
     assert_eq!("com.apple.xcode.tools.swift.compiler", &step.compiler);
+    assert_eq!(PathBuf::from("/path/to/project"), step.root);
     assert_eq!(
         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc ...",
         &step.command
