@@ -150,14 +150,14 @@ pub async fn parse_step_from_stream(
 #[tracing_test::traced_test]
 async fn spawn_and_parse() {
     let root = "/Users/tami5/repos/swift/wordle";
+    use crate::runner::{spawn, spawn_once};
     use futures::StreamExt;
-    crate::runner::spawn_once(root, &["clean"]).await.unwrap();
 
-    let mut stream = crate::runner::spawn("/Users/tami5/repos/swift/wordle", &["build"])
-        .await
-        .unwrap();
+    spawn_once(root, &["clean"]).await.unwrap();
 
-    while let Some(step) = stream.next().await {
+    let mut stream = spawn(root, &["build"]).await.unwrap();
+
+    while let Some(step) = StreamExt::next(&mut stream).await {
         println!("{}", step)
     }
 }

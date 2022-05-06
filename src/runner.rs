@@ -65,11 +65,6 @@ where
             .pipe(LinesStream::new),
     );
 
-    // // Make child produce exit event
-    // let exit_status_stream = Box::pin(async move { build.wait().await })
-    //     .into_stream()
-    //     .map(|maybe_exit_status| maybe_exit_status.map(Event::ExitStatus).map_err(Error::Io));
-
     tokio::spawn(async move {
         let status = build.wait().await.unwrap();
 
