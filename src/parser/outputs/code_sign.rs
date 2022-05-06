@@ -118,7 +118,7 @@ impl Display for CodeSign {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} Signing     {}",
+            "{} Signing `{}`",
             self.description,
             self.dir.file_name().unwrap().to_str().unwrap(),
         )

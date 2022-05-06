@@ -23,7 +23,7 @@ impl ParsableFromStream for CreateBuildDirectory {
 
 impl Display for CreateBuildDirectory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[Mkdir] {}", self.path.display())
+        write!(f, "[Mkdir] `{}`", self.path.display())
     }
 }
 

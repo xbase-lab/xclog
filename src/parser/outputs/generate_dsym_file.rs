@@ -31,7 +31,7 @@ impl Display for GenerateDSYMFile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} Generating    {}",
+            "{} Generating `{}`",
             self.description,
             self.output_path
                 .strip_prefix(self.output_path.ancestors().nth(3).unwrap())

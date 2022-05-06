@@ -64,7 +64,7 @@ impl ParsableFromStream for CompileSwiftSources {
 
 impl Display for CompileSwiftSources {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} Compiling   Swift Sources", self.description,)
+        write!(f, "{} Compiling `Swift Sources`", self.description,)
     }
 }
 

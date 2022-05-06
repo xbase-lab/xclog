@@ -34,7 +34,7 @@ impl Display for ProcessInfoPlistFile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} Processing  {}",
+            "{} Processing `{}`",
             self.description,
             self.path
                 .strip_prefix(self.path.ancestors().nth(2).unwrap())

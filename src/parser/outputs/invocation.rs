@@ -58,7 +58,7 @@ impl Display for Invocation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "[Running] {} {}",
+            "[Running] `{} {}`",
             self.command.split("/").last().unwrap(),
             self.arguments.join(" "),
         )

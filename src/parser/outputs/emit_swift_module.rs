@@ -58,7 +58,7 @@ impl Display for EmitSwiftModule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} Emitting    {}",
+            "{} Emitting `{}`",
             self.description,
             self.output_path.file_name().unwrap().to_string_lossy()
         )

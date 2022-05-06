@@ -34,7 +34,7 @@ impl Display for CopyResource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} Copying     {}",
+            "{} Copying `{}`",
             self.description,
             self.path
                 .strip_prefix(self.path.ancestors().nth(2).unwrap())

@@ -70,7 +70,7 @@ impl Display for ResolvedSourcePackages {
         .try_for_each(|package| {
             writeln!(
                 f,
-                "[Packages]  {}  ({}) => {}",
+                "[Packages]  `{}`  ({}) => {}",
                 package.name, package.version, package.url
             )
         })?;

@@ -21,6 +21,6 @@ impl LinkStoryboards {
 
 impl Display for LinkStoryboards {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} Linking     Storyboards", self.description)
+        write!(f, "{} Linking `Storyboards`", self.description)
     }
 }

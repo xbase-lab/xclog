@@ -50,7 +50,7 @@ impl Display for Validate {
         let status = if self.skip { "[skipped]" } else { "" };
         write!(
             f,
-            "{} Validating  {} {}",
+            "{} Validating `{}` {}",
             self.description,
             self.path.file_name().unwrap().to_string_lossy(),
             status

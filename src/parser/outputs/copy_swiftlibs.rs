@@ -31,7 +31,7 @@ impl ParsableFromStream for CopySwiftLibs {
 
 impl Display for CopySwiftLibs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} Copying     Swift Libraries", self.description,)
+        write!(f, "{} Copying `Swift Libraries`", self.description,)
     }
 }
 

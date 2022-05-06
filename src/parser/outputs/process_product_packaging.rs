@@ -84,7 +84,7 @@ impl Display for ProcessProductPackaging {
         }
         .iter()
         .try_for_each(|(key, value)| {
-            writeln!(f, "{} Entitlement {} = {}", description, key, value)
+            writeln!(f, "{} Entitlement `{}` = {}", description, key, value)
         })?;
 
         write!(

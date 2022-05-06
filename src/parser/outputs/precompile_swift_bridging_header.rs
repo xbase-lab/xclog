@@ -58,7 +58,7 @@ impl Display for PrecompileSwiftBridgingHeader {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} Precompiling Bridging Header {}",
+            "{} Precompiling Bridging Header `{}`",
             self.description,
             self.path
                 .strip_prefix(self.path.ancestors().nth(2).unwrap())

@@ -21,6 +21,6 @@ impl RegisterExecutionPolicyException {
 
 impl Display for RegisterExecutionPolicyException {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} Registering Execution Policy ...", self.description,)
+        write!(f, "{} Registering Execution Policy", self.description,)
     }
 }

@@ -36,7 +36,7 @@ impl Display for MergeSwiftModule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} Merging    {}",
+            "{} Merging `{}`",
             self.description,
             self.output_path.file_name().unwrap().to_string_lossy()
         )
