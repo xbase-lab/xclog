@@ -46,8 +46,7 @@ impl ParsableFromStream for CompileSwift {
             command = line.to_string().into();
         }
 
-        let command =
-            command.ok_or_else(|| Error::Failure("Command for CompileSwift not found".into()))?;
+        let command = command.unwrap_or_default();
 
         Self {
             arch,
