@@ -13,7 +13,7 @@ use tokio_stream::StreamExt;
 pub struct CodeSign {
     pub description: Description,
     pub identity: String,
-    pub profile: String,
+    pub profile: Option<String>,
     pub dir: PathBuf,
     pub sign_key: String,
 }
@@ -50,9 +50,7 @@ impl ParsableFromStream for CodeSign {
         let profile = if let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
             line.trim()
                 .strip_prefix("Provisioning Profile:")
-                .ok_or_else(|| Error::Failure("Striping profile prefix".into()))?
-                .trim()
-                .replace("\"", "")
+                .map(|s| s.trim().replace("\"", ""))
         } else {
             return Err(Error::EOF("CodeSign".into(), "profile".into()));
         };
@@ -108,8 +106,8 @@ r#"CodeSign path/to/build/Debug-iphoneos/DemoTarget.app (in target 'DemoTarget' 
         &step.identity
     );
     assert_eq!(
-        "iOS Team Provisioning Profile: tami5.DemoProject",
-        &step.profile
+        Some("iOS Team Provisioning Profile: tami5.DemoProject".to_string()),
+        step.profile
     );
     assert_eq!("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", &step.sign_key);
 }
@@ -134,7 +132,7 @@ async fn fmt() {
             target: "Target".into(),
         },
         identity: "Apple Development: email@email.com (XXXXXXXXXX)".into(),
-        profile: "iOS Team Provisioning Profile: tami5.DemoProject".into(),
+        profile: Some("iOS Team Provisioning Profile: tami5.DemoProject".into()),
         dir: "/path/to/Target.App".into(),
         sign_key: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX".into(),
     };
