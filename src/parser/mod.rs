@@ -1,3 +1,4 @@
+mod build_settings;
 mod description;
 mod error;
 mod outputs;
@@ -7,6 +8,7 @@ mod util;
 use async_trait::async_trait;
 use tap::Pipe;
 
+pub use build_settings::*;
 pub use description::Description;
 pub use error::Error;
 pub use outputs::*;
@@ -151,6 +153,11 @@ pub async fn parse_step_from_stream(
             consume_till_empty_line(stream).await;
             warn
         }
+        "error:" => {
+            let warn = Step::Error(line).pipe(Ok);
+            consume_till_empty_line(stream).await;
+            warn
+        }
         cmd => {
             #[cfg(feature = "tracing")]
             tracing::error!("Skipping: {cmd}");
@@ -165,15 +172,29 @@ pub async fn parse_step_from_stream(
 #[tracing_test::traced_test]
 async fn spawn_and_parse() {
     let root = "/Users/tami5/repos/swift/wordle";
-    use crate::runner::{spawn, spawn_once};
+    use crate::runner::spawn;
     use futures::StreamExt;
 
-    spawn_once(root, &["clean"]).await.unwrap();
+    // spawn_once(root, &["clean"]).await.unwrap();
 
-    let mut stream = spawn(root, &["build"]).await.unwrap();
+    let mut stream = spawn(
+        root,
+        &[
+            "clean",
+            "build",
+            "-configuration",
+            "Debug",
+            "-target",
+            "Wordle",
+            "-sdk",
+            "iphonesimulator",
+        ],
+    )
+    .await
+    .unwrap();
 
     while let Some(step) = StreamExt::next(&mut stream).await {
-        println!("{}", step)
+        println!("{:#?}", step)
     }
 }
 
