@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{collections::HashMap, fmt::Display};
 
 use crate::runner::ProcessUpdate;
 
@@ -12,6 +12,7 @@ use tokio_stream::StreamExt;
 pub struct Invocation {
     pub command: String,
     pub arguments: Vec<String>,
+    pub env_vars: HashMap<String, String>,
 }
 
 #[async_trait]
@@ -26,8 +27,26 @@ impl ParsableFromStream for Invocation {
                     .ok_or_else(|| Error::EOF("Invocation".into(), "command".into()))?
                     .to_string();
 
-                let arguments = chunks.map(|s| s.to_string()).collect();
-                Self { command, arguments }.pipe(Ok)
+                let mut arguments = vec![];
+                let mut env_vars = HashMap::default();
+
+                for value in chunks {
+                    if value.contains("=") {
+                        let parts = value.split('=').collect::<Vec<&str>>();
+                        if let (Some(key), Some(value)) = (parts.get(0), parts.get(1)) {
+                            env_vars.insert(key.to_lowercase().to_string(), value.to_string());
+                        }
+                    } else {
+                        arguments.push(value.to_string());
+                    }
+                }
+
+                Self {
+                    command,
+                    arguments,
+                    env_vars,
+                }
+                .pipe(Ok)
             }
             _ => Err(Error::Failure("Invocation".into())),
         }
@@ -42,7 +61,7 @@ async fn test() {
     let step = to_stream_test! {
         Invocation,
         r#"Command line invocation:
-    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild build
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild build SYMROOT=/path/to/symroot
 
     "#
     };
@@ -51,6 +70,10 @@ async fn test() {
         "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild",
         &step.command
     );
+    assert_eq!(
+        HashMap::from([("symroot".into(), "/path/to/symroot".into())]),
+        step.env_vars
+    );
     assert_eq!(vec!["build".to_string()], step.arguments);
 }
 
@@ -58,7 +81,7 @@ impl Display for Invocation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "[Running] `{} {}`",
+            "[Running] {} {}",
             self.command.split("/").last().unwrap(),
             self.arguments.join(" "),
         )
@@ -71,6 +94,7 @@ async fn fmt() {
     let data = Invocation {
         command: "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild".into(),
         arguments: vec!["build".into()],
+        env_vars: HashMap::from([("symroot".into(), "/path/to/symroot".into())]),
     };
 
     assert_eq!("[Running] xcodebuild build", &format!("{}", data),);
