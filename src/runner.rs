@@ -1,11 +1,12 @@
 use std::ffi;
 use std::path::Path;
+use std::process::Stdio;
 
 use anyhow::Result;
 use futures::{stream::Stream, stream::StreamExt};
 use tap::Pipe;
 use tokio::io::{AsyncBufReadExt, BufReader};
-use tokio::process::{ChildStderr, ChildStdout, Command};
+use tokio::process::{Child, ChildStderr, ChildStdout, Command};
 use tokio_stream::wrappers::LinesStream;
 
 use crate::parser::BuildSettings;
@@ -31,28 +32,13 @@ impl std::ops::Deref for ProcessUpdate {
     }
 }
 
-#[allow(dead_code)]
-async fn spawn_stream<P, I, S>(
-    root: P,
-    args: I,
+fn get_readers(
+    build: &mut tokio::process::Child,
 ) -> Result<(
     LinesStream<BufReader<ChildStdout>>,
     LinesStream<BufReader<ChildStderr>>,
-)>
-where
-    P: AsRef<Path>,
-    I: IntoIterator<Item = S>,
-    S: AsRef<ffi::OsStr>,
-{
-    let mut build = Command::new("/usr/bin/xcodebuild")
-        .args(args)
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .current_dir(root)
-        .spawn()?;
-
-    let readers = (
+)> {
+    Ok((
         build
             .stdout
             .take()
@@ -67,10 +53,62 @@ where
             .pipe(BufReader::new)
             .lines()
             .pipe(LinesStream::new),
-    );
+    ))
+}
+
+/// Simple stream converter
+async fn to_stream(mut child: Child) -> Result<impl Stream<Item = ProcessUpdate>> {
+    let (stdout, stderr) = get_readers(&mut child)?;
+    let stdout_reader = stdout.map(|line| match line {
+        Ok(s) => ProcessUpdate::Stdout(s),
+        Err(e) => ProcessUpdate::Error(format!("io: {e}")),
+    });
+    let stderr_reader = stderr.map(|line| match line {
+        Ok(s) => ProcessUpdate::Stderr(s),
+        Err(e) => ProcessUpdate::Error(format!("io: {e}")),
+    });
+
+    let exit_status = tokio::spawn(async move { child.wait().await });
+
+    tokio_stream::StreamExt::merge(stdout_reader, stderr_reader)
+        .chain(futures::stream::once(async {
+            match exit_status.await {
+                Ok(x) => match x {
+                    Ok(x) => ProcessUpdate::Exit(x.code().unwrap_or(0).to_string()),
+                    Err(e) => ProcessUpdate::Error(e.to_string()),
+                },
+                Err(e) => ProcessUpdate::Error(e.to_string()),
+            }
+        }))
+        .boxed()
+        .pipe(Ok)
+}
+
+#[allow(dead_code)]
+async fn spawn_stream<P, I, S>(
+    root: P,
+    args: I,
+) -> Result<(
+    LinesStream<BufReader<ChildStdout>>,
+    LinesStream<BufReader<ChildStderr>>,
+)>
+where
+    P: AsRef<Path>,
+    I: IntoIterator<Item = S>,
+    S: AsRef<ffi::OsStr>,
+{
+    let mut child = Command::new("/usr/bin/xcodebuild")
+        .args(args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .current_dir(root)
+        .spawn()?;
+
+    let readers = get_readers(&mut child)?;
 
     tokio::spawn(async move {
-        let status = build.wait().await.unwrap();
+        let status = child.wait().await.unwrap();
 
         #[cfg(feature = "tracing")]
         tracing::info!("build status: {status}");
@@ -85,53 +123,18 @@ where
     S: AsRef<ffi::OsStr>,
     P: AsRef<Path>,
 {
-    let mut child = tokio::process::Command::new("/usr/bin/xcodebuild")
-        .args(args)
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .current_dir(root)
-        .spawn()?;
-
-    let stdout_reader = child
-        .stdout
-        .take()
-        .unwrap()
-        .pipe(tokio::io::BufReader::new)
-        .lines()
-        .pipe(tokio_stream::wrappers::LinesStream::new)
-        .map(|line| match line {
-            Ok(s) => ProcessUpdate::Stdout(s),
-            Err(e) => ProcessUpdate::Error(format!("stderr: {e}")),
-        });
-
-    let stderr_reader = child
-        .stderr
-        .take()
-        .unwrap()
-        .pipe(tokio::io::BufReader::new)
-        .lines()
-        .pipe(tokio_stream::wrappers::LinesStream::new)
-        .map(|line| match line {
-            Ok(s) => ProcessUpdate::Stderr(s),
-            Err(e) => ProcessUpdate::Error(format!("stderr: {e}")),
-        });
-
-    let exit_status = tokio::spawn(async move { child.wait().await });
+    let mut reader = to_stream(
+        Command::new("/usr/bin/xcodebuild")
+            .args(args)
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .current_dir(root)
+            .spawn()?,
+    )
+    .await?;
 
     async_stream::stream! {
-        let mut reader = tokio_stream::StreamExt::merge(stdout_reader, stderr_reader)
-            .chain(futures::stream::once(async {
-                match exit_status.await {
-                    Ok(x) => match x {
-                        Ok(x) => ProcessUpdate::Exit(x.code().unwrap_or(0).to_string()),
-                        Err(e) => ProcessUpdate::Error(e.to_string()),
-                    },
-                    Err(e) => ProcessUpdate::Error(e.to_string()),
-                }
-            }))
-        .boxed();
-
         while let Some(update) = reader.next().await {
             match update {
                 ProcessUpdate::Stdout(line) => {
@@ -152,6 +155,40 @@ where
     .pipe(Ok)
 }
 
+pub async fn run<X>(program: X) -> Result<impl Stream<Item = ProcessUpdate>>
+where
+    X: AsRef<ffi::OsStr>,
+{
+    to_stream(
+        Command::new(program)
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?,
+    )
+    .await
+}
+
+pub async fn run_with_args<X, I, S>(
+    program: X,
+    args: I,
+) -> Result<impl Stream<Item = ProcessUpdate>>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<ffi::OsStr>,
+    X: AsRef<ffi::OsStr>,
+{
+    to_stream(
+        Command::new(program)
+            .args(args)
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?,
+    )
+    .await
+}
+
 pub async fn spawn_once<P, I, S>(root: P, args: I) -> Result<()>
 where
     P: AsRef<Path>,
@@ -161,9 +198,9 @@ where
     Command::new("/usr/bin/xcodebuild")
         .args(args)
         .current_dir(root)
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::piped())
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
         .spawn()?
         .wait()
         .await?;
@@ -180,9 +217,9 @@ where
         .args(args)
         .arg("-showBuildSettings")
         .current_dir(root)
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()?
         .wait_with_output()
         .await?;
