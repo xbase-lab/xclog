@@ -18,9 +18,12 @@ body = """
 {% endif %}\
 {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group | upper_first }}
-    {% for commit in commits %}
-        - <a href="{{ repo }}/commit/{{ commit.id }}"><tt>{{ commit.id | truncate(length=7, end="") }}</tt></a> {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }}\
-    {% endfor %}
+    {% for group, commits in commits | group_by(attribute="scope") %}
+        #### {{ group | upper_first }}
+        {% for commit in commits %}
+            - <a href="{{ repo }}/commit/{{ commit.id }}"><tt>{{ commit.id | truncate(length=7, end="") }}</tt></a> {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }}\
+        {% endfor %}
+    {% endfor %}\
 {% endfor %}\n
 """
 # remove the leading and trailing whitespaces from the template

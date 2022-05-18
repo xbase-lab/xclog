@@ -3,38 +3,62 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+## [0.1.4] - 2022-05-18
+
 ### <!-- 0 -->Features
 
+#### Build_settings
+
 - <a href="https://github.com/tami5/xcodebuild/commit/b2a2d06df6e9cdf54f9a79e488cfb2cf98230461"><tt>b2a2d06</tt></a> Never panic + refactor
+- <a href="https://github.com/tami5/xcodebuild/commit/78286cae801a9ebac00cc0fbed7a7c05edbfc876"><tt>78286ca</tt></a> Get app folder and binary
+
+#### Runner
+
+- <a href="https://github.com/tami5/xcodebuild/commit/674b948c63146f516a8f97d1103edc770b715ca0"><tt>674b948</tt></a> Generic stream from tokio command
 
 ## [0.1.3] - 2022-05-17
 
 ### <!-- 0 -->Features
 
-- <a href="https://github.com/tami5/xcodebuild/commit/c8c0fcd65bbe425a0bbbf0827bfafda18b7ff350"><tt>c8c0fcd</tt></a> Include env vars
+#### Build_settings
+
 - <a href="https://github.com/tami5/xcodebuild/commit/892f2d51a31d9e017af14cb7e5339c30379a538e"><tt>892f2d5</tt></a> Parser and runner
+
+#### Invocation
+
+- <a href="https://github.com/tami5/xcodebuild/commit/c8c0fcd65bbe425a0bbbf0827bfafda18b7ff350"><tt>c8c0fcd</tt></a> Include env vars
 
 ### <!-- 2 -->Refactor
 
-- <a href="https://github.com/tami5/xcodebuild/commit/4cfe9e305ecfa8fddccfc18ecfa4b71e7067d3d0"><tt>4cfe9e3</tt></a> Make compile_swift command optional
+#### Code_sign
+
 - <a href="https://github.com/tami5/xcodebuild/commit/b7909ca3bd8d65ebb410f77ba76f5321e2f662e2"><tt>b7909ca</tt></a> Make profile optional
 
 ## [0.1.2] - 2022-05-06
 
 ### <!-- 0 -->Features
 
-- <a href="https://github.com/tami5/xcodebuild/commit/e1b122af896ebc5f185eda15ef082d051d9bc5a8"><tt>e1b122a</tt></a> Make runner accept generic asref
+#### Parser
+
 - <a href="https://github.com/tami5/xcodebuild/commit/c491128f0151d492455450b9fae9e21c61a7a268"><tt>c491128</tt></a> ResolvedSourcePackages
 - <a href="https://github.com/tami5/xcodebuild/commit/f1391806b4f3f497c765ba44200a51df15242233"><tt>f139180</tt></a> RegisterWithLaunchServices
 - <a href="https://github.com/tami5/xcodebuild/commit/95f642bb80d59a0031294a5d46cd808093d405db"><tt>95f642b</tt></a> Account for CompileSwift without target file
 - <a href="https://github.com/tami5/xcodebuild/commit/382422206b2954e1fb612f2076644632055bd7d5"><tt>3824222</tt></a> Ignore new build system
 - <a href="https://github.com/tami5/xcodebuild/commit/7a1a5dd2716472b6b62001c0688a70390b35b8e7"><tt>7a1a5dd</tt></a> Basic warning parsing
 
+#### Runner
+
+- <a href="https://github.com/tami5/xcodebuild/commit/e1b122af896ebc5f185eda15ef082d051d9bc5a8"><tt>e1b122a</tt></a> Make runner accept generic asref
+
 ### <!-- 1 -->Bug Fixes
+
+#### Runner
 
 - <a href="https://github.com/tami5/xcodebuild/commit/6e9bcdd3239820d61930b55532c143e0032f3baa"><tt>6e9bcdd</tt></a> Spawn_once accept asref
 
 ### <!-- 2 -->Refactor
+
+#### Parser
 
 - <a href="https://github.com/tami5/xcodebuild/commit/0c6748748d12bf3c47a26705546f11af41a53768"><tt>0c67487</tt></a> Description format
 - <a href="https://github.com/tami5/xcodebuild/commit/4d0b54f030bf1e47c5a371603bb7b8638edcfcca"><tt>4d0b54f</tt></a> Remove tracing
@@ -45,23 +69,31 @@ All notable changes to this project will be documented in this file.
 
 ### <!-- 0 -->Features
 
+#### Runner
+
 - <a href="https://github.com/tami5/xcodebuild/commit/77d1866e8fdd76d9ec7b52ccbd8f73fdb6c266e3"><tt>77d1866</tt></a> Make public
 
 ### Miscellaneous Tasks
-
-- <a href="https://github.com/tami5/xcodebuild/commit/08f2bbfdcd6d2b0ca87791b999fee2424aaf43a1"><tt>08f2bbf</tt></a> Changelog
 
 ## [0.1.0] - 2022-05-06
 
 ### <!-- 0 -->Features
 
+#### Dev
+
+- <a href="https://github.com/tami5/xcodebuild/commit/0d314a75aee90eec403dc6f79d9abbea74fd6ca9"><tt>0d314a7</tt></a> Release workflow
+
+#### Parse
+
+- <a href="https://github.com/tami5/xcodebuild/commit/f25bdedeac54aa35b8e042b345f3bb43bfb161e4"><tt>f25bded</tt></a> CodeSign
+- <a href="https://github.com/tami5/xcodebuild/commit/87ffb5ee9594371ceea8ab8186781ed505fcc04b"><tt>87ffb5e</tt></a> CompileAssetCatalog
+
+#### Parser
+
 - <a href="https://github.com/tami5/xcodebuild/commit/81547a0e45beef56f401f663c1f2d9c1e9354b8a"><tt>81547a0</tt></a> Parse invocated xcodebuild command
 - <a href="https://github.com/tami5/xcodebuild/commit/122b25424b005b3188f36515a2d8a84e3e764301"><tt>122b254</tt></a> CompileSwift
 - <a href="https://github.com/tami5/xcodebuild/commit/879b1de335aa713d4ef5a6d0f4f031e19a152f39"><tt>879b1de</tt></a> CompileSwiftSources
 - <a href="https://github.com/tami5/xcodebuild/commit/358c17a418463f918ec5bd094f46bcf9794953d5"><tt>358c17a</tt></a> CompileC
-- <a href="https://github.com/tami5/xcodebuild/commit/f25bdedeac54aa35b8e042b345f3bb43bfb161e4"><tt>f25bded</tt></a> CodeSign
-- <a href="https://github.com/tami5/xcodebuild/commit/87ffb5ee9594371ceea8ab8186781ed505fcc04b"><tt>87ffb5e</tt></a> CompileAssetCatalog
-- <a href="https://github.com/tami5/xcodebuild/commit/8fc4314a3e65b757ff42adefada3f67308ece698"><tt>8fc4314</tt></a> Use tracing_test macro
 - <a href="https://github.com/tami5/xcodebuild/commit/7cf090fbdecc79896214ee394b48840ba5c834eb"><tt>7cf090f</tt></a> CompileStoryboard
 - <a href="https://github.com/tami5/xcodebuild/commit/cf2963f0fa7fddc9cbb4df6e4ab7d9651de230bb"><tt>cf2963f</tt></a> CompileXIB
 - <a href="https://github.com/tami5/xcodebuild/commit/d06709c29575eaf04cadea528daa7749bff73367"><tt>d06709c</tt></a> PrecompileSwiftBridgingHeader
@@ -77,12 +109,20 @@ All notable changes to this project will be documented in this file.
 - <a href="https://github.com/tami5/xcodebuild/commit/d8c179f0353ed45c5b2e362ad4579fbe5f8ee1e9"><tt>d8c179f</tt></a> Register execution policies
 - <a href="https://github.com/tami5/xcodebuild/commit/3eb2a98d7d21ac4f87b5e25c4ca0c077320029fe"><tt>3eb2a98</tt></a> Merge swift module
 - <a href="https://github.com/tami5/xcodebuild/commit/1a716be9a7ae149f5208df35ab426955a0b7e598"><tt>1a716be</tt></a> EmitSwiftModule
-- <a href="https://github.com/tami5/xcodebuild/commit/714ca052b459691b262d8078882b36ed4006b2de"><tt>714ca05</tt></a> Spawn and spawn once
 - <a href="https://github.com/tami5/xcodebuild/commit/66baa4099bb5eb0795418619338c806b807736f6"><tt>66baa40</tt></a> Step enum for xcodebuild outputs
 - <a href="https://github.com/tami5/xcodebuild/commit/d4e159c17798115c16c65892e424ad47b17b2865"><tt>d4e159c</tt></a> String format steps
-- <a href="https://github.com/tami5/xcodebuild/commit/0d314a75aee90eec403dc6f79d9abbea74fd6ca9"><tt>0d314a7</tt></a> Release workflow
+
+#### Runner
+
+- <a href="https://github.com/tami5/xcodebuild/commit/714ca052b459691b262d8078882b36ed4006b2de"><tt>714ca05</tt></a> Spawn and spawn once
+
+#### Tests
+
+- <a href="https://github.com/tami5/xcodebuild/commit/8fc4314a3e65b757ff42adefada3f67308ece698"><tt>8fc4314</tt></a> Use tracing_test macro
 
 ### <!-- 2 -->Refactor
+
+#### Parser
 
 - <a href="https://github.com/tami5/xcodebuild/commit/5303cb4f922973cfe3c43a49b4283ac013e6d519"><tt>5303cb4</tt></a> Move to compile steps to steps/
 - <a href="https://github.com/tami5/xcodebuild/commit/f08ba713b2c01e9a3cfec8490e951a22e989132d"><tt>f08ba71</tt></a> Clearer name for consuming non-empty liens
@@ -90,16 +130,19 @@ All notable changes to this project will be documented in this file.
 
 ### Documentation
 
-- <a href="https://github.com/tami5/xcodebuild/commit/3edd017315ce75ba9f69263558f6d26d55bf7a19"><tt>3edd017</tt></a> Add usage example
-
 ### Miscellaneous Tasks
 
-- <a href="https://github.com/tami5/xcodebuild/commit/4535e5e714628100a65ce5f25df77017d602ba0f"><tt>4535e5e</tt></a> Readme
-- <a href="https://github.com/tami5/xcodebuild/commit/b9e9304c763ad9e6d49d1d68efe9efbf2f92f950"><tt>b9e9304</tt></a> Make tracing_test optional
+#### Parser
+
 - <a href="https://github.com/tami5/xcodebuild/commit/ff92966084b912b79cbc70798bacc4573c98901d"><tt>ff92966</tt></a> Try_to_stream_test
-- <a href="https://github.com/tami5/xcodebuild/commit/46b1b19e47d78c41ad597f167afdca84a4642f29"><tt>46b1b19</tt></a> Update readme
+
+#### Tests
+
+- <a href="https://github.com/tami5/xcodebuild/commit/b9e9304c763ad9e6d49d1d68efe9efbf2f92f950"><tt>b9e9304</tt></a> Make tracing_test optional
 
 ### Styling
+
+#### Parser
 
 - <a href="https://github.com/tami5/xcodebuild/commit/40421d5dbca7be654460aa80526bdebab34192ba"><tt>40421d5</tt></a> Compile_asset_catalog tests style
 
