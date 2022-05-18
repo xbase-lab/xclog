@@ -1,4 +1,7 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+
+use anyhow::Result;
+use tap::Pipe;
 
 /// Subset of build settings
 #[derive(Debug, Default)]
@@ -118,7 +121,40 @@ pub struct BuildSettings {
 }
 
 impl BuildSettings {
-    pub fn new(mut lines: std::str::Split<'_, &str>) -> anyhow::Result<BuildSettings> {
+    pub fn path_to_output_folder(&self) -> Result<&Path> {
+        let Self {
+            codesigning_folder_path: codesign_folder,
+            metal_library_output_dir: library_output,
+            ..
+        } = self;
+
+        if codesign_folder.exists() {
+            codesign_folder
+        } else {
+            if let Some(contents) = library_output.parent() {
+                if let Some(folder_path) = contents.parent() {
+                    folder_path
+                } else {
+                    anyhow::bail!(
+                        "Unable to get folder_path from {codesign_folder:?} or {library_output:?}"
+                    );
+                }
+            } else {
+                anyhow::bail!(
+                    "Unable to get folder_path from {codesign_folder:?} or {library_output:?}"
+                );
+            }
+        }
+        .pipe(Ok)
+    }
+
+    pub fn path_to_output_binary(&self) -> Result<PathBuf> {
+        let mut app_folder = self.path_to_output_folder()?.to_path_buf();
+        app_folder.extend(self.executable_path.split("/").skip(1));
+        app_folder.pipe(Ok)
+    }
+
+    pub fn new(mut lines: std::str::Split<'_, &str>) -> Result<BuildSettings> {
         let mut data = Self::default();
         while let Some(line) = lines.next() {
             if line.contains("Build settings for action build and target") {
