@@ -11,6 +11,12 @@
 - [ ] Create thin wrapper for xcodebuild command.
 - [ ] generate steps from vector of lines
 - [ ] cli to parse xcodebuild log
+- [ ] Support: 
+  - [ ] Checking
+  - [ ] Cloning
+  - [ ] CreateUniversalBinary
+  - [ ] Fetching
+  - [ ] SwiftMergeGeneratedHeaders
 
 ## Usage 
 
