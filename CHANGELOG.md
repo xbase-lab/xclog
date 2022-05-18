@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 
 ### <!-- 0 -->Features
 
+- <a href="https://github.com/tami5/xcodebuild/commit/b2a2d06df6e9cdf54f9a79e488cfb2cf98230461"><tt>b2a2d06</tt></a> Never panic + refactor
+
+## [0.1.3] - 2022-05-17
+
+### <!-- 0 -->Features
+
+- <a href="https://github.com/tami5/xcodebuild/commit/c8c0fcd65bbe425a0bbbf0827bfafda18b7ff350"><tt>c8c0fcd</tt></a> Include env vars
+- <a href="https://github.com/tami5/xcodebuild/commit/892f2d51a31d9e017af14cb7e5339c30379a538e"><tt>892f2d5</tt></a> Parser and runner
+
+### <!-- 2 -->Refactor
+
+- <a href="https://github.com/tami5/xcodebuild/commit/4cfe9e305ecfa8fddccfc18ecfa4b71e7067d3d0"><tt>4cfe9e3</tt></a> Make compile_swift command optional
+- <a href="https://github.com/tami5/xcodebuild/commit/b7909ca3bd8d65ebb410f77ba76f5321e2f662e2"><tt>b7909ca</tt></a> Make profile optional
+
+## [0.1.2] - 2022-05-06
+
+### <!-- 0 -->Features
+
+- <a href="https://github.com/tami5/xcodebuild/commit/e1b122af896ebc5f185eda15ef082d051d9bc5a8"><tt>e1b122a</tt></a> Make runner accept generic asref
+- <a href="https://github.com/tami5/xcodebuild/commit/c491128f0151d492455450b9fae9e21c61a7a268"><tt>c491128</tt></a> ResolvedSourcePackages
+- <a href="https://github.com/tami5/xcodebuild/commit/f1391806b4f3f497c765ba44200a51df15242233"><tt>f139180</tt></a> RegisterWithLaunchServices
+- <a href="https://github.com/tami5/xcodebuild/commit/95f642bb80d59a0031294a5d46cd808093d405db"><tt>95f642b</tt></a> Account for CompileSwift without target file
+- <a href="https://github.com/tami5/xcodebuild/commit/382422206b2954e1fb612f2076644632055bd7d5"><tt>3824222</tt></a> Ignore new build system
+- <a href="https://github.com/tami5/xcodebuild/commit/7a1a5dd2716472b6b62001c0688a70390b35b8e7"><tt>7a1a5dd</tt></a> Basic warning parsing
+
+### <!-- 1 -->Bug Fixes
+
+- <a href="https://github.com/tami5/xcodebuild/commit/6e9bcdd3239820d61930b55532c143e0032f3baa"><tt>6e9bcdd</tt></a> Spawn_once accept asref
+
+### <!-- 2 -->Refactor
+
+- <a href="https://github.com/tami5/xcodebuild/commit/0c6748748d12bf3c47a26705546f11af41a53768"><tt>0c67487</tt></a> Description format
+- <a href="https://github.com/tami5/xcodebuild/commit/4d0b54f030bf1e47c5a371603bb7b8638edcfcca"><tt>4d0b54f</tt></a> Remove tracing
+- <a href="https://github.com/tami5/xcodebuild/commit/08660701896a2821072d71f0638205c711159681"><tt>0866070</tt></a> Format
+- <a href="https://github.com/tami5/xcodebuild/commit/ea5d35a9ac98616bbc14a30c0bbfcce92911389c"><tt>ea5d35a</tt></a> Add root to CompileSwiftSources
+
+## [0.1.1] - 2022-05-06
+
+### <!-- 0 -->Features
+
+- <a href="https://github.com/tami5/xcodebuild/commit/77d1866e8fdd76d9ec7b52ccbd8f73fdb6c266e3"><tt>77d1866</tt></a> Make public
+
+### Miscellaneous Tasks
+
+- <a href="https://github.com/tami5/xcodebuild/commit/08f2bbfdcd6d2b0ca87791b999fee2424aaf43a1"><tt>08f2bbf</tt></a> Changelog
+
+## [0.1.0] - 2022-05-06
+
+### <!-- 0 -->Features
+
 - <a href="https://github.com/tami5/xcodebuild/commit/81547a0e45beef56f401f663c1f2d9c1e9354b8a"><tt>81547a0</tt></a> Parse invocated xcodebuild command
 - <a href="https://github.com/tami5/xcodebuild/commit/122b25424b005b3188f36515a2d8a84e3e764301"><tt>122b254</tt></a> CompileSwift
 - <a href="https://github.com/tami5/xcodebuild/commit/879b1de335aa713d4ef5a6d0f4f031e19a152f39"><tt>879b1de</tt></a> CompileSwiftSources
@@ -31,27 +81,12 @@ All notable changes to this project will be documented in this file.
 - <a href="https://github.com/tami5/xcodebuild/commit/66baa4099bb5eb0795418619338c806b807736f6"><tt>66baa40</tt></a> Step enum for xcodebuild outputs
 - <a href="https://github.com/tami5/xcodebuild/commit/d4e159c17798115c16c65892e424ad47b17b2865"><tt>d4e159c</tt></a> String format steps
 - <a href="https://github.com/tami5/xcodebuild/commit/0d314a75aee90eec403dc6f79d9abbea74fd6ca9"><tt>0d314a7</tt></a> Release workflow
-- <a href="https://github.com/tami5/xcodebuild/commit/77d1866e8fdd76d9ec7b52ccbd8f73fdb6c266e3"><tt>77d1866</tt></a> Make public
-- <a href="https://github.com/tami5/xcodebuild/commit/e1b122af896ebc5f185eda15ef082d051d9bc5a8"><tt>e1b122a</tt></a> Make runner accept generic asref
-- <a href="https://github.com/tami5/xcodebuild/commit/c491128f0151d492455450b9fae9e21c61a7a268"><tt>c491128</tt></a> ResolvedSourcePackages
-- <a href="https://github.com/tami5/xcodebuild/commit/f1391806b4f3f497c765ba44200a51df15242233"><tt>f139180</tt></a> RegisterWithLaunchServices
-- <a href="https://github.com/tami5/xcodebuild/commit/95f642bb80d59a0031294a5d46cd808093d405db"><tt>95f642b</tt></a> Account for CompileSwift without target file
-- <a href="https://github.com/tami5/xcodebuild/commit/382422206b2954e1fb612f2076644632055bd7d5"><tt>3824222</tt></a> Ignore new build system
-- <a href="https://github.com/tami5/xcodebuild/commit/7a1a5dd2716472b6b62001c0688a70390b35b8e7"><tt>7a1a5dd</tt></a> Basic warning parsing
-
-### <!-- 1 -->Bug Fixes
-
-- <a href="https://github.com/tami5/xcodebuild/commit/6e9bcdd3239820d61930b55532c143e0032f3baa"><tt>6e9bcdd</tt></a> Spawn_once accept asref
 
 ### <!-- 2 -->Refactor
 
 - <a href="https://github.com/tami5/xcodebuild/commit/5303cb4f922973cfe3c43a49b4283ac013e6d519"><tt>5303cb4</tt></a> Move to compile steps to steps/
 - <a href="https://github.com/tami5/xcodebuild/commit/f08ba713b2c01e9a3cfec8490e951a22e989132d"><tt>f08ba71</tt></a> Clearer name for consuming non-empty liens
 - <a href="https://github.com/tami5/xcodebuild/commit/109f496773224a115383d240642dc2c19752e376"><tt>109f496</tt></a> Rename steps to outputs
-- <a href="https://github.com/tami5/xcodebuild/commit/0c6748748d12bf3c47a26705546f11af41a53768"><tt>0c67487</tt></a> Description format
-- <a href="https://github.com/tami5/xcodebuild/commit/4d0b54f030bf1e47c5a371603bb7b8638edcfcca"><tt>4d0b54f</tt></a> Remove tracing
-- <a href="https://github.com/tami5/xcodebuild/commit/08660701896a2821072d71f0638205c711159681"><tt>0866070</tt></a> Format
-- <a href="https://github.com/tami5/xcodebuild/commit/ea5d35a9ac98616bbc14a30c0bbfcce92911389c"><tt>ea5d35a</tt></a> Add root to CompileSwiftSources
 
 ### Documentation
 
@@ -63,10 +98,8 @@ All notable changes to this project will be documented in this file.
 - <a href="https://github.com/tami5/xcodebuild/commit/b9e9304c763ad9e6d49d1d68efe9efbf2f92f950"><tt>b9e9304</tt></a> Make tracing_test optional
 - <a href="https://github.com/tami5/xcodebuild/commit/ff92966084b912b79cbc70798bacc4573c98901d"><tt>ff92966</tt></a> Try_to_stream_test
 - <a href="https://github.com/tami5/xcodebuild/commit/46b1b19e47d78c41ad597f167afdca84a4642f29"><tt>46b1b19</tt></a> Update readme
-- <a href="https://github.com/tami5/xcodebuild/commit/08f2bbfdcd6d2b0ca87791b999fee2424aaf43a1"><tt>08f2bbf</tt></a> Changelog
 
 ### Styling
 
 - <a href="https://github.com/tami5/xcodebuild/commit/40421d5dbca7be654460aa80526bdebab34192ba"><tt>40421d5</tt></a> Compile_asset_catalog tests style
 
-<!-- generated by git-cliff -->
