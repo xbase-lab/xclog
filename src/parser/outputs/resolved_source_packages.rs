@@ -57,27 +57,13 @@ impl ParsableFromStream for ResolvedSourcePackages {
 
 impl Display for ResolvedSourcePackages {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(
-            f,
-            "[Packages] ------------------------------------------------------------"
-        )?;
         {
             let mut sorted = self.packages.iter().collect::<Vec<_>>();
             sorted.sort_by_key(|a| &a.name);
             sorted
         }
         .iter()
-        .try_for_each(|package| {
-            writeln!(
-                f,
-                "[Packages]  `{}`  ({}) => {}",
-                package.name, package.version, package.url
-            )
-        })?;
-        write!(
-            f,
-            "[Packages] -------------------------------------------------------------"
-        )?;
+        .try_for_each(|package| writeln!(f, "[Package] {}", package.url))?;
         Ok(())
     }
 }
