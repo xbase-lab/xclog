@@ -149,6 +149,11 @@ pub async fn parse_step_from_stream(
             }
         }
         "warning:" => {
+            if line.contains("ONLY_ACTIVE_ARCH=YES")
+                || line.contains("Building targets in manual order is deprecated")
+            {
+                return Ok(None);
+            }
             let warn = Step::Warning(line).pipe(Ok);
             consume_till_empty_line(stream).await;
             warn
