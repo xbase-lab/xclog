@@ -136,11 +136,11 @@ pub async fn parse_step_from_stream(
         "**" if line.contains("TEST SUCCEEDED") => Step::TestSucceed.pipe(Ok),
         "**" if line.contains("TEST FAILED") => Step::TestFailed.pipe(Ok),
         "Note" | "note:" => {
-            if line.eq("Planning") {
-                Step::Planning.pipe(Ok)
-            } else if line.eq("Using new build system") {
+            if line.eq("Using new build system") {
                 return Ok(None);
             } else if line.contains("suppress this warning") {
+                return Ok(None);
+            } else if line.eq("Planning") {
                 return Ok(None);
             } else if line.ne("Build preparation complete") {
                 Step::Note(line).pipe(Ok)
