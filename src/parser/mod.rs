@@ -6,6 +6,7 @@ mod step;
 mod util;
 
 use async_trait::async_trait;
+use process_stream::ProcessItem;
 use tap::Pipe;
 
 pub use build_settings::*;
@@ -15,9 +16,7 @@ pub use outputs::*;
 pub use step::Step;
 pub use util::*;
 
-use crate::runner::ProcessUpdate;
-
-pub type OutputStream = dyn tokio_stream::Stream<Item = ProcessUpdate> + Unpin + Send;
+pub type OutputStream = dyn tokio_stream::Stream<Item = ProcessItem> + Unpin + Send;
 
 #[async_trait]
 pub trait ParsableFromStream {
@@ -180,7 +179,7 @@ pub fn is_failure(steps: &Vec<Step>) -> anyhow::Result<bool> {
         .ok_or_else(|| anyhow::anyhow!("Exit not found!"))?
         .as_exit()
         .unwrap();
-    Ok(exit != "0")
+    Ok(exit != &0)
 }
 
 pub fn is_success(steps: &Vec<Step>) -> anyhow::Result<bool> {
@@ -190,7 +189,7 @@ pub fn is_success(steps: &Vec<Step>) -> anyhow::Result<bool> {
         .ok_or_else(|| anyhow::anyhow!("Exit not found!"))?
         .as_exit()
         .unwrap();
-    Ok(exit == "0")
+    Ok(exit == &0)
 }
 
 #[tokio::test]
@@ -227,14 +226,13 @@ async fn spawn_and_parse() {
 #[tracing_test::traced_test]
 async fn libc() {
     let root = "/Users/tami5/repos/swift/yabaimaster";
-    use crate::runner::{spawn, spawn_once};
+    use crate::runner::spawn;
     use futures::StreamExt;
-
-    spawn_once(root, &["clean"]).await.unwrap();
 
     let mut stream = spawn(
         root,
         &[
+            "clean",
             "-configuration",
             "Release",
             "-arch",

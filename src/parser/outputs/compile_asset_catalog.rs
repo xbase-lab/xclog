@@ -1,7 +1,6 @@
-use crate::runner::ProcessUpdate;
-
 use super::super::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
+use process_stream::ProcessItem;
 use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
 use tokio_stream::StreamExt;
@@ -29,7 +28,7 @@ impl ParsableFromStream for CompileAssetCatalog {
         let description = Description::from_line(line)?;
         let (mut notices, mut results) = (vec![], vec![]);
 
-        while let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
+        while let Some(ProcessItem::Output(line)) = stream.next().await {
             let mut line = line.trim().to_string();
 
             if line.is_empty() {
@@ -37,7 +36,7 @@ impl ParsableFromStream for CompileAssetCatalog {
             }
 
             if line.contains("com.apple.actool.document.notices") {
-                while let Some(ProcessUpdate::Stdout(maybe_notice)) = stream.next().await {
+                while let Some(ProcessItem::Output(maybe_notice)) = stream.next().await {
                     if maybe_notice.starts_with("/*") {
                         line = maybe_notice;
                         break;
@@ -54,7 +53,7 @@ impl ParsableFromStream for CompileAssetCatalog {
             }
 
             if line.contains("com.apple.actool.compilation-results") {
-                while let Some(ProcessUpdate::Stdout(maybe_path)) = stream.next().await {
+                while let Some(ProcessItem::Output(maybe_path)) = stream.next().await {
                     let maybe_path = maybe_path.trim();
                     if !maybe_path.starts_with("/") {
                         break;

@@ -1,8 +1,8 @@
-use crate::{
-    parser::{consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream},
-    runner::ProcessUpdate,
+use crate::parser::{
+    consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
 };
 use async_trait::async_trait;
+use process_stream::ProcessItem;
 use std::{collections::HashMap, fmt::Display};
 use tap::Pipe;
 use tokio_stream::StreamExt;
@@ -20,14 +20,14 @@ impl ParsableFromStream for ProcessProductPackaging {
         let mut entitlements = HashMap::default();
         let description = Description::from_line(line)?;
 
-        while let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
+        while let Some(ProcessItem::Output(line)) = stream.next().await {
             let line = line.trim();
             if line.starts_with("builtin-productPackagingUtility") {
                 break;
             }
 
             if line.contains("Entitlements") {
-                while let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
+                while let Some(ProcessItem::Output(line)) = stream.next().await {
                     let line = line.trim();
                     if line.starts_with('"') {
                         let kv = line.split("=").collect::<Vec<&str>>();

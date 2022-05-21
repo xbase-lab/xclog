@@ -18,8 +18,8 @@ pub(crate) mod test {
             use tokio_stream::StreamExt;
             let sample = $text
                 .split("\n")
-                .map(|s| crate::runner::ProcessUpdate::Stdout(s.into()))
-                .collect::<Vec<crate::runner::ProcessUpdate>>();
+                .map(|s| process_stream::ProcessItem::Output(s.into()))
+                .collect::<Vec<process_stream::ProcessItem>>();
             let mut stream = tokio_stream::iter(sample);
             let line = stream
                 .next()

@@ -1,7 +1,6 @@
-use crate::runner::ProcessUpdate;
-
 use super::super::{
     util::consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
+    ProcessItem,
 };
 use async_trait::async_trait;
 use std::{fmt::Display, path::PathBuf};
@@ -33,7 +32,7 @@ impl ParsableFromStream for CodeSign {
         // Skip exports
         consume_till_empty_line(stream).await;
 
-        let identity = if let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
+        let identity = if let Some(ProcessItem::Output(line)) = stream.next().await {
             line.trim()
                 .strip_prefix("Signing Identity:")
                 .ok_or_else(|| {
@@ -47,7 +46,7 @@ impl ParsableFromStream for CodeSign {
             return Err(Error::EOF("CodeSign".into(), "identity".into()));
         };
 
-        let profile = if let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
+        let profile = if let Some(ProcessItem::Output(line)) = stream.next().await {
             line.trim()
                 .strip_prefix("Provisioning Profile:")
                 .map(|s| s.trim().replace("\"", ""))
@@ -58,7 +57,7 @@ impl ParsableFromStream for CodeSign {
         // Skip emptry lines
         consume_till_empty_line(stream).await;
 
-        let sign_key = if let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
+        let sign_key = if let Some(ProcessItem::Output(line)) = stream.next().await {
             line.trim()
                 .split_whitespace()
                 .collect::<Vec<&str>>()

@@ -68,7 +68,7 @@ pub enum Step {
     /// Error from warning:
     Warning(String),
     /// Exit Code
-    Exit(String),
+    Exit(i32),
     /// Register Launch Services
     RegisterWithLaunchServices(RegisterWithLaunchServices),
 }
@@ -450,7 +450,7 @@ impl Step {
         matches!(self, Self::Exit(..))
     }
 
-    pub fn as_exit(&self) -> Option<&String> {
+    pub fn as_exit(&self) -> Option<&i32> {
         if let Self::Exit(v) = self {
             Some(v)
         } else {

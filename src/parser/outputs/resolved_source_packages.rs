@@ -1,6 +1,6 @@
 use crate::parser::{Error, OutputStream, ParsableFromStream};
-use crate::runner::ProcessUpdate;
 use async_trait::async_trait;
+use process_stream::ProcessItem;
 use std::fmt::Display;
 use tap::Pipe;
 use tokio_stream::StreamExt;
@@ -23,7 +23,7 @@ impl ParsableFromStream for ResolvedSourcePackages {
     async fn parse_from_stream(_: String, stream: &mut OutputStream) -> Result<Self, Error> {
         let mut packages = Vec::new();
 
-        while let Some(ProcessUpdate::Stdout(line)) = stream.next().await {
+        while let Some(ProcessItem::Output(line)) = stream.next().await {
             let line = line.trim();
             if line.is_empty() {
                 break;
