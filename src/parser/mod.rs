@@ -173,6 +173,26 @@ pub async fn parse_step_from_stream(
     .map(Some)
 }
 
+pub fn is_failure(steps: &Vec<Step>) -> anyhow::Result<bool> {
+    let exit = steps
+        .iter()
+        .find(|&m| m.is_exit())
+        .ok_or_else(|| anyhow::anyhow!("Exit not found!"))?
+        .as_exit()
+        .unwrap();
+    Ok(exit != "0")
+}
+
+pub fn is_success(steps: &Vec<Step>) -> anyhow::Result<bool> {
+    let exit = steps
+        .iter()
+        .find(|&m| m.is_exit())
+        .ok_or_else(|| anyhow::anyhow!("Exit not found!"))?
+        .as_exit()
+        .unwrap();
+    Ok(exit == "0")
+}
+
 #[tokio::test]
 #[tracing_test::traced_test]
 async fn spawn_and_parse() {
