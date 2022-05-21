@@ -70,28 +70,13 @@ impl ParsableFromStream for ProcessProductPackaging {
 impl Display for ProcessProductPackaging {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let description = self.description.to_string();
-
-        writeln!(
-            f,
-            "{} Packaging   ----------------------------------------------------",
-            description
-        )?;
-
         {
             let mut sorted = self.entitlements.iter().collect::<Vec<_>>();
             sorted.sort_by_key(|a| a.0);
             sorted
         }
         .iter()
-        .try_for_each(|(key, value)| {
-            writeln!(f, "{} Entitlement `{}` = {}", description, key, value)
-        })?;
-
-        write!(
-            f,
-            "{} Packaging   ----------------------------------------------------",
-            description
-        )?;
+        .try_for_each(|(key, value)| writeln!(f, "{} [{}]: {}", description, key, value))?;
 
         Ok(())
     }
