@@ -3,6 +3,7 @@ name = "xcodebuild"
 version = "0.1.5"
 edition = "2021"
 description = "xcodebuild command wrapper, runner and log parser."
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 # Utilities
