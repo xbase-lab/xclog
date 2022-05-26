@@ -1,14 +1,12 @@
+use crate::parser::BuildSettings;
 use crate::parser::{parse_step_from_stream, Step};
 use anyhow::Result;
-use futures::{stream::Stream, stream::StreamExt};
+use process_stream::{Process, ProcessItem, Stream, StreamExt};
 use std::ffi;
 use std::path::Path;
 use std::process::Stdio;
 use tap::Pipe;
 use tokio::process::Command;
-
-use crate::parser::BuildSettings;
-use process_stream::{Process, ProcessItem};
 
 pub async fn spawn<P, I, S>(root: P, args: I) -> Result<impl Stream<Item = crate::parser::Step>>
 where
@@ -20,7 +18,7 @@ where
     xcodebuild.args(args);
     xcodebuild.current_dir(root);
 
-    let mut reader = xcodebuild.stream()?;
+    let mut reader = xcodebuild.spawn_and_stream()?;
 
     async_stream::stream! {
         use ProcessItem::*;
@@ -74,9 +72,6 @@ where
 #[tracing_test::traced_test]
 async fn test_build_settings() {
     let root = "/Users/tami5/repos/swift/wordle";
-
-    // spawn_once(root, &["clean"]).await.unwrap();
-
     let data = build_settings(
         root,
         &[
@@ -95,8 +90,3 @@ async fn test_build_settings() {
 
     tracing::info!("{:#?}", data);
 }
-
-// https://github.com/ThatAnnoyingKid/pikadick-rs/blob/cecd1a88882fe3c07a9f8c52e81a97ca6e5f013e/lib/tokio-ffmpeg-cli-rs/src/lib.rs
-// https://github.com/zhaofengli/colmena/blob/09a8a72b0c5113aa40648949986278040487c9bd/src/nix/evaluator/nix_eval_jobs.rs
-// https://github.com/ezclap-tv/shit-chat-says/blob/c34be8edd12ade50c04ea879403a1a5d8db745d4/scs-manage-api/src/v1.rs
-// https://github.com/MrRobu/concurrent-and-distributed-computing/blob/7292cc1188b3a66cf26f756d40b47894fc1c631a/homework1/src/bin/rce-agent.rs
