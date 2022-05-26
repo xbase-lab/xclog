@@ -37,10 +37,7 @@ impl Display for Step {
                     Ok(())
                 }
             }
-            Step::Exit(_) => write!(
-                f,
-                "-------------------------------------------------------------------"
-            ),
+            Step::Exit(_) => write!(f, ""),
             Step::LibTool => write!(f, "LibTool"),
             Step::Planning => write!(f, "[Planning]"),
             Step::BuildSucceed => write!(f, "[Succeed]"),
