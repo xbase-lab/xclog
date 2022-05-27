@@ -7,4 +7,4 @@
 #![deny(rustdoc::broken_intra_doc_links)]
 
 /// Regex based Parser
-pub mod parser2;
+pub mod parser;
