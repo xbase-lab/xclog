@@ -130,3 +130,18 @@ define_pattern! {
             }
     }
 }
+
+define_pattern! {
+    ident: CODE_SIGN,
+    desc: "CodeSign Phase",
+    captures: [ filename, target, project ],
+    pattern: r"CodeSign\s(:?.*/(?P<filename>.*\.(?:app)))(?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
+    tests: {
+        "CodeSign path/to/DemoTarget.app (in target 'DemoTarget' from project 'DemoProject')" =>
+            |captures| {
+                assert_eq!("DemoTarget.app", &captures["filename"]);
+                assert_eq!("DemoTarget", &captures["target"]);
+                assert_eq!("DemoProject", &captures["project"]);
+            }
+    }
+}
