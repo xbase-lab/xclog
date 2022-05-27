@@ -1,5 +1,6 @@
-use crate::parser::util::consume_till_empty_line;
-use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
+use crate::parser::{
+    get_commands_and_compile_errors, Description, Error, OutputStream, ParsableFromStream, Step,
+};
 use async_trait::async_trait;
 use std::fmt::Display;
 use std::path::PathBuf;
@@ -14,7 +15,11 @@ pub struct CompileStoryboard {
 
 #[async_trait]
 impl ParsableFromStream for CompileStoryboard {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
         let path = chunks
             .next()
@@ -23,9 +28,12 @@ impl ParsableFromStream for CompileStoryboard {
 
         let description = Description::from_line(line)?;
 
-        consume_till_empty_line(stream).await;
+        let (_, errors) = get_commands_and_compile_errors(stream).await;
+        steps.extend(errors);
 
-        Self { description, path }.pipe(Ok)
+        steps.push(Step::CompileStoryboard(Self { description, path }));
+
+        steps.pipe(Ok)
     }
 }
 
@@ -45,7 +53,7 @@ impl Display for CompileStoryboard {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         CompileStoryboard,
        r#"CompileStoryboard /path/to/a.storyboard (in target 'DemoTarget' from project 'DemoProject')
     cd /Users/tami5/repos/swift/wordle
@@ -54,11 +62,16 @@ async fn test() {
 
 "# 
     };
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!(PathBuf::from("/path/to/a.storyboard"), step.path);
-    assert_eq!(
-        "[DemoProject.DemoTarget] Compiling `a.storyboard`",
-        step.to_string()
-    )
+
+    if let Step::CompileStoryboard(step) = steps.first().unwrap() {
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!(PathBuf::from("/path/to/a.storyboard"), step.path);
+        assert_eq!(
+            "[DemoProject.DemoTarget] Compiling `a.storyboard`",
+            step.to_string()
+        )
+    } else {
+        panic!("No script execution {steps:#?}")
+    }
 }

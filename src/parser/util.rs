@@ -1,13 +1,86 @@
-use super::OutputStream;
+use super::{OutputStream, Step};
+use process_stream::ProcessItem;
 use tokio_stream::StreamExt;
 
 /// Ignore stream content til the line is empty
-pub async fn consume_till_empty_line(stream: &mut OutputStream) {
+///
+/// Return setps error if any
+pub async fn consume_till_empty_line(stream: &mut OutputStream) -> Vec<Step> {
+    let mut errors = vec![];
     while let Some(s) = stream.next().await {
-        if s.trim().is_empty() {
+        if let ProcessItem::Error(s) = s {
+            let line = s.trim();
+            if !line.is_empty() {
+                errors.push(Step::Error(s));
+            }
+        } else if s.trim().is_empty() {
             break;
         }
     }
+    errors
+}
+
+pub async fn get_commands_and_compile_errors(stream: &mut OutputStream) -> (String, Vec<Step>) {
+    let mut steps = vec![];
+    let mut command = String::default();
+    while let Some(s) = stream.next().await {
+        if let ProcessItem::Output(line) = s {
+            let line = line.trim();
+
+            if line.is_empty() {
+                break;
+            } else if line.starts_with("cd") {
+                continue;
+            }
+
+            if line.contains("error:") {
+                steps.extend(consume_errors(line, stream).await);
+            };
+
+            command = line.to_string();
+        } else if let ProcessItem::Error(line) = s {
+            if line.trim().is_empty() {
+                continue;
+            }
+            steps.push(Step::Error(line));
+        }
+    }
+    (command, steps)
+}
+
+/// consume_errors for line containing "error:"
+pub async fn consume_errors(line: &str, stream: &mut OutputStream) -> Vec<Step> {
+    // WARN: This might panic!
+    fn format_line_source(line: &str) -> String {
+        let mut parts = line.split(": error: ");
+        let file_path = parts.next().unwrap();
+        let msg = parts.next().unwrap();
+        format!(
+            "{}{} ({file_path})",
+            (&msg[..1].to_string()).to_uppercase(),
+            &msg[1..]
+        )
+    }
+
+    let mut errors = vec![];
+
+    errors.push(Step::Error(String::default()));
+    errors.push(Step::Error(format_line_source(line)));
+
+    while let Some(line) = stream.next().await {
+        if line.is_empty() {
+            break;
+        }
+        if line.contains("~~") {
+            errors.push(Step::Error(line.to_string()));
+            errors.push(Step::Error(String::default()));
+        } else if line.starts_with("/") {
+            errors.push(Step::Error(format_line_source(&line)));
+        } else {
+            errors.push(Step::Error(line.to_string()));
+        }
+    }
+    errors
 }
 
 #[cfg(test)]

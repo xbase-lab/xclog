@@ -1,3 +1,5 @@
+use crate::parser::Step;
+
 use super::super::{
     util::consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
     ProcessItem,
@@ -19,7 +21,11 @@ pub struct CodeSign {
 
 #[async_trait]
 impl ParsableFromStream for CodeSign {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
         let dir = chunks
             .next()
@@ -30,7 +36,7 @@ impl ParsableFromStream for CodeSign {
         let description = Description::from_line(line)?;
 
         // Skip exports
-        consume_till_empty_line(stream).await;
+        steps.extend(consume_till_empty_line(stream).await);
 
         let identity = if let Some(ProcessItem::Output(line)) = stream.next().await {
             line.trim()
@@ -55,7 +61,7 @@ impl ParsableFromStream for CodeSign {
         };
 
         // Skip emptry lines
-        consume_till_empty_line(stream).await;
+        steps.extend(consume_till_empty_line(stream).await);
 
         let sign_key = if let Some(ProcessItem::Output(line)) = stream.next().await {
             line.trim()
@@ -68,14 +74,15 @@ impl ParsableFromStream for CodeSign {
             return Err(Error::EOF("CodeSign".into(), "profile".into()));
         };
 
-        Self {
+        steps.push(Step::CodeSign(Self {
             description,
             identity,
             profile,
             dir,
             sign_key,
-        }
-        .pipe(Ok)
+        }));
+
+        steps.pipe(Ok)
     }
 }
 
@@ -84,7 +91,7 @@ impl ParsableFromStream for CodeSign {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         CodeSign,
 r#"CodeSign path/to/build/Debug-iphoneos/DemoTarget.app (in target 'DemoTarget' from project 'DemoProject')
     cd /path/to/project
@@ -98,17 +105,22 @@ r#"CodeSign path/to/build/Debug-iphoneos/DemoTarget.app (in target 'DemoTarget' 
 
        "#
     };
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!(
-        "Apple Development: email@email.com (XXXXXXXXXX)",
-        &step.identity
-    );
-    assert_eq!(
-        Some("iOS Team Provisioning Profile: tami5.DemoProject".to_string()),
-        step.profile
-    );
-    assert_eq!("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", &step.sign_key);
+
+    if let Step::CodeSign(step) = steps.first().unwrap() {
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!(
+            "Apple Development: email@email.com (XXXXXXXXXX)",
+            &step.identity
+        );
+        assert_eq!(
+            Some("iOS Team Provisioning Profile: tami5.DemoProject".to_string()),
+            step.profile
+        );
+        assert_eq!("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", &step.sign_key);
+    } else {
+        panic!("{steps:#?}")
+    }
 }
 
 impl Display for CodeSign {

@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::parser::{
-    consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
+    consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream, Step,
 };
 use async_trait::async_trait;
 use tap::Pipe;
@@ -15,7 +15,11 @@ pub struct ScriptExecution {
 
 #[async_trait]
 impl ParsableFromStream for ScriptExecution {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
         let mut name = vec![];
 
@@ -27,15 +31,14 @@ impl ParsableFromStream for ScriptExecution {
             name.push(chunk.replace("\\", ""))
         }
 
-        let description = Description::from_line(line)?;
-
-        consume_till_empty_line(stream).await;
-
-        Self {
+        steps.push(Step::ScriptExecution(Self {
             name: name.join(" "),
-            description,
-        }
-        .pipe(Ok)
+            description: Description::from_line(line)?,
+        }));
+
+        steps.extend(consume_till_empty_line(stream).await);
+
+        steps.pipe(Ok)
     }
 }
 impl Display for ScriptExecution {
@@ -49,14 +52,18 @@ impl Display for ScriptExecution {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         ScriptExecution,
        r#"PhaseScriptExecution Format\ Swift\ Files /$ROOT/build/DemoTarget.build/Debug-iphoneos/DemoTarget.build/Script-B78C717D92544DC366EB9EAB.sh (in target 'DemoTarget' from project 'DemoProject')
     cd $ROOT
 
 "# 
     };
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!("Format Swift Files", step.name);
+    if let Step::ScriptExecution(step) = steps.first().unwrap() {
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!("Format Swift Files", step.name);
+    } else {
+        panic!("No script execution {steps:#?}")
+    }
 }

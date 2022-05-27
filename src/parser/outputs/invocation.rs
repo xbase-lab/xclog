@@ -1,4 +1,5 @@
 use super::super::{consume_till_empty_line, Error, OutputStream, ParsableFromStream};
+use crate::parser::Step;
 use async_trait::async_trait;
 use process_stream::ProcessItem;
 use std::{collections::HashMap, fmt::Display};
@@ -15,7 +16,7 @@ pub struct Invocation {
 
 #[async_trait]
 impl ParsableFromStream for Invocation {
-    async fn parse_from_stream(_: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(_: String, stream: &mut OutputStream) -> Result<Vec<Step>, Error> {
         match stream.next().await {
             Some(ProcessItem::Output(args)) => {
                 consume_till_empty_line(stream).await;
@@ -39,11 +40,11 @@ impl ParsableFromStream for Invocation {
                     }
                 }
 
-                Self {
+                vec![Step::Invocation(Self {
                     command,
                     arguments,
                     env_vars,
-                }
+                })]
                 .pipe(Ok)
             }
             _ => Err(Error::Failure("Invocation".into())),
@@ -56,23 +57,26 @@ impl ParsableFromStream for Invocation {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         Invocation,
         r#"Command line invocation:
     /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild build SYMROOT=/path/to/symroot
 
     "#
     };
-
-    assert_eq!(
-        "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild",
-        &step.command
-    );
-    assert_eq!(
-        HashMap::from([("symroot".into(), "/path/to/symroot".into())]),
-        step.env_vars
-    );
-    assert_eq!(vec!["build".to_string()], step.arguments);
+    if let Step::Invocation(step) = steps.first().unwrap() {
+        assert_eq!(
+            "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild",
+            &step.command
+        );
+        assert_eq!(
+            HashMap::from([("symroot".into(), "/path/to/symroot".into())]),
+            step.env_vars
+        );
+        assert_eq!(vec!["build".to_string()], step.arguments);
+    } else {
+        panic!("No script execution {steps:#?}")
+    }
 }
 
 impl Display for Invocation {

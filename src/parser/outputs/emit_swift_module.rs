@@ -1,4 +1,4 @@
-use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
+use crate::parser::{Description, Error, OutputStream, ParsableFromStream, Step};
 use async_trait::async_trait;
 use process_stream::ProcessItem;
 use std::{fmt::Display, path::PathBuf};
@@ -15,7 +15,11 @@ pub struct EmitSwiftModule {
 
 #[async_trait]
 impl ParsableFromStream for EmitSwiftModule {
-    async fn parse_from_stream(line: String, _stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        _stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
         chunks.next();
         let mut output_path = None;
@@ -24,31 +28,34 @@ impl ParsableFromStream for EmitSwiftModule {
             .map(ToString::to_string)
             .ok_or_else(|| Error::EOF("EmitSwiftModule".into(), "arch".into()))?;
 
-        while let Some(ProcessItem::Output(line)) = _stream.next().await {
-            let line = line.trim();
-            if line.is_empty() {
-                break;
-            }
-            if line.starts_with("cd") {
-                continue;
-            }
-
-            let mut chunks = line.split_whitespace();
-            while let Some(chunk) = chunks.next() {
-                if chunk.eq("-o") {
-                    output_path = chunks.next().map(PathBuf::from);
+        while let Some(s) = _stream.next().await {
+            if let ProcessItem::Output(line) = s {
+                let line = line.trim();
+                if line.is_empty() {
                     break;
+                }
+                if line.starts_with("cd") {
+                    continue;
+                }
+
+                let mut chunks = line.split_whitespace();
+                while let Some(chunk) = chunks.next() {
+                    if chunk.eq("-o") {
+                        output_path = chunks.next().map(PathBuf::from);
+                        break;
+                    }
                 }
             }
         }
 
-        Self {
+        steps.push(Step::EmitSwiftModule(Self {
             arch,
             output_path: output_path
                 .ok_or_else(|| Error::EOF("EmitSwiftModule".into(), "arch".into()))?,
             description: Description::from_line(line)?,
-        }
-        .pipe(Ok)
+        }));
+
+        steps.pipe(Ok)
     }
 }
 
@@ -68,7 +75,7 @@ impl Display for EmitSwiftModule {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         EmitSwiftModule,
        r#"EmitSwiftModule normal arm64 (in target 'DemoTarget' from project 'DemoProject')
     cd $ROOT
@@ -77,15 +84,19 @@ async fn test() {
 "# 
     };
 
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!(
+    if let Step::EmitSwiftModule(step) = steps.first().unwrap() {
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!(
         PathBuf::from("$ROOT/build/DemoTarget.build/Debug-iphoneos/DemoTarget.build/Objects-normal/arm64/DemoTarget.swiftmodule"),
         step.output_path
     );
 
-    assert_eq!(
-        "[DemoProject.DemoTarget] Emitting  `DemoTarget.swiftmodule`",
-        step.to_string()
-    );
+        assert_eq!(
+            "[DemoProject.DemoTarget] Emitting  `DemoTarget.swiftmodule`",
+            step.to_string()
+        );
+    } else {
+        panic!("{steps:#?}")
+    }
 }

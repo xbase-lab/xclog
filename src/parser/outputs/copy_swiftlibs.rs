@@ -1,5 +1,5 @@
 use crate::parser::util::consume_till_empty_line;
-use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
+use crate::parser::{Description, Error, OutputStream, ParsableFromStream, Step};
 use async_trait::async_trait;
 use std::fmt::Display;
 use std::path::PathBuf;
@@ -14,7 +14,12 @@ pub struct CopySwiftLibs {
 
 #[async_trait]
 impl ParsableFromStream for CopySwiftLibs {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
+
         let mut chunks = line.split_whitespace();
         let path = chunks
             .next()
@@ -23,9 +28,9 @@ impl ParsableFromStream for CopySwiftLibs {
 
         let description = Description::from_line(line)?;
 
-        consume_till_empty_line(stream).await;
-
-        Self { description, path }.pipe(Ok)
+        steps.push(Step::CopySwiftLibs(Self { description, path }));
+        steps.extend(consume_till_empty_line(stream).await);
+        steps.pipe(Ok)
     }
 }
 
@@ -40,7 +45,7 @@ impl Display for CopySwiftLibs {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         CopySwiftLibs,
        r#"CopySwiftLibs $ROOT/build/Release/DemoTarget.app (in target 'DemoTarget' from project 'DemoProject')
     cd $ROOT
@@ -51,14 +56,18 @@ async fn test() {
 
 "# 
     };
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!(
-        PathBuf::from("$ROOT/build/Release/DemoTarget.app"),
-        step.path
-    );
-    assert_eq!(
-        step.to_string(),
-        "[DemoProject.DemoTarget] Copying swift libraries ..."
-    )
+    if let Step::CopySwiftLibs(step) = steps.first().unwrap() {
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!(
+            PathBuf::from("$ROOT/build/Release/DemoTarget.app"),
+            step.path
+        );
+        assert_eq!(
+            step.to_string(),
+            "[DemoProject.DemoTarget] Copying swift libraries ..."
+        )
+    } else {
+        panic!("{steps:#?}")
+    }
 }

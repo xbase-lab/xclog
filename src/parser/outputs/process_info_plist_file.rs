@@ -1,5 +1,5 @@
 use crate::parser::{
-    consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
+    consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream, Step,
 };
 use async_trait::async_trait;
 use std::{fmt::Display, path::PathBuf};
@@ -14,7 +14,11 @@ pub struct ProcessInfoPlistFile {
 
 #[async_trait]
 impl ParsableFromStream for ProcessInfoPlistFile {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
         chunks.next();
         let path = chunks
@@ -23,10 +27,10 @@ impl ParsableFromStream for ProcessInfoPlistFile {
             .ok_or_else(|| Error::EOF("ProcessInfoPlistFile".into(), "path".into()))?;
 
         let description = Description::from_line(line)?;
+        steps.push(Step::ProcessInfoPlistFile(Self { description, path }));
+        steps.extend(consume_till_empty_line(stream).await);
 
-        consume_till_empty_line(stream).await;
-
-        Self { description, path }.pipe(Ok)
+        steps.pipe(Ok)
     }
 }
 
@@ -49,7 +53,7 @@ impl Display for ProcessInfoPlistFile {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         ProcessInfoPlistFile,
        r#"ProcessInfoPlistFile $ROOT/build/Debug-iphoneos/DemoTarget.app/Info.plist $ROOT/Resources/Info.plist (in target 'DemoTarget' from project 'DemoProject')
     cd $ROOT
@@ -57,11 +61,15 @@ async fn test() {
 
 "# 
     };
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!(PathBuf::from("$ROOT/Resources/Info.plist"), step.path);
-    assert_eq!(
-        step.to_string(),
-        "[DemoProject.DemoTarget] Processing `Resources/Info.plist`"
-    );
+    if let Step::ProcessInfoPlistFile(step) = steps.first().unwrap() {
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!(PathBuf::from("$ROOT/Resources/Info.plist"), step.path);
+        assert_eq!(
+            step.to_string(),
+            "[DemoProject.DemoTarget] Processing `Resources/Info.plist`"
+        );
+    } else {
+        panic!("No script execution {steps:#?}")
+    }
 }

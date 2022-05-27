@@ -1,3 +1,5 @@
+use crate::parser::Step;
+
 use super::super::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
 use process_stream::ProcessItem;
@@ -16,7 +18,11 @@ pub struct CompileAssetCatalog {
 
 #[async_trait]
 impl ParsableFromStream for CompileAssetCatalog {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
         chunks.next(); // Skip root
         let path = chunks
@@ -28,48 +34,53 @@ impl ParsableFromStream for CompileAssetCatalog {
         let description = Description::from_line(line)?;
         let (mut notices, mut results) = (vec![], vec![]);
 
-        while let Some(ProcessItem::Output(line)) = stream.next().await {
-            let mut line = line.trim().to_string();
+        while let Some(s) = stream.next().await {
+            if let ProcessItem::Output(line) = s {
+                let mut line = line.trim().to_string();
 
-            if line.is_empty() {
-                break;
-            }
-
-            if line.contains("com.apple.actool.document.notices") {
-                while let Some(ProcessItem::Output(maybe_notice)) = stream.next().await {
-                    if maybe_notice.starts_with("/*") {
-                        line = maybe_notice;
-                        break;
-                    }
-                    maybe_notice
-                        .trim()
-                        .split(":")
-                        .skip(3)
-                        .collect::<String>()
-                        .trim()
-                        .to_string()
-                        .pipe(|notice| notices.push(notice));
+                if line.is_empty() {
+                    break;
                 }
-            }
 
-            if line.contains("com.apple.actool.compilation-results") {
-                while let Some(ProcessItem::Output(maybe_path)) = stream.next().await {
-                    let maybe_path = maybe_path.trim();
-                    if !maybe_path.starts_with("/") {
-                        break;
+                if line.contains("com.apple.actool.document.notices") {
+                    while let Some(ProcessItem::Output(maybe_notice)) = stream.next().await {
+                        if maybe_notice.starts_with("/*") {
+                            line = maybe_notice;
+                            break;
+                        }
+                        maybe_notice
+                            .trim()
+                            .split(":")
+                            .skip(3)
+                            .collect::<String>()
+                            .trim()
+                            .to_string()
+                            .pipe(|notice| notices.push(notice));
                     }
-                    results.push(PathBuf::from(maybe_path))
                 }
+
+                if line.contains("com.apple.actool.compilation-results") {
+                    while let Some(ProcessItem::Output(maybe_path)) = stream.next().await {
+                        let maybe_path = maybe_path.trim();
+                        if !maybe_path.starts_with("/") {
+                            break;
+                        }
+                        results.push(PathBuf::from(maybe_path))
+                    }
+                }
+            } else if let ProcessItem::Error(line) = s {
+                steps.push(Step::Error(line));
             }
         }
 
-        Self {
+        steps.push(Step::CompileAssetCatalog(Self {
             description,
             path,
             results,
             notices,
-        }
-        .pipe(Ok)
+        }));
+
+        steps.pipe(Ok)
     }
 }
 
@@ -78,7 +89,7 @@ impl ParsableFromStream for CompileAssetCatalog {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         CompileAssetCatalog,
 r#"CompileAssetCatalog /path/to/build/Debug-iphoneos/TargetName.app /path/to/resources/Assets.xcassets (in target 'TargetName' from project 'ProjectName')
     cd /path/to/project
@@ -96,32 +107,36 @@ r#"CompileAssetCatalog /path/to/build/Debug-iphoneos/TargetName.app /path/to/res
 
 "#
     };
-    assert_eq!("TargetName", &step.description.target);
-    assert_eq!("ProjectName", &step.description.project);
-    assert_eq!(
-        PathBuf::from("/path/to/resources/Assets.xcassets"),
-        step.path
-    );
-    assert_eq! {
-        vec! {
-            PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/AppIcon60x60@2x.png"),
-            PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/AppIcon76x76@2x~ipad.png"),
-            PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/Assets.car"),
-            PathBuf::from("/path/to/build/TargetName.build/Debug-iphoneos/TargetName.build/assetcatalog_generated_info.plist")
-        },
-        step.results
-    };
-    assert_eq! {
-        vec!{
-            "76x76@1x app icons only apply to iPad apps targeting releases of iOS prior to 10.0."
-                .to_string()
-        },
-        step.notices
-    };
-    assert_eq!(
-        "[ProjectName.TargetName] Compiling    `Assets.xcassets`",
-        step.to_string()
-    );
+    if let Step::CompileAssetCatalog(step) = steps.first().unwrap() {
+        assert_eq!("TargetName", &step.description.target);
+        assert_eq!("ProjectName", &step.description.project);
+        assert_eq!(
+            PathBuf::from("/path/to/resources/Assets.xcassets"),
+            step.path
+        );
+        assert_eq! {
+            vec! {
+                PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/AppIcon60x60@2x.png"),
+                PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/AppIcon76x76@2x~ipad.png"),
+                PathBuf::from("/path/to/build/Debug-iphoneos/TargetName.app/Assets.car"),
+                PathBuf::from("/path/to/build/TargetName.build/Debug-iphoneos/TargetName.build/assetcatalog_generated_info.plist")
+            },
+            step.results
+        };
+        assert_eq! {
+            vec!{
+                "76x76@1x app icons only apply to iPad apps targeting releases of iOS prior to 10.0."
+                    .to_string()
+            },
+            step.notices
+        };
+        assert_eq!(
+            "[ProjectName.TargetName] Compiling    `Assets.xcassets`",
+            step.to_string()
+        );
+    } else {
+        panic!("No script execution {steps:#?}")
+    }
 }
 
 impl Display for CompileAssetCatalog {

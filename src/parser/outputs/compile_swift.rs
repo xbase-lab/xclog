@@ -1,9 +1,9 @@
+use crate::parser::{get_commands_and_compile_errors, Step};
+
 use super::super::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
-use process_stream::ProcessItem;
 use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
-use tokio_stream::StreamExt;
 
 /// Swift file compilation step
 #[derive(Debug)]
@@ -16,7 +16,11 @@ pub struct CompileSwift {
 
 #[async_trait]
 impl ParsableFromStream for CompileSwift {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
 
         chunks.next();
@@ -32,22 +36,10 @@ impl ParsableFromStream for CompileSwift {
 
         let description = Description::from_line(line)?;
 
-        let mut command = None;
-        while let Some(ProcessItem::Output(line)) = stream.next().await {
-            let line = line.trim();
+        let (command, errors) = get_commands_and_compile_errors(stream).await;
+        steps.extend(errors);
 
-            if line.is_empty() {
-                break;
-            } else if line.starts_with("cd") {
-                continue;
-            }
-
-            command = line.to_string().into();
-        }
-
-        let command = command.unwrap_or_default();
-
-        Self {
+        let mut result = vec![Step::CompileSwift(Self {
             arch,
             description,
             path: if path.eq("(in") {
@@ -57,8 +49,9 @@ impl ParsableFromStream for CompileSwift {
                 Some(PathBuf::from(path))
             },
             command,
-        }
-        .pipe(Ok)
+        })];
+        result.extend(steps);
+        result.pipe(Ok)
     }
 }
 
@@ -66,7 +59,7 @@ impl ParsableFromStream for CompileSwift {
 #[cfg_attr(feature = "tracing", tracing_test::traced_test)]
 async fn test() {
     use crate::parser::util::test::to_stream_test;
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         CompileSwift,
         r#"CompileSwift normal arm64 /path/to/file.swift (in target 'DemoTarget' from project 'DemoProject')
     cd /path/to/project
@@ -75,14 +68,16 @@ async fn test() {
     "#
     };
 
-    assert_eq!("arm64", step.arch);
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!(Some(PathBuf::from("/path/to/file.swift")), step.path);
-    assert_eq!(
-        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c ...",
-        &step.command
-    );
+    if let Step::CompileSwift(step) = steps.first().unwrap() {
+        assert_eq!("arm64", step.arch);
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!(Some(PathBuf::from("/path/to/file.swift")), step.path);
+        assert_eq!(
+                "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c ...",
+                &step.command
+                );
+    }
 }
 
 impl Display for CompileSwift {

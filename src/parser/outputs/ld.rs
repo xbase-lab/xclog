@@ -1,5 +1,5 @@
 use crate::parser::util::consume_till_empty_line;
-use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
+use crate::parser::{Description, Error, OutputStream, ParsableFromStream, Step};
 use async_trait::async_trait;
 use std::fmt::Display;
 use std::path::PathBuf;
@@ -14,7 +14,11 @@ pub struct Ld {
 
 #[async_trait]
 impl ParsableFromStream for Ld {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
         let path = chunks
             .next()
@@ -23,9 +27,10 @@ impl ParsableFromStream for Ld {
 
         let description = Description::from_line(line)?;
 
-        consume_till_empty_line(stream).await;
+        steps.push(Step::Ld(Self { description, path }));
+        steps.extend(consume_till_empty_line(stream).await);
 
-        Self { description, path }.pipe(Ok)
+        steps.pipe(Ok)
     }
 }
 
@@ -45,7 +50,7 @@ impl Display for Ld {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         Ld,
        r#"Ld $ROOT/build/Debug-iphoneos/DemoTarget.app/DemoTarget normal (in target 'DemoTarget' from project 'DemoProject')
     cd $ROOT
@@ -53,15 +58,20 @@ async fn test() {
 
 "# 
     };
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!(
-        PathBuf::from("$ROOT/build/Debug-iphoneos/DemoTarget.app/DemoTarget"),
-        step.path
-    );
 
-    assert_eq!(
-        "[DemoProject.DemoTarget] Linking   `DemoTarget`",
-        step.to_string()
-    )
+    if let Step::Ld(step) = steps.first().unwrap() {
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!(
+            PathBuf::from("$ROOT/build/Debug-iphoneos/DemoTarget.app/DemoTarget"),
+            step.path
+        );
+
+        assert_eq!(
+            "[DemoProject.DemoTarget] Linking   `DemoTarget`",
+            step.to_string()
+        )
+    } else {
+        panic!("No script execution {steps:#?}")
+    }
 }

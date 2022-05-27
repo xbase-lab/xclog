@@ -1,4 +1,4 @@
-use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
+use crate::parser::{Description, Error, OutputStream, ParsableFromStream, Step};
 use async_trait::async_trait;
 use process_stream::ProcessItem;
 use std::{fmt::Display, path::PathBuf};
@@ -15,7 +15,11 @@ pub struct Validate {
 
 #[async_trait]
 impl ParsableFromStream for Validate {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
         let path = chunks
             .next()
@@ -24,22 +28,29 @@ impl ParsableFromStream for Validate {
 
         let mut skip = false;
         let description = Description::from_line(line)?;
-        while let Some(ProcessItem::Output(line)) = stream.next().await {
-            if line.contains("-no-validate-extension") {
-                skip = true;
-            }
 
-            if line.is_empty() {
+        while let Some(s) = stream.next().await {
+            if let ProcessItem::Output(line) = s {
+                if line.contains("-no-validate-extension") {
+                    skip = true;
+                }
+                if line.trim().is_empty() {
+                    break;
+                }
+            } else if let ProcessItem::Error(line) = s {
+                steps.push(Step::Error(line))
+            } else if s.trim().is_empty() {
                 break;
             }
         }
 
-        Self {
+        steps.push(Step::Validate(Self {
             description,
             path,
             skip,
-        }
-        .pipe(Ok)
+        }));
+
+        steps.pipe(Ok)
     }
 }
 
@@ -61,22 +72,27 @@ impl Display for Validate {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         Validate,
        r#"Validate $ROOT/build/Release/DemoTarget.app (in target 'DemoTarget' from project 'DemoProject')
     cd $ROOT
     builtin-validationUtility $ROOT/build/Release/DemoTarget.app -no-validate-extension
 "# 
     };
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!(
-        PathBuf::from("$ROOT/build/Release/DemoTarget.app"),
-        step.path
-    );
-    assert_eq!(true, step.skip);
-    assert_eq!(
-        "[DemoProject.DemoTarget] Validating `DemoTarget.app` [skipped]",
-        step.to_string()
-    )
+
+    if let Step::Validate(step) = steps.first().unwrap() {
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!(
+            PathBuf::from("$ROOT/build/Release/DemoTarget.app"),
+            step.path
+        );
+        assert_eq!(true, step.skip);
+        assert_eq!(
+            "[DemoTarget] Validating `DemoTarget.app` [skipped]",
+            step.to_string()
+        )
+    } else {
+        panic!("No script execution {steps:#?}")
+    }
 }

@@ -1,3 +1,5 @@
+use crate::parser::{consume_errors, Step};
+
 use super::super::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
 use process_stream::ProcessItem;
@@ -17,7 +19,11 @@ pub struct CompileSwiftSources {
 
 #[async_trait]
 impl ParsableFromStream for CompileSwiftSources {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
         chunks.next();
 
@@ -34,25 +40,30 @@ impl ParsableFromStream for CompileSwiftSources {
         let description = Description::from_line(line)?;
         let (mut cmd, mut root) = (None, None);
 
-        while let Some(ProcessItem::Output(line)) = stream.next().await {
-            let line = line.trim();
-            if line.is_empty() {
-                break;
-            }
-            if line.starts_with("cd") {
-                root = line.strip_prefix("cd ").map(PathBuf::from);
-            }
+        while let Some(s) = stream.next().await {
+            if let ProcessItem::Output(line) = s {
+                let line = line.trim();
+                if line.is_empty() {
+                    break;
+                }
+                if line.starts_with("cd") {
+                    root = line.strip_prefix("cd ").map(PathBuf::from);
+                }
 
-            if line.starts_with("export") {
-                continue;
-            }
+                if line.starts_with("export") {
+                    continue;
+                }
+                if line.contains("error:") {
+                    steps.extend(consume_errors(line, stream).await);
+                }
 
-            if line.starts_with("/") {
-                cmd = line.to_string().into();
+                if line.starts_with("/") {
+                    cmd = line.to_string().into();
+                }
             }
         }
 
-        Self {
+        let mut results = vec![Step::CompileSwiftSources(Self {
             arch,
             compiler,
             root: root.ok_or_else(|| Error::Failure("root not found".into()))?,
@@ -60,8 +71,9 @@ impl ParsableFromStream for CompileSwiftSources {
             command: cmd.ok_or_else(|| {
                 Error::Failure("command for CompileSwiftSources not found".into())
             })?,
-        }
-        .pipe(Ok)
+        })];
+        results.extend(steps);
+        results.pipe(Ok)
     }
 }
 
@@ -76,7 +88,7 @@ impl Display for CompileSwiftSources {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         CompileSwiftSources,
         r#"CompileSwiftSources normal arm64 com.apple.xcode.tools.swift.compiler (in target 'DemoTarget' from project 'DemoProject')
     cd /path/to/project
@@ -88,13 +100,17 @@ remark: Incremental compilation has been disabled: it is not compatible with who
     "#
     };
 
-    assert_eq!("arm64", step.arch);
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!("com.apple.xcode.tools.swift.compiler", &step.compiler);
-    assert_eq!(PathBuf::from("/path/to/project"), step.root);
-    assert_eq!(
+    if let Step::CompileSwiftSources(step) = steps.first().unwrap() {
+        assert_eq!("arm64", step.arch);
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!("com.apple.xcode.tools.swift.compiler", &step.compiler);
+        assert_eq!(PathBuf::from("/path/to/project"), step.root);
+        assert_eq!(
         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc ...",
         &step.command
     );
+    } else {
+        panic!("{steps:#?}")
+    }
 }

@@ -1,5 +1,5 @@
 use crate::parser::util::consume_till_empty_line;
-use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
+use crate::parser::{Description, Error, OutputStream, ParsableFromStream, Step};
 use async_trait::async_trait;
 use std::fmt::Display;
 use std::path::PathBuf;
@@ -14,7 +14,11 @@ pub struct CompileXIB {
 
 #[async_trait]
 impl ParsableFromStream for CompileXIB {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
         let path = chunks
             .next()
@@ -23,9 +27,9 @@ impl ParsableFromStream for CompileXIB {
 
         let description = Description::from_line(line)?;
 
-        consume_till_empty_line(stream).await;
-
-        Self { description, path }.pipe(Ok)
+        steps.push(Step::CompileXIB(Self { description, path }));
+        steps.extend(consume_till_empty_line(stream).await);
+        steps.pipe(Ok)
     }
 }
 
@@ -45,7 +49,7 @@ impl Display for CompileXIB {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         CompileXIB,
        r#"CompileXIB CocoaChip/en.lproj/MainMenu.xib (in target 'DemoTarget' from project 'DemoProject')
     cd /Users/dustin/Source/CocoaChip
@@ -54,11 +58,15 @@ async fn test() {
 
 "# 
     };
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!(PathBuf::from("CocoaChip/en.lproj/MainMenu.xib"), step.path);
-    assert_eq!(
-        "[DemoProject.DemoTarget] Compiling    `MainMenu.xib`",
-        step.to_string()
-    )
+    if let Step::CompileXIB(step) = steps.first().unwrap() {
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!(PathBuf::from("CocoaChip/en.lproj/MainMenu.xib"), step.path);
+        assert_eq!(
+            "[DemoProject.DemoTarget] Compiling    `MainMenu.xib`",
+            step.to_string()
+        )
+    } else {
+        panic!("{steps:#?}")
+    }
 }

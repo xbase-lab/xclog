@@ -1,4 +1,4 @@
-use crate::parser::{consume_till_empty_line, Error, OutputStream, ParsableFromStream};
+use crate::parser::{consume_till_empty_line, Error, OutputStream, ParsableFromStream, Step};
 use async_trait::async_trait;
 use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
@@ -11,13 +11,18 @@ pub struct CreateBuildDirectory {
 
 #[async_trait]
 impl ParsableFromStream for CreateBuildDirectory {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
-        consume_till_empty_line(stream).await;
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
+        steps.extend(consume_till_empty_line(stream).await);
 
-        Self {
+        steps.push(Step::CreateBuildDirectory(Self {
             path: PathBuf::from(line),
-        }
-        .pipe(Ok)
+        }));
+
+        steps.pipe(Ok)
     }
 }
 
@@ -32,7 +37,7 @@ impl Display for CreateBuildDirectory {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         CreateBuildDirectory,
        r#"CreateBuildDirectory $ROOT/build/Release
     cd $ROOT/DemoTarget.xcodeproj
@@ -40,10 +45,14 @@ async fn test() {
 
 "# 
     };
-    assert_eq!(PathBuf::from("$ROOT/build/Release"), step.path);
+    if let Step::CreateBuildDirectory(step) = steps.first().unwrap() {
+        assert_eq!(PathBuf::from("$ROOT/build/Release"), step.path);
 
-    assert_eq!(
-        step.to_string(),
-        "[Create Build Directory] `$ROOT/build/Release`"
-    )
+        assert_eq!(
+            step.to_string(),
+            "[Create Build Directory] `$ROOT/build/Release`"
+        )
+    } else {
+        panic!("No script execution {steps:#?}")
+    }
 }

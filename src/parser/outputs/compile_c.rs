@@ -1,6 +1,6 @@
-use super::super::{
-    util::consume_till_empty_line, Description, Error, OutputStream, ParsableFromStream,
-};
+use crate::parser::{get_commands_and_compile_errors, Step};
+
+use super::super::{Description, Error, OutputStream, ParsableFromStream};
 use async_trait::async_trait;
 use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
@@ -14,11 +14,16 @@ pub struct CompileC {
     pub path: PathBuf,
     pub arch: String,
     pub lang: String,
+    pub command: String,
 }
 
 #[async_trait]
 impl ParsableFromStream for CompileC {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
+        let mut steps = vec![];
         let mut chunks = line.split_whitespace();
         let output_path = chunks
             .next()
@@ -49,17 +54,22 @@ impl ParsableFromStream for CompileC {
 
         let description = Description::from_line(line)?;
 
-        consume_till_empty_line(stream).await;
+        let (command, errors) = get_commands_and_compile_errors(stream).await;
+        steps.extend(errors);
 
-        Self {
+        let mut results = vec![Step::CompileC(Self {
             compiler,
             description,
             output_path,
             path,
             arch,
             lang,
-        }
-        .pipe(Ok)
+            command,
+        })];
+
+        results.extend(steps);
+
+        results.pipe(Ok)
     }
 }
 
@@ -68,7 +78,7 @@ impl ParsableFromStream for CompileC {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         CompileC,
        r#"CompileC path/to/output/bridge.o path/to/input/bridge.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler (in target 'DemoTarget' from project 'DemoProject')
     cd $ROOT
@@ -77,13 +87,17 @@ async fn test() {
 
     "# 
     };
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
+    if let Step::CompileC(step) = steps.first().unwrap() {
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
 
-    assert_eq!("arm64", &step.arch);
-    assert_eq!("c", &step.lang);
-    assert_eq!(PathBuf::from("path/to/input/bridge.c"), step.path);
-    assert_eq!(PathBuf::from("path/to/output/bridge.o"), step.output_path);
+        assert_eq!("arm64", &step.arch);
+        assert_eq!("c", &step.lang);
+        assert_eq!(PathBuf::from("path/to/input/bridge.c"), step.path);
+        assert_eq!(PathBuf::from("path/to/output/bridge.o"), step.output_path);
+    } else {
+        panic!("No script execution {steps:#?}")
+    }
 }
 
 impl Display for CompileC {
@@ -110,6 +124,7 @@ async fn fmt() {
         path: PathBuf::from("/path/to/file.c"),
         arch: "arm".into(),
         lang: "c".into(),
+        command: "".into(),
     };
 
     assert_eq!(

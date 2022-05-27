@@ -1,4 +1,4 @@
-use crate::parser::{Description, Error, OutputStream, ParsableFromStream};
+use crate::parser::{Description, Error, OutputStream, ParsableFromStream, Step};
 use async_trait::async_trait;
 use std::{fmt::Display, path::PathBuf};
 use tap::Pipe;
@@ -13,11 +13,14 @@ pub struct MergeSwiftModule {
 
 #[async_trait]
 impl ParsableFromStream for MergeSwiftModule {
-    async fn parse_from_stream(line: String, _stream: &mut OutputStream) -> Result<Self, Error> {
+    async fn parse_from_stream(
+        line: String,
+        _stream: &mut OutputStream,
+    ) -> Result<Vec<Step>, Error> {
         let mut chunks = line.split_whitespace();
         chunks.next();
 
-        Self {
+        vec![Step::MergeSwiftModule(Self {
             arch: chunks
                 .next()
                 .map(ToString::to_string)
@@ -27,7 +30,7 @@ impl ParsableFromStream for MergeSwiftModule {
                 .map(PathBuf::from)
                 .ok_or_else(|| Error::EOF("MergeSwiftModule".into(), "output_path".into()))?,
             description: Description::from_line(line)?,
-        }
+        })]
         .pipe(Ok)
     }
 }
@@ -48,7 +51,7 @@ impl Display for MergeSwiftModule {
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
-    let step = to_stream_test! {
+    let steps = to_stream_test! {
         MergeSwiftModule,
        r#"MergeSwiftModule normal x86_64 /path/to/build/Objects-normal/x86_64/helloworld.swiftmodule (in target 'DemoTarget' from project 'DemoProject')
         cd $ROOT
@@ -57,14 +60,18 @@ async fn test() {
 "# 
     };
 
-    assert_eq!("DemoTarget", &step.description.target);
-    assert_eq!("DemoProject", &step.description.project);
-    assert_eq!(
-        PathBuf::from("/path/to/build/Objects-normal/x86_64/helloworld.swiftmodule"),
-        step.output_path
-    );
-    assert_eq!(
-        "[DemoProject.DemoTarget] Merging    `helloworld.swiftmodule`",
-        step.to_string()
-    );
+    if let Step::MergeSwiftModule(step) = steps.first().unwrap() {
+        assert_eq!("DemoTarget", &step.description.target);
+        assert_eq!("DemoProject", &step.description.project);
+        assert_eq!(
+            PathBuf::from("/path/to/build/Objects-normal/x86_64/helloworld.swiftmodule"),
+            step.output_path
+        );
+        assert_eq!(
+            "[DemoProject.DemoTarget] Merging    `helloworld.swiftmodule`",
+            step.to_string()
+        );
+    } else {
+        panic!("{steps:#?}")
+    }
 }

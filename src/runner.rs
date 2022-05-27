@@ -23,12 +23,21 @@ where
     async_stream::stream! {
         use ProcessItem::*;
         while let Some(update) = reader.next().await {
+            // tracing::warn!("{update:?}");
             match update {
-                Output(line) => {
+                Output(line) | Error(line) => {
                     if !line.is_empty() {
                         match parse_step_from_stream(line, &mut reader).await {
-                            Ok(v) => if let Some(step) = v { yield step; }
-                            Err(e) => yield Step::Error(e.to_string())
+                            Ok(v) => if let Some(steps) = v {
+                                for step in steps.into_iter() {
+                                    yield step
+
+                                }
+                            }
+                            Err(e) => {
+                                tracing::error!("Fail to parse step {e}");
+                                yield Step::Error(e.to_string())
+                            }
                         }
                     }
                 }
@@ -36,7 +45,6 @@ where
                     Ok(code) => yield Step::Exit(code),
                     Err(err) => yield Step::Error(format!("fail to parse exit code as i32 {err}")),
                 },
-                Error(e) => yield crate::parser::Step::Error(e),
             }
         }
     }

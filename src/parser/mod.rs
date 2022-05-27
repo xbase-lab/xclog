@@ -20,7 +20,7 @@ pub type OutputStream = dyn tokio_stream::Stream<Item = ProcessItem> + Unpin + S
 
 #[async_trait]
 pub trait ParsableFromStream {
-    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Self, Error>
+    async fn parse_from_stream(line: String, stream: &mut OutputStream) -> Result<Vec<Step>, Error>
     where
         Self: Sized + Send;
 }
@@ -28,7 +28,7 @@ pub trait ParsableFromStream {
 pub async fn parse_step_from_stream(
     line: String,
     stream: &mut OutputStream,
-) -> Result<Option<Step>, Error> {
+) -> Result<Option<Vec<Step>>, Error> {
     let mut chunks = line.trim().split_whitespace();
 
     let (cmd, line) = match chunks.next() {
@@ -54,86 +54,48 @@ pub async fn parse_step_from_stream(
     };
 
     match cmd.as_str() {
-        "Command" => Invocation::parse_from_stream(line, stream)
-            .await
-            .map(Step::Invocation),
-        "RegisterWithLaunchServices" => RegisterWithLaunchServices::parse_from_stream(line, stream)
-            .await
-            .map(Step::RegisterWithLaunchServices),
+        "Command" => Invocation::parse_from_stream(line, stream).await?,
+        "RegisterWithLaunchServices" => {
+            RegisterWithLaunchServices::parse_from_stream(line, stream).await?
+        }
         "Resolved" if line.contains("source packages") => {
-            ResolvedSourcePackages::parse_from_stream(line, stream)
-                .await
-                .map(Step::ResolvedSourcePackages)
+            ResolvedSourcePackages::parse_from_stream(line, stream).await?
         }
-        "CompileSwift" => CompileSwift::parse_from_stream(line, stream)
-            .await
-            .map(Step::CompileSwift),
-        "CompileSwiftSources" => CompileSwiftSources::parse_from_stream(line, stream)
-            .await
-            .map(Step::CompileSwiftSources),
-        "CompileC" => CompileC::parse_from_stream(line, stream)
-            .await
-            .map(Step::CompileC),
-        "CodeSign" => CodeSign::parse_from_stream(line, stream)
-            .await
-            .map(Step::CodeSign),
-        "CompileAssetCatalog" => CompileAssetCatalog::parse_from_stream(line, stream)
-            .await
-            .map(Step::CompileAssetCatalog),
-        "CompileStoryboard" => CompileStoryboard::parse_from_stream(line, stream)
-            .await
-            .map(Step::CompileStoryboard),
-        "CompileXIB" => CompileXIB::parse_from_stream(line, stream)
-            .await
-            .map(Step::CompileXIB),
+        "CompileSwift" => CompileSwift::parse_from_stream(line, stream).await?,
+        "CompileSwiftSources" => CompileSwiftSources::parse_from_stream(line, stream).await?,
+        "CompileC" => CompileC::parse_from_stream(line, stream).await?,
+        "CodeSign" => CodeSign::parse_from_stream(line, stream).await?,
+        "CompileAssetCatalog" => CompileAssetCatalog::parse_from_stream(line, stream).await?,
+        "CompileStoryboard" => CompileStoryboard::parse_from_stream(line, stream).await?,
+        "CompileXIB" => CompileXIB::parse_from_stream(line, stream).await?,
         "PrecompileSwiftBridgingHeader" => {
-            PrecompileSwiftBridgingHeader::parse_from_stream(line, stream)
-                .await
-                .map(Step::PrecompileSwiftBridgingHeader)
+            PrecompileSwiftBridgingHeader::parse_from_stream(line, stream).await?
         }
-        "CopySwiftLibs" => CopySwiftLibs::parse_from_stream(line, stream)
-            .await
-            .map(Step::CopySwiftLibs),
-        "Ld" => Ld::parse_from_stream(line, stream).await.map(Step::Ld),
-        "CpResource" => CopyResource::parse_from_stream(line, stream)
-            .await
-            .map(Step::CopyResource),
-        "CreateBuildDirectory" => CreateBuildDirectory::parse_from_stream(line, stream)
-            .await
-            .map(Step::CreateBuildDirectory),
-        "GenerateDSYMFile" => GenerateDSYMFile::parse_from_stream(line, stream)
-            .await
-            .map(Step::GenerateDSYMFile),
-        "LinkStoryboards" => LinkStoryboards::new(line).map(Step::LinkStoryboards),
-        "MergeSwiftModule" => MergeSwiftModule::parse_from_stream(line, stream)
-            .await
-            .map(Step::MergeSwiftModule),
-        "EmitSwiftModule" => EmitSwiftModule::parse_from_stream(line, stream)
-            .await
-            .map(Step::EmitSwiftModule),
-        "PhaseScriptExecution" => ScriptExecution::parse_from_stream(line, stream)
-            .await
-            .map(Step::ScriptExecution),
-        "ProcessInfoPlistFile" => ProcessInfoPlistFile::parse_from_stream(line, stream)
-            .await
-            .map(Step::ProcessInfoPlistFile),
+        "CopySwiftLibs" => CopySwiftLibs::parse_from_stream(line, stream).await?,
+        "Ld" => Ld::parse_from_stream(line, stream).await?,
+        "CpResource" => CopyResource::parse_from_stream(line, stream).await?,
+        "CreateBuildDirectory" => CreateBuildDirectory::parse_from_stream(line, stream).await?,
+        "GenerateDSYMFile" => GenerateDSYMFile::parse_from_stream(line, stream).await?,
+        "LinkStoryboards" => vec![Step::LinkStoryboards(LinkStoryboards::new(line)?)],
+        "MergeSwiftModule" => MergeSwiftModule::parse_from_stream(line, stream).await?,
+        "EmitSwiftModule" => EmitSwiftModule::parse_from_stream(line, stream).await?,
+        "PhaseScriptExecution" => ScriptExecution::parse_from_stream(line, stream).await?,
+        "ProcessInfoPlistFile" => ProcessInfoPlistFile::parse_from_stream(line, stream).await?,
         "ProcessProductPackaging" => {
             if !line.contains("mobileprovision") {
-                ProcessProductPackaging::parse_from_stream(line, stream)
-                    .await
-                    .map(Step::ProcessProductPackaging)
+                ProcessProductPackaging::parse_from_stream(line, stream).await?
             } else {
                 return Ok(None);
             }
         }
-        "Validate" => Validate::parse_from_stream(line, stream)
-            .await
-            .map(Step::Validate),
-        "**" if line.contains("BUILD SUCCEEDED") => Step::BuildSucceed.pipe(Ok),
-        "**" if line.contains("BUILD FAILED") => Step::BuildFailed.pipe(Ok),
-        "**" if line.contains("CLEAN SUCCEEDED") => Step::CleanSucceed.pipe(Ok),
-        "**" if line.contains("TEST SUCCEEDED") => Step::TestSucceed.pipe(Ok),
-        "**" if line.contains("TEST FAILED") => Step::TestFailed.pipe(Ok),
+        "Validate" => Validate::parse_from_stream(line, stream).await?,
+        "**" if line.contains("BUILD SUCCEEDED") => vec![Step::BuildSucceed],
+        "**" if line.contains("CLEAN SUCCEEDED") => vec![Step::CleanSucceed],
+        "**" if line.contains("TEST SUCCEEDED") => vec![Step::TestSucceed],
+        "**" if line.contains("TEST FAILED") => vec![Step::TestFailed],
+        "**" if line.contains("BUILD FAILED") => {
+            BuildFailed::parse_from_stream(line, stream).await?
+        }
         "Note" | "note:" => {
             if line.eq("Using new build system") {
                 return Ok(None);
@@ -142,7 +104,7 @@ pub async fn parse_step_from_stream(
             } else if line.eq("Planning") {
                 return Ok(None);
             } else if line.ne("Build preparation complete") {
-                Step::Note(line).pipe(Ok)
+                vec![Step::Note(line)]
             } else {
                 return Ok(None);
             }
@@ -153,23 +115,28 @@ pub async fn parse_step_from_stream(
             {
                 return Ok(None);
             }
-            let warn = Step::Warning(line).pipe(Ok);
+            let warn = Step::Warning(line);
             consume_till_empty_line(stream).await;
-            warn
+            vec![warn]
         }
         "error:" => {
-            let warn = Step::Error(line).pipe(Ok);
-            consume_till_empty_line(stream).await;
-            warn
+            if !line.is_empty() {
+                let error = Step::Error(line);
+                consume_till_empty_line(stream).await;
+                vec![error]
+            } else {
+                return Ok(None);
+            }
         }
-        cmd => {
+        _ => {
             #[cfg(feature = "tracing")]
             tracing::error!("Skipping: {cmd}");
             consume_till_empty_line(stream).await;
             return Ok(None);
         }
     }
-    .map(Some)
+    .pipe(Some)
+    .pipe(Ok)
 }
 
 pub fn is_failure(steps: &Vec<Step>) -> anyhow::Result<bool> {
@@ -194,50 +161,22 @@ pub fn is_success(steps: &Vec<Step>) -> anyhow::Result<bool> {
 
 #[tokio::test]
 #[tracing_test::traced_test]
-async fn spawn_and_parse() {
+async fn test_case_1() {
     let root = "/Users/tami5/repos/swift/wordle";
     use crate::runner::spawn;
-    use futures::StreamExt;
-
-    // spawn_once(root, &["clean"]).await.unwrap();
+    use process_stream::StreamExt;
 
     let mut stream = spawn(
         root,
         &[
-            "clean",
             "build",
             "-configuration",
             "Debug",
             "-target",
             "Wordle",
-            "-sdk",
-            "iphonesimulator",
-        ],
-    )
-    .await
-    .unwrap();
-
-    while let Some(step) = StreamExt::next(&mut stream).await {
-        println!("{:#?}", step)
-    }
-}
-
-#[tokio::test]
-#[tracing_test::traced_test]
-async fn libc() {
-    let root = "/Users/tami5/repos/swift/yabaimaster";
-    use crate::runner::spawn;
-    use futures::StreamExt;
-
-    let mut stream = spawn(
-        root,
-        &[
-            "clean",
-            "-configuration",
-            "Release",
-            "-arch",
-            "arm64",
-            r#"SYMROOT=/Users/tami5/repos/swift/yabaimaster/build"#,
+            "SYMROOT=/Users/tami5/Library/Caches/Xbase/swift_wordle/Wordle_Debug",
+            "CONFIGURATION_BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_wordle/Wordle_Debug",
+            "BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_wordle/Wordle_Debug",
         ],
     )
     .await
@@ -247,3 +186,33 @@ async fn libc() {
         println!("{}", step)
     }
 }
+
+#[tokio::test]
+#[tracing_test::traced_test]
+async fn test_case_2() {
+    let root = "/Users/tami5/repos/swift/yabaimaster";
+    use crate::runner::spawn;
+    use process_stream::StreamExt;
+
+    let mut stream = spawn(
+        root,
+        &["build", "-configuration", "Debug", "-target", "YabaiMaster", "SYMROOT=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug", "CONFIGURATION_BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug", "BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug"
+        ],
+    )
+    .await
+    .unwrap();
+
+    while let Some(step) = StreamExt::next(&mut stream).await {
+        println!("{}", step)
+    }
+}
+
+// [CompileError]
+// [CompileError]  Cannot find 'flashcardRotation' in scope (/Users/tami5/repos/swift/wordle/Source/Animations/Flipcard.swift:29:34)
+// [CompileError]        .rotation3DEffect(.degrees(flashcardRotation), axis: (x: 1, y: 0, z: 0))
+// [CompileError]                                   ^~~~~~~~~~~~~~~~~
+// [CompileError]
+// [CompileError]  Cannot find 'flashcardRotation' in scope (/Users/tami5/repos/swift/wordle/Source/Animations/Flipcard.swift:35:7)
+// [CompileError]        flashcardRotation += -180
+// [CompileError]        ^~~~~~~~~~~~~~~~~
+// [CompileError]
