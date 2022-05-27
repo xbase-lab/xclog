@@ -27,6 +27,7 @@ anyhow = "1.0.57"
 async-stream = "0.3.3"
 process-stream = "0.2.2"
 lazy-regex = "2.3.0"
+paste = "1.0.7"
 
 [dev-dependencies]
 tracing-test = "0.2.1"
