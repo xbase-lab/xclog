@@ -108,3 +108,30 @@ fn test_aggregate_target() {
     assert_eq!("AggregateTarget", &captures["project"]);
     assert_eq!("Debug", &captures["configuration"]);
 }
+
+/**
+    ANALYZE TARGET TARGET captured groups:
+
+    - $target = Target Name;
+    - $project = Project Name;
+    - $configuration = configuration
+*/
+pub static ANALYZE_TARGET: Lazy<Regex> = lazy_regex! {
+    r"(?x)===\sANALYZE\sTARGET\s
+      # Target
+      (?P<target>.*)
+      # Project
+      \sOF\sPROJECT\s(?P<project>.*)
+      # Configuration
+      \sWITH.*CONFIGURATION\s(?P<configuration>.*)\s===
+     "
+};
+
+#[test]
+fn test_analyze_target() {
+    let text = "=== ANALYZE TARGET X OF PROJECT Y WITH THE DEFAULT CONFIGURATION Z ===";
+    let captures = ANALYZE_TARGET.captures(text).unwrap();
+    assert_eq!("X", &captures["target"]);
+    assert_eq!("Y", &captures["project"]);
+    assert_eq!("Z", &captures["configuration"]);
+}
