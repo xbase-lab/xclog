@@ -56,7 +56,7 @@ pub enum Step {
     /// Build Succeeded
     BuildSucceed,
     /// Build Failed
-    BuildFailed,
+    BuildFailed(BuildFailed),
     /// Clean Succeeded
     CleanSucceed,
     /// Test Succeeded
@@ -439,7 +439,7 @@ impl Step {
     pub fn is_failed(&self) -> bool {
         matches!(self, Self::TestFailed)
             | matches!(self, Self::TestSucceed)
-            | matches!(self, Self::BuildFailed)
+            | matches!(self, Self::BuildFailed(_))
     }
 
     /// Returns `true` if the step is [`Exit`].

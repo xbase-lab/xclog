@@ -1,3 +1,4 @@
+mod build_failed;
 mod code_sign;
 mod compile_asset_catalog;
 mod compile_c;
@@ -23,6 +24,7 @@ mod resolved_source_packages;
 mod script_execution;
 mod validate;
 
+pub use build_failed::BuildFailed;
 pub use code_sign::CodeSign;
 pub use compile_asset_catalog::CompileAssetCatalog;
 pub use compile_c::CompileC;

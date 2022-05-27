@@ -41,7 +41,7 @@ impl Display for Step {
             Step::LibTool => write!(f, "LibTool"),
             Step::Planning => write!(f, "[Planning]"),
             Step::BuildSucceed => write!(f, "[Succeed]"),
-            Step::BuildFailed => write!(f, "[Failed]"),
+            Step::BuildFailed(v) => Display::fmt(v, f),
             Step::CleanSucceed => write!(f, "[Succeed]"),
             Step::TestSucceed => write!(f, "[Succeed]"),
             Step::TestFailed => write!(f, "[Failed]"),
