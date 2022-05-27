@@ -52,3 +52,31 @@ fn test_analyze() {
     assert_eq!("/path/to/file.mm", &captures["file_path"]);
     assert_eq!("file.mm", &captures["file_name"]);
 }
+
+/**
+    Build target captured groups:
+
+    - $target = Target Name;
+    - $project = Project Name;
+    - $configuration = configuration
+*/
+pub static BUILD_TARGET: Lazy<Regex> = lazy_regex! {
+    r"(?x)===\sBUILD\sTARGET\s
+      # Target
+      (?P<target>.*)
+      # Project
+      \sOF\sPROJECT\s(?P<project>.*)
+      # Configuration
+      \sWITH.*CONFIGURATION\s(?P<configuration>.*)\s===
+     "
+};
+
+#[test]
+fn test_build_target() {
+    let text =
+        "=== BUILD TARGET ExampleTarget OF PROJECT ExampleProject WITH THE DEFAULT CONFIGURATION Local ===";
+    let captures = BUILD_TARGET.captures(text).unwrap();
+    assert_eq!("ExampleTarget", &captures["target"]);
+    assert_eq!("ExampleProject", &captures["project"]);
+    assert_eq!("Local", &captures["configuration"]);
+}
