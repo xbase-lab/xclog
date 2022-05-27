@@ -25,7 +25,7 @@ macro_rules! define_pattern {
                     let captures = match [<$name>].captures($test_value) {
                         Some(cp)=> cp,
                         None => {
-                            panic!("No capture groups in\n\n{}", $test_value);
+                            panic!("\nNo capture groups in\n\n```\n{}\n```\n\npattern:\n\n```\n{}\n```\n\n", $test_value, $pattern);
                         }
                     };
                     crate::parser::util::tests::run_tests(captures, $expr);

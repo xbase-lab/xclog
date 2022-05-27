@@ -145,3 +145,20 @@ define_pattern! {
             }
     }
 }
+
+
+define_pattern! {
+    ident: COMPILE_SWIFT,
+    desc: "CompileSwift Step",
+    captures: [ filename, filepath, target, project ],
+    pattern: r"CompileSwift\s.[^/]*(?P<filepath>.*/(?P<filename>.*\.(?:swift)))(?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
+    tests: {
+        "CompileSwift normal arm64 /path/to/ToastView.swift (in target 'Example' from project 'Example')" =>
+            |captures| {
+                assert_eq!("/path/to/ToastView.swift", &captures["filepath"]);
+                assert_eq!("ToastView.swift", &captures["filename"]);
+                assert_eq!("Example", &captures["project"]);
+                assert_eq!("Example", &captures["target"]);
+            }
+    }
+}
