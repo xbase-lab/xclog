@@ -157,3 +157,33 @@ fn test_shell_command() {
     assert_eq!("cd", &captures["command"]);
     assert_eq!("/foo/bar/baz", &captures["arguments"]);
 }
+
+/**
+    CLEAN REMOVE pattern
+
+    - $file_path = Cleanred file target;
+    - $file_name = Cleanred File name;
+*/
+pub static CLEAN_REMOVE: Lazy<Regex> = lazy_regex! {
+    r"(?x)Clean.Remove\sclean\s
+      # File path and file name
+      (
+          # File Path
+          ?P<file_path>.*/
+
+          # File Name
+          (?P<file_name>.*\.(?:build))
+      )
+"};
+
+#[test]
+fn test_clean_remove() {
+    let text =
+        "Clean.Remove clean /path/to/MyLibrary.build/Debug-iphonesimulator/MyLibraryTests.build";
+    let captures = CLEAN_REMOVE.captures(text).unwrap();
+    assert_eq!(
+        "/path/to/MyLibrary.build/Debug-iphonesimulator/MyLibraryTests.build",
+        &captures["file_path"]
+    );
+    assert_eq!("MyLibraryTests.build", &captures["file_name"]);
+}
