@@ -110,7 +110,7 @@ fn test_aggregate_target() {
 }
 
 /**
-    ANALYZE TARGET TARGET captured groups:
+    ANALYZE TARGET captured groups:
 
     - $target = Target Name;
     - $project = Project Name;
@@ -186,4 +186,31 @@ fn test_clean_remove() {
         &captures["file_path"]
     );
     assert_eq!("MyLibraryTests.build", &captures["file_name"]);
+}
+
+/**
+    CLEAN TARGET captured groups:
+
+    - $target = Target Name;
+    - $project = Project Name;
+    - $configuration = configuration
+*/
+pub static CLEAN_TARGET: Lazy<Regex> = lazy_regex! {
+    r"(?x)===\sCLEAN\sTARGET\s
+      # Target
+      (?P<target>.*)
+      # Project
+      \sOF\sPROJECT\s(?P<project>.*)
+      # Configuration
+      \sWITH.*CONFIGURATION\s(?P<configuration>.*)\s===
+     "
+};
+
+#[test]
+fn test_clean_target() {
+    let text = "=== CLEAN TARGET X OF PROJECT Y WITH THE DEFAULT CONFIGURATION Z ===";
+    let captures = CLEAN_TARGET.captures(text).unwrap();
+    assert_eq!("X", &captures["target"]);
+    assert_eq!("Y", &captures["project"]);
+    assert_eq!("Z", &captures["configuration"]);
 }
