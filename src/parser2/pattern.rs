@@ -135,3 +135,25 @@ fn test_analyze_target() {
     assert_eq!("Y", &captures["project"]);
     assert_eq!("Z", &captures["configuration"]);
 }
+
+/// Dependencies Check
+pub static CHECK_DEPENDENCIES: Lazy<Regex> = lazy_regex!(r"Check dependencies");
+
+/**
+    shell command captured groups:
+
+    - $command = Command Name;
+    - $arguments = Arguments;
+*/
+pub static SHELL_COMMAND: Lazy<Regex> = lazy_regex! {
+    r"(?x)\s{4}(?P<command>cd|setenv|(?:[\w/:\s\-.]+?/)?[\w\-]+)\s(?P<arguments>.*)$
+     "
+};
+
+#[test]
+fn test_shell_command() {
+    let text = "    cd /foo/bar/baz";
+    let captures = SHELL_COMMAND.captures(text).unwrap();
+    assert_eq!("cd", &captures["command"]);
+    assert_eq!("/foo/bar/baz", &captures["arguments"]);
+}
