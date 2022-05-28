@@ -330,3 +330,25 @@ define_pattern! {
             }
     }
 }
+
+define_pattern! {
+    ident: KIWI_FAILING_TEST,
+    desc: r"Executed number of tests with skipped teats",
+    captures: [ filepath, suite, case, reason ],
+    pattern: r"(?x)\s*
+        (?P<filepath>.+:\d+):\serror:\s[\+\-]
+        \[
+          (?P<suite>.*)\s
+          (?P<case>.*)
+         \]\s:(?:\s'.*'\s\[FAILED\],)?\s
+        (?P<reason>.*)",
+    tests: {
+        "/path/to/tests.m:49: error: -[TestSuite TestCase] : 'Iterators, times： iterates the exact number of times' [FAILED], expected subject to equal 4, got 5" =>
+            |captures| {
+                assert_eq!("/path/to/tests.m:49", &captures["filepath"]);
+                assert_eq!("TestSuite", &captures["suite"]);
+                assert_eq!("TestCase", &captures["case"]);
+                assert_eq!("expected subject to equal 4, got 5", &captures["reason"]);
+            }
+    }
+}
