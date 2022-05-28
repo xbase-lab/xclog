@@ -635,3 +635,19 @@ define_pattern! {
     pattern: r"\s*.*/usr/bin/clang\s.*\s\-c\s(.*.pch)\s.*\-o\s.*",
     tests: { }
 }
+
+define_pattern! {
+    ident: PBX_COPY,
+    desc: r"PBXCp",
+    captures: [ filename, target, project ],
+    pattern: r"(?x)PBXCp\s(?P<filepath>/.*)\s/.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\)",
+    tests: {
+        "PBXCp /path/to/header.h /path/to/output.h (in target 'App' from project 'App')" =>
+            |captures| {
+                assert_eq!("App" ,&captures["target"]);
+                assert_eq!("App" ,&captures["project"]);
+                assert_eq!("/path/to/header.h" ,&captures["filepath"]);
+            }
+    }
+}
+
