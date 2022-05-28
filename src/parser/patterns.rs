@@ -651,3 +651,23 @@ define_pattern! {
     }
 }
 
+define_pattern! {
+    ident: PROCESS_INFO_PLIST_FILE,
+    desc: r"ProcessInfoPlistFile",
+    captures: [ filename, filepath, target, project ],
+    pattern: r"(?x)ProcessInfoPlistFile\s.*\s
+        (?P<filepath>/(?:\.|[^\s])+/(?P<filename>(?:\.|[^\s])+\.(?:plist)))
+        (?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
+    tests: {
+        "ProcessInfoPlistFile /path/to/output/Info.plist /path/to/Info.plist (in target 'Example' from project 'Example')" =>
+            |captures| {
+                assert_eq!("/path/to/Info.plist", &captures["filepath"]);
+                assert_eq!("Info.plist", &captures["filename"]);
+                assert_eq!("Example", &captures["project"]);
+                assert_eq!("Example", &captures["target"]);
+            }
+
+
+    }
+}
+
