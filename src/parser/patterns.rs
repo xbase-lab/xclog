@@ -2,7 +2,7 @@ use super::util::define_pattern;
 use lazy_regex::*;
 
 define_pattern! {
-    ident: ANALYZE,
+    ident: Analyze,
     desc: "Analyze/AnalyzeShallow",
     captures: [ filepath, filename, target, project ],
     pattern: r"(?x)
@@ -32,7 +32,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: BUILD_TARGET,
+    ident: BuildTarget,
     desc: "BUILD TARGET",
     captures: [ target, project, configuration ],
     pattern: r"={3}\sBUILD\sTARGET\s(?P<target>.*)\sOF\sPROJECT\s(?P<project>.*)\sWITH.*CONFIGURATION\s(?P<configuration>.*)\s={3}",
@@ -47,7 +47,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: AGGREGATE_TARGET,
+    ident: AggregateTarget,
     desc: "BUILD AGGREGATE TARGET",
     captures: [ target, project, configuration ],
     pattern: r"={3}\sBUILD\sAGGREGATE\sTARGET\s(?P<target>.*)\sOF\sPROJECT\s(?P<project>.*)\sWITH.*CONFIGURATION\s(?P<configuration>.*)\s={3}",
@@ -62,7 +62,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: ANALYZE_TARGET,
+    ident: AnalyzeTarget,
     desc: "ANALYZE TARGET",
     captures: [ target, project, configuration ],
     pattern: r"={3}\sANALYZE\sTARGET\s(?P<target>.*)\sOF\sPROJECT\s(?P<project>.*)\sWITH.*CONFIGURATION\s(?P<configuration>.*)\s={3}",
@@ -77,7 +77,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: SHELL_COMMAND,
+    ident: ShellCommand,
     desc: "Shell commands like cd setenv under a compile step",
     captures: [ command,arguments ],
     pattern: r"\s{4}(?P<command>cd|setenv|(?:[\w/:\s\-.]+?/)?[\w\-]+)\s(?P<arguments>.*)$",
@@ -91,7 +91,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: CLEAN_REMOVE,
+    ident: CleanRemove,
     desc: "CLEAN REMOVE",
     captures: [ filepath, filename ],
     pattern: r"(?x)Clean.Remove\sclean\s
@@ -107,7 +107,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: CLEAN_TARGET,
+    ident: CleanTarget,
     desc: "CLEAN TARGET",
     captures: [ target, project, configuration ],
     pattern: r"={3}\sCLEAN\sTARGET\s(?P<target>.*)\sOF\sPROJECT\s(?P<project>.*)\sWITH.*CONFIGURATION\s(?P<configuration>.*)\s={3}",
@@ -122,7 +122,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: CODE_SIGN,
+    ident: CodeSign,
     desc: "CodeSign Phase",
     captures: [ filename, target, project ],
     pattern: r"CodeSign\s(:?.*/(?P<filename>.*\.(?:app)))(?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
@@ -137,7 +137,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: COMPILE,
+    ident: Compile,
     desc: r"Compile(Swift|C|\w) Step",
     captures: [ type, filename, filepath, target, project ],
     pattern: r"(?x)
@@ -176,7 +176,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: COMPILE_COMMAND,
+    ident: CompileCommand,
     desc: r"Clang and swiftc command",
     captures: [ command, arguments ],
     pattern: r"\s{4}(:?[^\s]+/(?P<command>\w+))\s(?P<arguments>.*)",
@@ -196,7 +196,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: COMPILE_XIB,
+    ident: CompileXIB,
     desc: r"CompileXIB",
     captures: [ filename, filepath, project, target ],
     pattern: r"CompileXIB\s(?P<filepath>.*/(?P<filename>.*\.xib))(?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
@@ -212,7 +212,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: COMPILE_STORYBOARD,
+    ident: CompileStoryboard,
     desc: r"CompileStoryboard",
     captures: [ filename, filepath, project, target ],
     pattern: r"CompileStoryboard\s(?P<filepath>.*/(?P<filename>[^/].*\.storyboard))(?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
@@ -228,7 +228,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: COPY_COMMAND,
+    ident: CopyCommand,
     desc: r"CpResource|CpHeader|CopyStringsFile|CopyPlistFile",
     captures: [ type, filename, filepath, project, target ],
     pattern: r"(?x)
@@ -264,7 +264,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: TEST_EXECUTED,
+    ident: TestExecuted,
     desc: r"Executed number of tests",
     captures: [ tests_count, failed_tests_count, unexpected_test_count, total_exec_time ],
     pattern: r"(?x)\s*Executed\s
@@ -291,7 +291,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: TEST_EXECUTED_WITH_SKIPPED,
+    ident: TestExecutedWithSkipped,
     desc: r"Executed number of tests with skipped teats",
     captures: [ tests_count, skipped_test_count, failed_tests_count, unexpected_test_count, total_exec_time ],
     pattern: r"(?x)
@@ -322,7 +322,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: KIWI_FAILING_TEST,
+    ident: KiwiFailingTest,
     desc: r"Kiwi Test failing",
     captures: [ filepath, suite, case, reason ],
     pattern: r"(?x)\s*
@@ -344,7 +344,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: UI_FAILING_TEST,
+    ident: UIFailingTest,
     desc: r"UI Test failing",
     captures: [ filepath, reason ],
     pattern: r"\s*t = \s+\d+\.\d+s\s+Assertion Failure: (?P<filepath>.*:\d+): (?P<reason>.*)$",
@@ -358,7 +358,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: COVERAGE_REPORT_GENERATION,
+    ident: CoverageReportGeneration,
     desc: r"Coverage report generation",
     captures: [ filepath ],
     pattern: r"(?i)generated\s+coverage\s+report:\s+(?P<filepath>.+)",
@@ -371,7 +371,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: DSYM_GENERATION,
+    ident: GenerateDsymFile,
     desc: r"GenerateDSYMFile",
     captures: [ filename, target, project ],
     pattern: r"(?x)
@@ -389,7 +389,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: LINKING,
+    ident: Linking,
     desc: r"Ld",
     captures: [ filename, target, project ],
     pattern: r"Ld\s(?P<filepath>.*/(?P<filename>\w+\.\w+)).*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\)?",
@@ -407,7 +407,7 @@ define_pattern! {
 // - TESTING ----------------------------------------------------------------------
 
 define_pattern! {
-    ident: TEST_SUITE_STARTED,
+    ident: TestSuiteStarted,
     desc: r"Test Suites Started",
     captures: [ name, time ],
     pattern: r"\s*Test Suite '(?:.*/)?(?P<name>.*[ox]ctest.*)' started at (?P<time>.*)",
@@ -421,7 +421,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: TEST_SUITE_COMPLETED,
+    ident: TestSuiteCompleted,
     desc: r"Test Suites Completed",
     captures: [ name, time ],
     pattern: r"\s*Test Suite '(?:.*/)?(?P<name>.*[ox]ctest.*)' (finished|passed|failed) at (?P<time>.*)\.",
@@ -435,7 +435,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: OCUNIT_TEST_CASE_STARTED,
+    ident: TestCaseStarted,
     desc: r"Test Case Started",
     captures: [ suite, case],
     pattern: r"\s*Test Case '-\[(?P<suite>.*) (?P<case>.*)\]' started.$",
@@ -449,7 +449,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: OCUNIT_TEST_CASE_PASSED,
+    ident: TestCasePassed,
     desc: r"Test Case Passed",
     captures: [ suite, case, time ],
     pattern: r"\s*Test Case\s'-\[(?P<suite>.*)\s(?P<case>.*)\]'\spassed\s\((?P<time>\d*\.\d{3})\sseconds\).",
@@ -464,7 +464,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: KIWI_TEST_CASE_PENDING,
+    ident: KiwiTestCasePending,
     desc: r"Kiwi test case pending",
     captures: [ suite, case ],
     pattern: r"Test Case\s'-\[(?P<suite>.*)\s(?P<case>.*)PENDING\]'\spassed",
@@ -478,7 +478,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: TEST_CASE_MEASURE,
+    ident: TestCaseMeasure,
     desc: r"Test case measuring",
     captures: [ suite, case, time ],
     pattern: r"[^:]*:[^:]*:\sTest Case\s'-\[(?P<suite>.*)\s(?P<case>.*)\]'\smeasured\s\[Time,\sseconds\]\saverage:\s(?P<time>\d*\.\d{3})(.*){4}",
@@ -493,7 +493,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: PARALLEL_TEST_CASE_PASSED,
+    ident: ParallelTestCasePassed,
     desc: r"Parallel TestCase passed",
     captures: [ suite, case, time, medium ],
     pattern: r"Test\s+case\s+'(?P<suite>.*)\.(?P<case>.*)\(\)'\s+passed\s+on\s+'(?P<medium>.*)'\s+\((?P<time>\d*\.(.*){3})\s+seconds\)",
@@ -509,7 +509,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: PARALLEL_TEST_CASE_APPKIT_PASSED,
+    ident: ParallelTestCaseAppKitPassed,
     desc: r"Parallel TestCase AppKit Passed",
     captures: [ suite, case, time, medium ],
     pattern: r"\s*Test case\s'-\[(?P<suite>.*)\s(?P<case>.*)\]'\spassed\son\s'(?P<medium>.*)'\s\((?P<time>\d*\.\d{3})\sseconds\)",
@@ -525,7 +525,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: PARALLEL_TEST_CASE_FAILED,
+    ident: ParallelTestCaseFailed,
     desc: r"Parallel TestCase Failed",
     captures: [ suite, case, time, medium ],
     pattern: r"Test\s+case\s+'(?P<suite>.*)\.(?P<case>.*)\(\)'\s+failed\s+on\s+'(?P<medium>.*)'\s+\((?P<time>\d*\.(.*){3})\s+seconds\)",
@@ -541,7 +541,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: PARALLEL_TESTING_STARTED,
+    ident: ParallelTestingStarted,
     desc: r"Parallel Testing Started",
     captures: [ suite, case, time, medium ],
     pattern: r"Testing\s+started\s+on\s+'(?P<medium>.*)'",
@@ -554,7 +554,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: PARALLEL_TESTING_PASSED,
+    ident: ParallelTestingPassed,
     desc: r"Parallel Testing Passed",
     captures: [ suite, case, time, medium ],
     pattern: r"Testing\s+passed\s+on\s+'(?P<medium>.*)'",
@@ -567,7 +567,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: PARALLEL_TESTING_FAILED,
+    ident: ParallelTestingFailed,
     desc: r"Parallel Testing Failed",
     captures: [ suite, case, time, medium ],
     pattern: r"Testing\s+failed\s+on\s+'(?P<medium>.*)'",
@@ -580,7 +580,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: PARALLEL_TEST_FAILED,
+    ident: ParallelTestFailed,
     desc: r"Parallel Testing Failed",
     captures: [ suite, case, time, medium ],
     pattern: r"(?i)\s*Test\s+Suite\s+'(?P<suite>.*)'\s+started\s+on\s+'(?P<medium>.*)'",
@@ -594,7 +594,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: PHASE_SCRIPT_EXECUTION,
+    ident: PhaseScriptExecution,
     desc: r"PhaseScriptExecution",
     captures: [ name, target, project ],
     pattern: r"(?x)PhaseScriptExecution\s(?P<name>.*)\s/.*\.sh( ?:\s.* \((?:in\starget\s      '(?P<target>.*)'\s  from\sproject\s   '(?P<project>.*)' )\)  ) ?",
@@ -616,7 +616,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: PROCESS_PCH,
+    ident: ProcessPCH,
     desc: r"ProcessPCH",
     captures: [ filename, target, project ],
     pattern: r"(?x)ProcessPCH(?:\+\+)?\s.*\s/.*/(?P<filename>.*.pch)( ?:\s.* \((?:in\starget\s      '(?P<target>.*)'\s  from\sproject\s   '(?P<project>.*)' )\)  ) ?",
@@ -631,14 +631,14 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: PROCESS_PCH_COMMAND,
+    ident: ProcessPCHCommand,
     desc: r"ProcessPchCommand",
     captures: [ ],
     pattern: r"\s*.*/usr/bin/clang\s.*\s\-c\s(.*.pch)\s.*\-o\s.*"
 }
 
 define_pattern! {
-    ident: PBX_COPY,
+    ident: PbxCopy,
     desc: r"PBXCp",
     captures: [ filename, target, project ],
     pattern: r"(?x)PBXCp\s(?P<filepath>/.*)\s/.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\)",
@@ -653,7 +653,7 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: PROCESS_INFO_PLIST_FILE,
+    ident: ProcessInfoPlistFile,
     desc: r"ProcessInfoPlistFile",
     captures: [ filename, filepath, target, project ],
     pattern: r"(?x)ProcessInfoPlistFile\s.*\s
@@ -672,28 +672,50 @@ define_pattern! {
     }
 }
 
-/// Dependencies Check
-pub static CHECK_DEPENDENCIES: Lazy<Regex> = lazy_regex!(r"Check dependencies");
-
-/// Restarting tests
-pub static RESTARTING_TESTS: Lazy<Regex> = lazy_regex!(r"Restarting after unexpected exit.+$");
-
-/// Coverage Data Generation
-pub static COVERAGE_DATA_GENERATION: Lazy<Regex> = lazy_regex!(r"generating\s+coverage\s+data\.*");
-
-/// Coverage Data Generation
-pub static PHASE_SUCCESS: Lazy<Regex> = lazy_regex!(r"\*\*\s(.*)\sSUCCEEDED\s\*\*");
-
-/// All test suite passed
-pub static TEST_SUITE_ALL_TESTS_PASSED: Lazy<Regex> =
-    lazy_regex!(r"\s*Test Suite 'All tests' passed at");
-
-/// All test suite failed
-pub static TEST_SUITE_ALL_TESTS_FAILED: Lazy<Regex> =
-    lazy_regex!(r"\s*Test Suite 'All tests' failed at");
+define_pattern! {
+    ident: CheckDependencies,
+    desc: r"Check dependencies",
+    captures: [],
+    pattern: r"Check dependencies"
+}
 
 define_pattern! {
-    ident: TOUCH,
+    ident: RestartingTests,
+    desc: r"Test restarting",
+    captures: [],
+    pattern:r"Restarting after unexpected exit.+$"
+}
+
+define_pattern! {
+    ident: CoverageDataGeneration,
+    desc: r"Coverage Data Generation",
+    captures: [],
+    pattern:r"generating\s+coverage\s+data\.*"
+}
+
+define_pattern! {
+    ident: PhaseSuccess,
+    desc: r"Phase Success",
+    captures: [],
+    pattern: r"\*\*\s(.*)\sSUCCEEDED\s\*\*"
+}
+
+define_pattern! {
+    ident: TestSuiteAllTestsPassed,
+    desc: r"Test Suite All Tests Passed",
+    captures: [],
+    pattern: r"\s*Test Suite 'All tests' passed at"
+}
+
+define_pattern! {
+    ident: TestSuiteAllTestsFailed,
+    desc: r"Test Suite All Tests Passed",
+    captures: [],
+    pattern: r"\s*Test Suite 'All tests' failed at"
+}
+
+define_pattern! {
+    ident: Touch,
     desc: r"Touch file",
     captures: [ filename, filepath, target, project ],
     pattern: r"(?x)Touch\s(?P<filepath>/(?:\.|[^\s])+/(?P<filename>(?:\.|[^\s])+\.(?:\w+)))
@@ -714,7 +736,7 @@ define_pattern! {
 // - Warning ----------------------------------------------------------------------
 
 define_pattern! {
-    ident: WAENING_COMPILE,
+    ident: CompileWarning,
     desc: r"Compile Warning",
     captures: [ location, filepath, message ],
     pattern: r"(?P<location>(?P<filepath>[^:]*):\d*:\d*):\swarning:\s(?P<message>.*)$",
@@ -731,21 +753,21 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: WARNING_FOR_LD,
+    ident: LdWarning,
     desc: r"Linking Warning",
     captures: [ prefix, message ],
     pattern: r"(ld:.*)warning: (?P<msg>.*)"
 }
 
 define_pattern! {
-    ident: WARNING_GENERIC,
+    ident: GenericWarning,
     desc: r"Generic Error (catch all)",
     captures: [ message ],
     pattern: r"warning:\s(?P<message>.*)$"
 }
 
 define_pattern! {
-    ident: WARNING_FOR_SIGN,
+    ident: CodeSignWarning,
     desc: r"Sign warnning",
     captures: [ message ],
     pattern: r"(?P<message>.* will not be code signed because .*)$"
@@ -754,7 +776,7 @@ define_pattern! {
 // - Error ------------------------------------------------------------------------
 
 define_pattern! {
-    ident: ERROR_CLANG,
+    ident: ClangError,
     desc: r"Clang Error",
     captures: [ message ],
     pattern: r"(?P<message>clang: error:.*)$",
@@ -768,28 +790,28 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: ERROR_CHECK_DEPENDENCIES,
-    desc: r"General Check Depeds error",
+    ident: CheckDependenciesError,
+    desc: r"Check Dependencies error",
     captures: [ message ],
     pattern: r"(?P<message>Code\s?Sign error:.*|Code signing is required for product type .* in SDK .*|No profile matching .* found:.*|Provisioning profile .* doesn't .*|Swift is unavailable on .*|.?Use Legacy Swift Language Version.*)$"
 }
 
 define_pattern! {
-    ident: ERROR_PROVISIONING_PROFILE_REQUIRED,
+    ident: ProvisioningProfileRequiredError,
     desc: r"General Check Depeds error",
     captures: [ message ],
     pattern: r"(.*requires a provisioning profile.*)$"
 }
 
 define_pattern! {
-    ident: ERROR_NO_CERTIFICATE,
+    ident: NoCertificateError,
     desc: r"General Check Depeds error",
     captures: [ message ],
     pattern: r"(?P<message>No certificate matching.*)$"
 }
 
 define_pattern! {
-    ident: ERROR_COMPILE,
+    ident: CompileError,
     desc: r"Compile Error",
     captures: [ message ],
     pattern: r"\s*(?P<location>(?P<filepath>[^:]*):\d*:\d*):\s(?:fatal\s)?error:\s(?P<message>.*)$",
@@ -804,91 +826,106 @@ define_pattern! {
 }
 
 define_pattern! {
-    ident: ERROR_CURSOR,
+    ident: Cursor,
     desc: r"Cursor",
     captures: [ content ],
     pattern: r"(?P<content>[\s~]*\^[\s~]*)$"
 }
 
 define_pattern! {
-    ident: ERROR_FATAL,
+    ident: FatalError,
     desc: r"Compile Error",
     captures: [ message ],
     pattern: r"(?P<message>fatal error:.*)$"
 }
 
 define_pattern! {
-    ident: ERROR_FILEMISSING,
-    desc: r"Compile Error",
+    ident: FileMissingError,
+    desc: r"File missing Error",
     captures: [ message, filepath ],
     pattern: r"<unknown>:0:\s(?P<message>error:\s.*)\s'(?P<filepath>/.+/.*\..*)'$"
 }
 
 define_pattern! {
-    ident: ERROR_LD,
-    desc: r"Compile Error",
+    ident: LdError,
+    desc: r"Ld Error",
     captures: [ message ],
     pattern: r"(P<message>ld:.*)"
 }
 
 define_pattern! {
-    ident: ERROR_LINKER_DUPLICATE_SYMBOLS_LOCATION,
+    ident: LinkerDuplicateSymbolsLocationError,
     desc: r"duplicate symbols location",
     captures: [ message ],
     pattern: r"\s+(?P<message>/.*\.o[\)]?)$"
 }
 
 define_pattern! {
-    ident: ERROR_LINKER_DUPLICATE_SYMBOLS,
-    desc: r"Compile Error",
+    ident: LinkerDuplicateSymbolsError,
+    desc: r"Linker Duplicate Symbols Error",
     captures: [ message ],
     pattern: r"(?P<message>duplicate symbol .*):$"
 }
 
 define_pattern! {
-    ident: ERROR_LINKER_UNDEFINED_SYMBOLS_LOCATION,
-    desc: r"Undefined symbols location",
+    ident: LinkerUndefinedSymbolsLocationError,
+    desc: r"Linker Undefined Symbols Location Error",
     captures: [ message ],
     pattern: r"(P?<message>.* in .*\.o)$"
 }
 
 define_pattern! {
-    ident: ERROR_LINKER_UNDEFINED_SYMBOLS,
+    ident: LinkerUndefinedSymbolsError,
     desc: r"Undefined symbols",
     captures: [ message ],
     pattern: r"(P?<message>.* in .*\.o)$"
 }
 
 define_pattern! {
-    ident: ERROR_PODS,
+    ident: PodsError,
     desc: r"Pods error",
     captures: [ message ],
     pattern: r"(P?<message>error:\s.*)"
 }
 
 define_pattern! {
-    ident: ERROR_SYMBOL_REFERENCED_FROM,
+    ident: SymbolReferencedFrom,
     desc: r"Symbol reference from error",
     captures: [ message ],
     pattern: "\\s+\"(?P<message>.*)\", referenced from:$"
 }
 
 define_pattern! {
-    ident: ERROR_MODULE_INCLUDES,
+    ident: ModuleIncludesError,
     desc: r"module includes error",
     captures: [ message ],
     pattern: r"<module-includes>:.*?:.*?:\s(?:fatal\s)?(P?<message>error:\s.*)$/"
 }
 
-
 define_pattern! {
-    ident: ERROR_UNDEFINED_SYMBOL_LOCATION,
+    ident: UndefinedSymbolLocationError,
     desc: r"Undefined symol location",
     captures: [ message ],
     pattern: r".+ in (.+)\((.+)\.o\)$"
 }
 
+define_pattern! {
+    ident: PackageGraphResolvingStart,
+    desc: r"Package Graph Resolving Start",
     captures: [ message ],
-    pattern: r"warning:\s(?P<message>.*)$"
+    pattern: r"\s*(Resolve Package Graph)\s*$"
 }
 
+define_pattern! {
+    ident: PackageGraphResolvingEnd,
+    desc: r"Package Graph Resolving Ended",
+    captures: [ message ],
+    pattern: r"(Resolved source packages):$"
+}
+
+define_pattern! {
+    ident: PackageGraphResolvedItem,
+    desc: r"Package Graph Resolved Item",
+    captures: [ message ],
+    pattern: r"\s*([^\s:]+):\s([^ ]+)\s@\s(\d+\.\d+\.\d+)"
+}
