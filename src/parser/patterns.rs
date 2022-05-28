@@ -146,17 +146,34 @@ define_pattern! {
     }
 }
 
-
 define_pattern! {
-    ident: COMPILE_SWIFT,
-    desc: "CompileSwift Step",
-    captures: [ filename, filepath, target, project ],
-    pattern: r"CompileSwift\s.[^/]*(?P<filepath>.*/(?P<filename>.*\.(?:swift)))(?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
+    ident: COMPILE,
+    desc: r"Compile(Swift|C|\w) Step",
+    captures: [ type, filename, filepath, target, project ],
+    pattern: r"(?x)
+        # Compile <type>
+        Compile(?P<type>[\w]+)\s.+?\s
+        # <filepath>
+        (?P<filepath>(?:\.|[^\s])+/(?P<filename>(?:\.|[^\s])+\.(?:m|mm|c|cc|cpp|cxx|swift)))
+        (?:\s.*\((?:in
+                  # <target>
+                  \starget\s'(?P<target>.*)'
+                  # <project>
+                  \sfrom\sproject\s'(?P<project>.*)')\))?",
     tests: {
         "CompileSwift normal arm64 /path/to/ToastView.swift (in target 'Example' from project 'Example')" =>
             |captures| {
+                assert_eq!("Swift", &captures["type"]);
                 assert_eq!("/path/to/ToastView.swift", &captures["filepath"]);
                 assert_eq!("ToastView.swift", &captures["filename"]);
+                assert_eq!("Example", &captures["project"]);
+                assert_eq!("Example", &captures["target"]);
+            },
+        "CompileC /path/to/output/arm64/bridge.o /path/to/bridge.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler (in target 'Example' from project 'Example')" =>
+            |captures| {
+                assert_eq!("C", &captures["type"]);
+                assert_eq!("/path/to/bridge.c", &captures["filepath"]);
+                assert_eq!("bridge.c", &captures["filename"]);
                 assert_eq!("Example", &captures["project"]);
                 assert_eq!("Example", &captures["target"]);
             }
