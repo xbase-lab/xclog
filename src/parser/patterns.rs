@@ -9,14 +9,7 @@ define_pattern! {
       Analyze(?:Shallow)?\s
       # Filepath and filename
       ( ?P<filepath>.*/( ?P<filename>.*\.(?:mm|m|cc|cpp|c|cxx) ) )
-      ( ?:\s.*
-        \((?:
-           # Target Name
-           in\starget\s      '(?P<target>.*)'\s
-           # Project Name
-           from\sproject\s   '(?P<project>.*)'
-           )\) 
-      ) ?",
+      ( ?:\s.* \((?:in\starget\s      '(?P<target>.*)'\s  from\sproject\s   '(?P<project>.*)' )\)  ) ?",
     tests: {
         r"AnalyzeShallow /path/to/file.m normal x86_64 (in target 'MyTarget' from project 'MyProject')" =>
             |captures| {
@@ -82,9 +75,6 @@ define_pattern! {
             }
     }
 }
-
-/// Dependencies Check
-pub static CHECK_DEPENDENCIES: Lazy<Regex> = lazy_regex!(r"Check dependencies");
 
 define_pattern! {
     ident: SHELL_COMMAND,
@@ -333,7 +323,7 @@ define_pattern! {
 
 define_pattern! {
     ident: KIWI_FAILING_TEST,
-    desc: r"Executed number of tests with skipped teats",
+    desc: r"Kiwi Test failing",
     captures: [ filepath, suite, case, reason ],
     pattern: r"(?x)\s*
         (?P<filepath>.+:\d+):\serror:\s[\+\-]
@@ -366,12 +356,6 @@ define_pattern! {
             }
     }
 }
-
-/// Restarting tests
-pub static RESTARTING_TESTS: Lazy<Regex> = lazy_regex!(r"Restarting after unexpected exit.+$");
-
-/// Coverage Data Generation
-pub static COVERAGE_DATA_GENERATION: Lazy<Regex> = lazy_regex!(r"generating\s+coverage\s+data\.*");
 
 define_pattern! {
     ident: COVERAGE_REPORT_GENERATION,
@@ -420,6 +404,36 @@ define_pattern! {
     }
 }
 
+// - TESTING ----------------------------------------------------------------------
+
+define_pattern! {
+    ident: TEST_SUITE_STARTED,
+    desc: r"Test Suites Started",
+    captures: [ name, time ],
+    pattern: r"\s*Test Suite '(?:.*/)?(?P<name>.*[ox]ctest.*)' started at (?P<time>.*)",
+    tests: {
+        "Test Suite 'ObjectiveRecordTests.xctest' started at 2013-12-10 06:15:39 +0000" =>
+            |captures| {
+                assert_eq!("ObjectiveRecordTests.xctest", &captures["name"]);
+                assert_eq!("2013-12-10 06:15:39 +0000", &captures["time"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: TEST_SUITE_COMPLETED,
+    desc: r"Test Suites Completed",
+    captures: [ name, time ],
+    pattern: r"\s*Test Suite '(?:.*/)?(?P<name>.*[ox]ctest.*)' (finished|passed|failed) at (?P<time>.*)\.",
+    tests: {
+        "Test Suite 'ObjectiveRecordTests.xctest' finished at 2013-12-10 06:15:42 +0000." =>
+            |captures| {
+                assert_eq!("ObjectiveRecordTests.xctest", &captures["name"]);
+                assert_eq!("2013-12-10 06:15:42 +0000", &captures["time"]);
+            }
+    }
+}
+
 define_pattern! {
     ident: OCUNIT_TEST_CASE_STARTED,
     desc: r"Test Case Started",
@@ -451,7 +465,7 @@ define_pattern! {
 
 define_pattern! {
     ident: KIWI_TEST_CASE_PENDING,
-    desc: r"Ld",
+    desc: r"Kiwi test case pending",
     captures: [ suite, case ],
     pattern: r"Test Case\s'-\[(?P<suite>.*)\s(?P<case>.*)PENDING\]'\spassed",
     tests: {
@@ -579,18 +593,6 @@ define_pattern! {
     }
 }
 
-/// Dependencies Check
-pub static CHECK_DEPENDENCIES: Lazy<Regex> = lazy_regex!(r"Check dependencies");
-
-/// Restarting tests
-pub static RESTARTING_TESTS: Lazy<Regex> = lazy_regex!(r"Restarting after unexpected exit.+$");
-
-/// Coverage Data Generation
-pub static COVERAGE_DATA_GENERATION: Lazy<Regex> = lazy_regex!(r"generating\s+coverage\s+data\.*");
-
-/// Coverage Data Generation
-pub static PHASE_SUCCESS: Lazy<Regex> = lazy_regex!(r"\*\*\s(.*)\sSUCCEEDED\s\*\*");
-
 define_pattern! {
     ident: PHASE_SCRIPT_EXECUTION,
     desc: r"PhaseScriptExecution",
@@ -671,3 +673,22 @@ define_pattern! {
     }
 }
 
+/// Dependencies Check
+pub static CHECK_DEPENDENCIES: Lazy<Regex> = lazy_regex!(r"Check dependencies");
+
+/// Restarting tests
+pub static RESTARTING_TESTS: Lazy<Regex> = lazy_regex!(r"Restarting after unexpected exit.+$");
+
+/// Coverage Data Generation
+pub static COVERAGE_DATA_GENERATION: Lazy<Regex> = lazy_regex!(r"generating\s+coverage\s+data\.*");
+
+/// Coverage Data Generation
+pub static PHASE_SUCCESS: Lazy<Regex> = lazy_regex!(r"\*\*\s(.*)\sSUCCEEDED\s\*\*");
+
+/// All test suite passed
+pub static TEST_SUITE_ALL_TESTS_PASSED: Lazy<Regex> =
+    lazy_regex!(r"\s*Test Suite 'All tests' passed at");
+
+/// All test suite failed
+pub static TEST_SUITE_ALL_TESTS_FAILED: Lazy<Regex> =
+    lazy_regex!(r"\s*Test Suite 'All tests' failed at");
