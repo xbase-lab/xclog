@@ -177,5 +177,34 @@ define_pattern! {
                 assert_eq!("Example", &captures["project"]);
                 assert_eq!("Example", &captures["target"]);
             }
+            // "CompileAssetCatalog /output/Example.app /input/Assets.xcassets (in target 'Example' from project 'Example')" =>
+            //     |captures| {
+            //     assert_eq!("AssetCatalog", &captures["type"]);
+            //     assert_eq!("/input/Assets.xcassets", &captures["filepath"]);
+            //     assert_eq!("Assets.xcassets", &captures["filename"]);
+            //     assert_eq!("Example", &captures["project"]);
+            //     assert_eq!("Example", &captures["target"]);
+            // }
+
+    }
+}
+
+define_pattern! {
+    ident: COMPILE_COMMAND,
+    desc: r"Clang and swiftc command",
+    captures: [ command, arguments ],
+    pattern: r"\s{4}(:?[^\s]+/(?P<command>\w+))\s(?P<arguments>.*)",
+    tests: {
+        "    /TOOLCHAIN_BIN/clang -target arm64-apple-macos10.10 -r -isysroot /MACOS_SDK -L/BUILD_ROOT -L/MACOS_SDK/lib -o /BUILD_ROOT/file.o" =>
+            |captures| {
+                assert_eq!("clang", &captures["command"]);
+                assert_eq!("-target arm64-apple-macos10.10 -r -isysroot /MACOS_SDK -L/BUILD_ROOT -L/MACOS_SDK/lib -o /BUILD_ROOT/file.o", &captures["arguments"]);
+            },
+        r"    /TOOLCHAIN_BIN/swiftc -incremental -module-name Example -Onone -enable-batch-mode -enforce-exclusivity\=checked -working-directory /PROJECT_ROOT" =>
+            |captures| {
+                assert_eq!("swiftc", &captures["command"]);
+                assert_eq!(r"-incremental -module-name Example -Onone -enable-batch-mode -enforce-exclusivity\=checked -working-directory /PROJECT_ROOT", &captures["arguments"]);
+            }
+            // NOTE: Won't match  /TOOLCHAIN_BIN/swift-frontend -frontend -c file.swift
     }
 }
