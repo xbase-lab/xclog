@@ -273,3 +273,60 @@ define_pattern! {
     }
 }
 
+define_pattern! {
+    ident: TEST_EXECUTED,
+    desc: r"Executed number of tests",
+    captures: [ tests_count, failed_tests_count, unexpected_test_count, total_exec_time ],
+    pattern: r"(?x)\s*Executed\s
+        (?P<tests_count>\d+)\stest[s]?,\swith\s
+        (?P<failed_tests_count>\d+)\sfailure[s]?\s
+        \((?P<unexpected_test_count>\d+)\sunexpected\)\sin\s\d+\.\d{3}\s
+        \((?P<total_exec_time>\d+\.\d{3})\)\sseconds",
+    tests: {
+        "     Executed 3 tests, with 1 failure (0 unexpected) in 0.258 (0.259) seconds" =>
+            |captures| {
+                assert_eq!("3", &captures["tests_count"]);
+                assert_eq!("1", &captures["failed_tests_count"]);
+                assert_eq!("0", &captures["unexpected_test_count"]);
+                assert_eq!("0.259", &captures["total_exec_time"]);
+            },
+        "Executed 4 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds" =>
+            |captures| {
+                assert_eq!("4", &captures["tests_count"]);
+                assert_eq!("0", &captures["failed_tests_count"]);
+                assert_eq!("0", &captures["unexpected_test_count"]);
+                assert_eq!("0.004", &captures["total_exec_time"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: TEST_EXECUTED_WITH_SKIPPED,
+    desc: r"Executed number of tests with skipped teats",
+    captures: [ tests_count, skipped_test_count, failed_tests_count, unexpected_test_count, total_exec_time ],
+    pattern: r"(?x)
+        \s*Executed\s
+        (?P<tests_count>\d+)\stest[s]?,\swith\s
+        (?P<skipped_test_count>\d+)\stest[s]?\sskipped\sand\s
+        (?P<failed_tests_count>\d+)\sfailure[s]?\s
+        \((?P<unexpected_test_count>\d+)\sunexpected\)\sin\s\d+\.\d{3}\s
+        \((?P<total_exec_time>\d+\.\d{3})\)\sseconds",
+    tests: {
+        "    Executed 56 tests, with 3 test skipped and 2 failures (1 unexpected) in 1.029 (1.029) seconds" =>
+            |captures| {
+                assert_eq!("56", &captures["tests_count"]);
+                assert_eq!("3", &captures["skipped_test_count"]);
+                assert_eq!("2", &captures["failed_tests_count"]);
+                assert_eq!("1", &captures["unexpected_test_count"]);
+                assert_eq!("1.029", &captures["total_exec_time"]);
+            },
+        "Executed 1 test, with 1 test skipped and 1 failure (1 unexpected) in 3.000 (3.000) seconds" =>
+            |captures| {
+                assert_eq!("1", &captures["tests_count"]);
+                assert_eq!("1", &captures["skipped_test_count"]);
+                assert_eq!("1", &captures["failed_tests_count"]);
+                assert_eq!("1", &captures["unexpected_test_count"]);
+                assert_eq!("3.000", &captures["total_exec_time"]);
+            }
+    }
+}
