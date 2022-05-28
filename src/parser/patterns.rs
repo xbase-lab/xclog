@@ -352,3 +352,19 @@ define_pattern! {
             }
     }
 }
+
+define_pattern! {
+    ident: UI_FAILING_TEST,
+    desc: r"UI Test failing",
+    captures: [ filepath, reason ],
+    pattern: r"\s*t = \s+\d+\.\d+s\s+Assertion Failure: (?P<filepath>.*:\d+): (?P<reason>.*)$",
+    tests: {
+        "t =    22.27s             Assertion Failure: <unknown>:0: UI Testing Failure - Unable to find hit point for element Button 0x608001165880: {{74.0, -54.0}, {44.0, 38.0}}, label: 'Disconnect'" =>
+            |captures| {
+                assert_eq!("<unknown>:0", &captures["filepath"]);
+                assert_eq!("UI Testing Failure - Unable to find hit point for element Button 0x608001165880: {{74.0, -54.0}, {44.0, 38.0}}, label: 'Disconnect'", &captures["reason"]);
+            }
+    }
+}
+
+
