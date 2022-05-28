@@ -155,11 +155,7 @@ define_pattern! {
         Compile(?P<type>[\w]+)\s.+?\s
         # <filepath>
         (?P<filepath>(?:\.|[^\s])+/(?P<filename>(?:\.|[^\s])+\.(?:m|mm|c|cc|cpp|cxx|swift)))
-        (?:\s.*\((?:in
-                  # <target>
-                  \starget\s'(?P<target>.*)'
-                  # <project>
-                  \sfrom\sproject\s'(?P<project>.*)')\))?",
+        (?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
     tests: {
         "CompileSwift normal arm64 /path/to/ToastView.swift (in target 'Example' from project 'Example')" =>
             |captures| {
@@ -206,5 +202,37 @@ define_pattern! {
                 assert_eq!(r"-incremental -module-name Example -Onone -enable-batch-mode -enforce-exclusivity\=checked -working-directory /PROJECT_ROOT", &captures["arguments"]);
             }
             // NOTE: Won't match  /TOOLCHAIN_BIN/swift-frontend -frontend -c file.swift
+    }
+}
+
+define_pattern! {
+    ident: COMPILE_XIB,
+    desc: r"CompileXIB",
+    captures: [ filename, filepath, project, target ],
+    pattern: r"CompileXIB\s(?P<filepath>.*/(?P<filename>.*\.xib))(?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
+    tests: {
+        "CompileXIB /path/to/MainMenu.xib (in target 'Example' from project 'Example')" =>
+            |captures| {
+                assert_eq!("/path/to/MainMenu.xib", &captures["filepath"]);
+                assert_eq!("MainMenu.xib", &captures["filename"]);
+                assert_eq!("Example", &captures["project"]);
+                assert_eq!("Example", &captures["target"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: COMPILE_STORYBOARD,
+    desc: r"CompileStoryboard",
+    captures: [ filename, filepath, project, target ],
+    pattern: r"CompileStoryboard\s(?P<filepath>.*/(?P<filename>[^/].*\.storyboard))(?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
+    tests: {
+        "CompileStoryboard /path/to/LaunchScreen.storyboard (in target 'Example' from project 'Example')" =>
+            |captures| {
+                assert_eq!("/path/to/LaunchScreen.storyboard", &captures["filepath"]);
+                assert_eq!("LaunchScreen.storyboard", &captures["filename"]);
+                assert_eq!("Example", &captures["project"]);
+                assert_eq!("Example", &captures["target"]);
+            }
     }
 }
