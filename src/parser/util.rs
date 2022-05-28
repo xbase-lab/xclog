@@ -9,7 +9,7 @@ pub mod tests {
 macro_rules! define_pattern {
     (ident: $name:ident,
      desc: $desc:literal,
-     captures: [$($capture:ident $(?)?), *],
+     captures: [ $( $capture:ident ),* ],
      pattern: $pattern:literal,
      tests: { $($test_value:literal => $expr:expr),* }) => {
         paste::paste! {
@@ -33,5 +33,12 @@ macro_rules! define_pattern {
             }
         }
     };
+    (ident: $name: ident,
+     desc: $desc: literal,
+     captures: [ $( $capture: ident),* ],
+     pattern: $pattern: literal
+    ) => {
+        define_pattern! { ident: $name, desc: $desc, captures: [$($capture), *], pattern: $pattern, tests: {}  }
+   }
 }
 pub(crate) use define_pattern;

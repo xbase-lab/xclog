@@ -4,7 +4,7 @@ use lazy_regex::*;
 define_pattern! {
     ident: ANALYZE,
     desc: "Analyze/AnalyzeShallow",
-    captures: [ filepath, filename, target?, project? ],
+    captures: [ filepath, filename, target, project ],
     pattern: r"(?x)
       Analyze(?:Shallow)?\s
       # Filepath and filename
@@ -634,8 +634,7 @@ define_pattern! {
     ident: PROCESS_PCH_COMMAND,
     desc: r"ProcessPchCommand",
     captures: [ ],
-    pattern: r"\s*.*/usr/bin/clang\s.*\s\-c\s(.*.pch)\s.*\-o\s.*",
-    tests: { }
+    pattern: r"\s*.*/usr/bin/clang\s.*\s\-c\s(.*.pch)\s.*\-o\s.*"
 }
 
 define_pattern! {
