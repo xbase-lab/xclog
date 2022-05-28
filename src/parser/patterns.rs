@@ -711,3 +711,47 @@ define_pattern! {
     }
 }
 
+// - Warning ----------------------------------------------------------------------
+
+define_pattern! {
+    ident: WAENING_COMPILE,
+    desc: r"Compile Warning",
+    captures: [ location, filepath, message ],
+    pattern: r"(?P<location>(?P<filepath>[^:]*):\d*:\d*):\swarning:\s(?P<message>.*)$",
+    tests: {
+        "/path/file.swift:64:69: warning: 'flatMap' is deprecated: Please use compactMap(_:) for the case where closure returns an optional value" =>
+            |captures| {
+                assert_eq!("/path/file.swift:64:69", &captures["location"]);
+                assert_eq!("/path/file.swift", &captures["filepath"]);
+                assert_eq!("'flatMap' is deprecated: Please use compactMap(_:) for the case where closure returns an optional value", &captures["message"]);
+            }
+
+
+    }
+}
+
+define_pattern! {
+    ident: WARNING_FOR_LD,
+    desc: r"Linking Warning",
+    captures: [ prefix, message ],
+    pattern: r"(ld:.*)warning: (?P<msg>.*)"
+}
+
+define_pattern! {
+    ident: WARNING_GENERIC,
+    desc: r"Generic Error (catch all)",
+    captures: [ message ],
+    pattern: r"warning:\s(?P<message>.*)$"
+}
+
+define_pattern! {
+    ident: WARNING_FOR_SIGN,
+    desc: r"Sign warnning",
+    captures: [ message ],
+    pattern: r"(?P<message>.* will not be code signed because .*)$"
+}
+    desc: r"warning:\s(?P<message>.*)$",
+    captures: [ message ],
+    pattern: r"warning:\s(?P<message>.*)$"
+}
+
