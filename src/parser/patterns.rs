@@ -613,7 +613,25 @@ define_pattern! {
     }
 }
 
+define_pattern! {
+    ident: PROCESS_PCH,
+    desc: r"ProcessPCH",
+    captures: [ filename, target, project ],
+    pattern: r"(?x)ProcessPCH(?:\+\+)?\s.*\s/.*/(?P<filename>.*.pch)( ?:\s.* \((?:in\starget\s      '(?P<target>.*)'\s  from\sproject\s   '(?P<project>.*)' )\)  ) ?",
+    tests: {
+        "ProcessPCH /path/to/file.pch.gch /path/to/file.pch normal x86_64 objective-c com.apple.compilers.llvm.clang.1_0.analyzer (in target 'App' from project 'App')" =>
+            |captures| {
+                assert_eq!("file.pch", &captures["filename"]);
+                assert_eq!("App", &captures["target"]);
+                assert_eq!("App", &captures["project"]);
             }
     }
 }
 
+define_pattern! {
+    ident: PROCESS_PCH_COMMAND,
+    desc: r"ProcessPchCommand",
+    captures: [ ],
+    pattern: r"\s*.*/usr/bin/clang\s.*\s\-c\s(.*.pch)\s.*\-o\s.*",
+    tests: { }
+}
