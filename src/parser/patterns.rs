@@ -403,3 +403,20 @@ define_pattern! {
             }
     }
 }
+
+define_pattern! {
+    ident: LINKING,
+    desc: r"Ld",
+    captures: [ filename, target, project ],
+    pattern: r"Ld\s(?P<filepath>.*/(?P<filename>\w+\.\w+)).*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\)?",
+    tests: {
+        "Ld /path/to/file.o normal x86_64 (in target 'Example' from project 'Example')" =>
+            |captures| {
+                assert_eq!("/path/to/file.o", &captures["filepath"]);
+                assert_eq!("file.o", &captures["filename"]);
+                assert_eq!("Example", &captures["target"]);
+                assert_eq!("Example", &captures["project"]);
+            }
+    }
+}
+
