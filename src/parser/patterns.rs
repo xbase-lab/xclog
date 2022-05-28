@@ -367,4 +367,22 @@ define_pattern! {
     }
 }
 
+/// Restarting tests
+pub static RESTARTING_TESTS: Lazy<Regex> = lazy_regex!(r"Restarting after unexpected exit.+$");
+
+/// Coverage Data Generation
+pub static COVERAGE_DATA_GENERATION: Lazy<Regex> = lazy_regex!(r"generating\s+coverage\s+data\.*");
+
+define_pattern! {
+    ident: COVERAGE_REPORT_GENERATION,
+    desc: r"Coverage report generation",
+    captures: [ filepath ],
+    pattern: r"(?i)generated\s+coverage\s+report:\s+(?P<filepath>.+)",
+    tests: {
+        "Generated coverage report: /path/to/code coverage.xccovreport" =>
+            |captures| {
+                assert_eq!("/path/to/code coverage.xccovreport", &captures["filepath"]);
+            }
+    }
+}
 
