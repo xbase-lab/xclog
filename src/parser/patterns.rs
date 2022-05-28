@@ -578,3 +578,42 @@ define_pattern! {
             }
     }
 }
+
+/// Dependencies Check
+pub static CHECK_DEPENDENCIES: Lazy<Regex> = lazy_regex!(r"Check dependencies");
+
+/// Restarting tests
+pub static RESTARTING_TESTS: Lazy<Regex> = lazy_regex!(r"Restarting after unexpected exit.+$");
+
+/// Coverage Data Generation
+pub static COVERAGE_DATA_GENERATION: Lazy<Regex> = lazy_regex!(r"generating\s+coverage\s+data\.*");
+
+/// Coverage Data Generation
+pub static PHASE_SUCCESS: Lazy<Regex> = lazy_regex!(r"\*\*\s(.*)\sSUCCEEDED\s\*\*");
+
+define_pattern! {
+    ident: PHASE_SCRIPT_EXECUTION,
+    desc: r"PhaseScriptExecution",
+    captures: [ name, target, project ],
+    pattern: r"(?x)PhaseScriptExecution\s(?P<name>.*)\s/.*\.sh( ?:\s.* \((?:in\starget\s      '(?P<target>.*)'\s  from\sproject\s   '(?P<project>.*)' )\)  ) ?",
+    tests: {
+        "PhaseScriptExecution Format\\ Swift\\ Files /path/to/file.sh (in target 'DemoTarget' from project 'DemoProject')" =>
+            |captures| {
+                assert_eq!("Format\\ Swift\\ Files", &captures["name"]);
+                assert_eq!("DemoTarget", &captures["target"]);
+                assert_eq!("DemoProject", &captures["project"]);
+            },
+        "PhaseScriptExecution [CP]\\ Check\\ Pods\\ Manifest.lock /path/to/file.sh (in target 'App' from project 'App')" =>
+            |captures| {
+                assert_eq!("[CP]\\ Check\\ Pods\\ Manifest.lock", &captures["name"]);
+                assert_eq!("App", &captures["target"]);
+                assert_eq!("App", &captures["project"]);
+            }
+
+    }
+}
+
+            }
+    }
+}
+
