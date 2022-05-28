@@ -236,3 +236,40 @@ define_pattern! {
             }
     }
 }
+
+define_pattern! {
+    ident: COPY_COMMAND,
+    desc: r"CpResource|CpHeader|CopyStringsFile|CopyPlistFile",
+    captures: [ type, filename, filepath, project, target ],
+    pattern: r"(?x)
+               (:?Cp|Copy)(?P<type>Resource|Header|PlistFile|StringsFile)\s.*\s
+               (?P<filepath>.*/(?P<filename>.*\.(?:\w+)))
+               (?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
+    tests: {
+        "CpResource /output/EnWords.txt /path/to/EnWords.txt (in target 'Example' from project 'Example')" =>
+            |captures| {
+                assert_eq!("Resource", &captures["type"]);
+                assert_eq!("/path/to/EnWords.txt", &captures["filepath"]);
+                assert_eq!("EnWords.txt", &captures["filename"]);
+                assert_eq!("Example", &captures["project"]);
+                assert_eq!("Example", &captures["target"]);
+            },
+        "CpHeader /output/file.h /path/to/file.h (in target 'Example' from project 'Example')" =>
+            |captures| {
+                assert_eq!("Header", &captures["type"]);
+                assert_eq!("/path/to/file.h", &captures["filepath"]);
+                assert_eq!("file.h", &captures["filename"]);
+                assert_eq!("Example", &captures["project"]);
+                assert_eq!("Example", &captures["target"]);
+            },
+         "CopyStringsFile /output/InfoPlist.strings path/to/en.lproj/InfoPlist.strings (in target 'Example' from project 'Example')" => |captures| {
+                assert_eq!("StringsFile", &captures["type"]);
+                assert_eq!("path/to/en.lproj/InfoPlist.strings", &captures["filepath"]);
+                assert_eq!("InfoPlist.strings", &captures["filename"]);
+                assert_eq!("Example", &captures["project"]);
+                assert_eq!("Example", &captures["target"]);
+
+            }
+    }
+}
+
