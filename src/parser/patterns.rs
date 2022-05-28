@@ -386,3 +386,20 @@ define_pattern! {
     }
 }
 
+define_pattern! {
+    ident: DSYM_GENERATION,
+    desc: r"GenerateDSYMFile",
+    captures: [ filename, target, project ],
+    pattern: r"(?x)
+        GenerateDSYMFile\s/.*/
+        (?P<filename>.*\.dSYM)\s/.*
+        \((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\)?",
+    tests: {
+        "GenerateDSYMFile /$BUILD/Release/DemoTarget.app.dSYM /$BUILD/Release/DemoTarget.app/Contents/MacOS/DemoTarget (in target 'DemoTarget' from project 'DemoProject')" =>
+            |captures| {
+                assert_eq!("DemoTarget.app.dSYM", &captures["filename"]);
+                assert_eq!("DemoTarget", &captures["target"]);
+                assert_eq!("DemoProject", &captures["project"]);
+            }
+    }
+}
