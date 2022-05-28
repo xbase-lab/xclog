@@ -420,3 +420,60 @@ define_pattern! {
     }
 }
 
+define_pattern! {
+    ident: OCUNIT_TEST_CASE_STARTED,
+    desc: r"Test Case Started",
+    captures: [ suite, case],
+    pattern: r"\s*Test Case '-\[(?P<suite>.*) (?P<case>.*)\]' started.$",
+    tests: {
+        "Test Case '-[viewUITests.vmtAboutWindow testConnectToDesktop]' started." =>
+            |captures| {
+                assert_eq!("viewUITests.vmtAboutWindow", &captures["suite"]);
+                assert_eq!("testConnectToDesktop", &captures["case"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: OCUNIT_TEST_CASE_PASSED,
+    desc: r"Test Case Passed",
+    captures: [ suite, case, time ],
+    pattern: r"\s*Test Case\s'-\[(?P<suite>.*)\s(?P<case>.*)\]'\spassed\s\((?P<time>\d*\.\d{3})\sseconds\).",
+    tests: {
+        "Test Case '-[TestSuite TestCase]' passed (0.001 seconds)." =>
+            |captures| {
+                assert_eq!("TestSuite", &captures["suite"]);
+                assert_eq!("TestCase", &captures["case"]);
+                assert_eq!("0.001", &captures["time"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: KIWI_TEST_CASE_PENDING,
+    desc: r"Ld",
+    captures: [ suite, case ],
+    pattern: r"Test Case\s'-\[(?P<suite>.*)\s(?P<case>.*)PENDING\]'\spassed",
+    tests: {
+        "Test Case '-[TestSuite TestCasePENDING]' passed (0.001 seconds)." =>
+            |captures| {
+                assert_eq!("TestSuite", &captures["suite"]);
+                assert_eq!("TestCase", &captures["case"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: TEST_CASE_MEASURE,
+    desc: r"Test case measuring",
+    captures: [ suite, case, time ],
+    pattern: r"[^:]*:[^:]*:\sTest Case\s'-\[(?P<suite>.*)\s(?P<case>.*)\]'\smeasured\s\[Time,\sseconds\]\saverage:\s(?P<time>\d*\.\d{3})(.*){4}",
+    tests: {
+        r#"<unknown>:0: Test Case '-[TestSuite TestCase]' measured [Time, seconds] average: 0.013, relative standard deviation: 26.773%, values: [0.023838, 0.012034, ], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100"# =>
+            |captures| {
+                assert_eq!("TestSuite", &captures["suite"]);
+                assert_eq!("TestCase", &captures["case"]);
+                assert_eq!("0.013", &captures["time"]);
+            }
+    }
+}
