@@ -477,3 +477,104 @@ define_pattern! {
             }
     }
 }
+
+define_pattern! {
+    ident: PARALLEL_TEST_CASE_PASSED,
+    desc: r"Parallel TestCase passed",
+    captures: [ suite, case, time, medium ],
+    pattern: r"Test\s+case\s+'(?P<suite>.*)\.(?P<case>.*)\(\)'\s+passed\s+on\s+'(?P<medium>.*)'\s+\((?P<time>\d*\.(.*){3})\s+seconds\)",
+    tests: {
+        "Test case 'TestSuite.testCase()' passed on 'xctest (49438)' (0.131 seconds)" =>
+            |captures| {
+                assert_eq!("TestSuite", &captures["suite"]);
+                assert_eq!("testCase", &captures["case"]);
+                assert_eq!("0.131", &captures["time"]);
+                assert_eq!("xctest (49438)", &captures["medium"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: PARALLEL_TEST_CASE_APPKIT_PASSED,
+    desc: r"Parallel TestCase AppKit Passed",
+    captures: [ suite, case, time, medium ],
+    pattern: r"\s*Test case\s'-\[(?P<suite>.*)\s(?P<case>.*)\]'\spassed\son\s'(?P<medium>.*)'\s\((?P<time>\d*\.\d{3})\sseconds\)",
+    tests: {
+        "Test case '-[TestSuite testCase]' passed on 'xctest (49438)' (0.131 seconds)." =>
+            |captures| {
+                assert_eq!("TestSuite", &captures["suite"]);
+                assert_eq!("testCase", &captures["case"]);
+                assert_eq!("xctest (49438)", &captures["medium"]);
+                assert_eq!("0.131", &captures["time"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: PARALLEL_TEST_CASE_FAILED,
+    desc: r"Parallel TestCase Failed",
+    captures: [ suite, case, time, medium ],
+    pattern: r"Test\s+case\s+'(?P<suite>.*)\.(?P<case>.*)\(\)'\s+failed\s+on\s+'(?P<medium>.*)'\s+\((?P<time>\d*\.(.*){3})\s+seconds\)",
+    tests: {
+        "Test case 'TestSuite.testCase()' failed on 'iPhone 11' (7.158 seconds)" =>
+            |captures| {
+                assert_eq!("TestSuite", &captures["suite"]);
+                assert_eq!("testCase", &captures["case"]);
+                assert_eq!("iPhone 11", &captures["medium"]);
+                assert_eq!("7.158", &captures["time"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: PARALLEL_TESTING_STARTED,
+    desc: r"Parallel Testing Started",
+    captures: [ suite, case, time, medium ],
+    pattern: r"Testing\s+started\s+on\s+'(?P<medium>.*)'",
+    tests: {
+        "Testing started on 'iPhone X'" =>
+            |captures| {
+                assert_eq!("iPhone X", &captures["medium"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: PARALLEL_TESTING_PASSED,
+    desc: r"Parallel Testing Passed",
+    captures: [ suite, case, time, medium ],
+    pattern: r"Testing\s+passed\s+on\s+'(?P<medium>.*)'",
+    tests: {
+        "Testing passed on 'iPhone X'" =>
+            |captures| {
+                assert_eq!("iPhone X", &captures["medium"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: PARALLEL_TESTING_FAILED,
+    desc: r"Parallel Testing Failed",
+    captures: [ suite, case, time, medium ],
+    pattern: r"Testing\s+failed\s+on\s+'(?P<medium>.*)'",
+    tests: {
+        "Testing failed on 'iPhone X'" =>
+            |captures| {
+                assert_eq!("iPhone X", &captures["medium"]);
+            }
+    }
+}
+
+define_pattern! {
+    ident: PARALLEL_TEST_FAILED,
+    desc: r"Parallel Testing Failed",
+    captures: [ suite, case, time, medium ],
+    pattern: r"(?i)\s*Test\s+Suite\s+'(?P<suite>.*)'\s+started\s+on\s+'(?P<medium>.*)'",
+    tests: {
+        "Test suite 'TestSuite (iOS).xctest' started on 'iPhone X'" =>
+            |captures| {
+                assert_eq!("TestSuite (iOS).xctest", &captures["suite"]);
+                assert_eq!("iPhone X", &captures["medium"]);
+            }
+    }
+}
