@@ -692,3 +692,23 @@ pub static TEST_SUITE_ALL_TESTS_PASSED: Lazy<Regex> =
 /// All test suite failed
 pub static TEST_SUITE_ALL_TESTS_FAILED: Lazy<Regex> =
     lazy_regex!(r"\s*Test Suite 'All tests' failed at");
+
+define_pattern! {
+    ident: TOUCH,
+    desc: r"Touch file",
+    captures: [ filename, filepath, target, project ],
+    pattern: r"(?x)Touch\s(?P<filepath>/(?:\.|[^\s])+/(?P<filename>(?:\.|[^\s])+\.(?:\w+)))
+        (?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
+    tests: {
+        "Touch /BUILD_ROOT/Example.app (in target 'Example' from project 'Example')" =>
+            |captures| {
+                assert_eq!("/BUILD_ROOT/Example.app", &captures["filepath"]);
+                assert_eq!("Example.app", &captures["filename"]);
+                assert_eq!("Example", &captures["project"]);
+                assert_eq!("Example", &captures["target"]);
+            }
+
+
+    }
+}
+
