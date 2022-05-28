@@ -750,7 +750,144 @@ define_pattern! {
     captures: [ message ],
     pattern: r"(?P<message>.* will not be code signed because .*)$"
 }
-    desc: r"warning:\s(?P<message>.*)$",
+
+// - Error ------------------------------------------------------------------------
+
+define_pattern! {
+    ident: ERROR_CLANG,
+    desc: r"Clang Error",
+    captures: [ message ],
+    pattern: r"(?P<message>clang: error:.*)$",
+    tests: {
+        "clang: error: linker command failed with exit code 1 (use -v to see invocation)" =>
+        |captures| {
+            assert_eq!("clang: error: linker command failed with exit code 1 (use -v to see invocation)", &captures["message"])
+
+        }
+    }
+}
+
+define_pattern! {
+    ident: ERROR_CHECK_DEPENDENCIES,
+    desc: r"General Check Depeds error",
+    captures: [ message ],
+    pattern: r"(?P<message>Code\s?Sign error:.*|Code signing is required for product type .* in SDK .*|No profile matching .* found:.*|Provisioning profile .* doesn't .*|Swift is unavailable on .*|.?Use Legacy Swift Language Version.*)$"
+}
+
+define_pattern! {
+    ident: ERROR_PROVISIONING_PROFILE_REQUIRED,
+    desc: r"General Check Depeds error",
+    captures: [ message ],
+    pattern: r"(.*requires a provisioning profile.*)$"
+}
+
+define_pattern! {
+    ident: ERROR_NO_CERTIFICATE,
+    desc: r"General Check Depeds error",
+    captures: [ message ],
+    pattern: r"(?P<message>No certificate matching.*)$"
+}
+
+define_pattern! {
+    ident: ERROR_COMPILE,
+    desc: r"Compile Error",
+    captures: [ message ],
+    pattern: r"\s*(?P<location>(?P<filepath>[^:]*):\d*:\d*):\s(?:fatal\s)?error:\s(?P<message>.*)$",
+    tests: {
+        "/path/file.swift:64:69: error: cannot find 'input' in scope" =>
+        |captures| {
+            assert_eq!("/path/file.swift:64:69", &captures["location"]);
+            assert_eq!("/path/file.swift", &captures["filepath"]);
+            assert_eq!("cannot find 'input' in scope", &captures["message"]);
+        }
+    }
+}
+
+define_pattern! {
+    ident: ERROR_CURSOR,
+    desc: r"Cursor",
+    captures: [ content ],
+    pattern: r"(?P<content>[\s~]*\^[\s~]*)$"
+}
+
+define_pattern! {
+    ident: ERROR_FATAL,
+    desc: r"Compile Error",
+    captures: [ message ],
+    pattern: r"(?P<message>fatal error:.*)$"
+}
+
+define_pattern! {
+    ident: ERROR_FILEMISSING,
+    desc: r"Compile Error",
+    captures: [ message, filepath ],
+    pattern: r"<unknown>:0:\s(?P<message>error:\s.*)\s'(?P<filepath>/.+/.*\..*)'$"
+}
+
+define_pattern! {
+    ident: ERROR_LD,
+    desc: r"Compile Error",
+    captures: [ message ],
+    pattern: r"(P<message>ld:.*)"
+}
+
+define_pattern! {
+    ident: ERROR_LINKER_DUPLICATE_SYMBOLS_LOCATION,
+    desc: r"duplicate symbols location",
+    captures: [ message ],
+    pattern: r"\s+(?P<message>/.*\.o[\)]?)$"
+}
+
+define_pattern! {
+    ident: ERROR_LINKER_DUPLICATE_SYMBOLS,
+    desc: r"Compile Error",
+    captures: [ message ],
+    pattern: r"(?P<message>duplicate symbol .*):$"
+}
+
+define_pattern! {
+    ident: ERROR_LINKER_UNDEFINED_SYMBOLS_LOCATION,
+    desc: r"Undefined symbols location",
+    captures: [ message ],
+    pattern: r"(P?<message>.* in .*\.o)$"
+}
+
+define_pattern! {
+    ident: ERROR_LINKER_UNDEFINED_SYMBOLS,
+    desc: r"Undefined symbols",
+    captures: [ message ],
+    pattern: r"(P?<message>.* in .*\.o)$"
+}
+
+define_pattern! {
+    ident: ERROR_PODS,
+    desc: r"Pods error",
+    captures: [ message ],
+    pattern: r"(P?<message>error:\s.*)"
+}
+
+define_pattern! {
+    ident: ERROR_SYMBOL_REFERENCED_FROM,
+    desc: r"Symbol reference from error",
+    captures: [ message ],
+    pattern: "\\s+\"(?P<message>.*)\", referenced from:$"
+}
+
+define_pattern! {
+    ident: ERROR_MODULE_INCLUDES,
+    desc: r"module includes error",
+    captures: [ message ],
+    pattern: r"<module-includes>:.*?:.*?:\s(?:fatal\s)?(P?<message>error:\s.*)$/"
+}
+
+
+define_pattern! {
+    ident: ERROR_UNDEFINED_SYMBOL_LOCATION,
+    desc: r"Undefined symol location",
+    captures: [ message ],
+    pattern: r".+ in (.+)\((.+)\.o\)$"
+}
+
     captures: [ message ],
     pattern: r"warning:\s(?P<message>.*)$"
 }
