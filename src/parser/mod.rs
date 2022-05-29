@@ -1,3 +1,4 @@
+#[macro_use]
 mod define;
 
 define::define! [
@@ -5,35 +6,37 @@ define::define! [
         ident: Analyze,
         desc: "Analyze/AnalyzeShallow",
         captures: [ filepath, filename, target, project ],
+        format: "[{target}] Analyzing {filename}",
         pattern: r"(?x)
             Analyze(?:Shallow)?\s
             # Filepath and filename
             ( ?P<filepath>.*/( ?P<filename>.*\.(?:mm|m|cc|cpp|c|cxx) ) )
             ( ?:\s.* \((?:in\starget\s      '(?P<target>.*)'\s  from\sproject\s   '(?P<project>.*)' )\)  ) ?",
-            tests: {
-                r"AnalyzeShallow /path/to/file.m normal x86_64 (in target 'MyTarget' from project 'MyProject')" =>
-                    |captures| {
-                        assert_eq!("/path/to/file.m", &captures["filepath"]);
-                        assert_eq!("file.m", &captures["filename"]);
-                        assert_eq!("MyTarget", &captures["target"]);
-                        assert_eq!("MyProject", &captures["project"]);
-                    },
-                r"AnalyzeShallow /path/to/file.c" =>
-                    |captures| {
-                        assert_eq!("/path/to/file.c", &captures["filepath"]);
-                        assert_eq!("file.c", &captures["filename"]);
-                    },
-                r"Analyze /path/to/file.mm" =>
-                    |captures| {
-                        assert_eq!("/path/to/file.mm", &captures["filepath"]);
-                        assert_eq!("file.mm", &captures["filename"]);
-                    }
-            }
+        tests: {
+            r"AnalyzeShallow /path/to/file.m normal x86_64 (in target 'MyTarget' from project 'MyProject')" =>
+                |captures| {
+                    assert_eq!("/path/to/file.m", &captures["filepath"]);
+                    assert_eq!("file.m", &captures["filename"]);
+                    assert_eq!("MyTarget", &captures["target"]);
+                    assert_eq!("MyProject", &captures["project"]);
+                },
+            r"AnalyzeShallow /path/to/file.c" =>
+                |captures| {
+                    assert_eq!("/path/to/file.c", &captures["filepath"]);
+                    assert_eq!("file.c", &captures["filename"]);
+                },
+            r"Analyze /path/to/file.mm" =>
+                |captures| {
+                    assert_eq!("/path/to/file.mm", &captures["filepath"]);
+                    assert_eq!("file.mm", &captures["filename"]);
+                }
+        }
     },
     {
         ident: BuildTarget,
         desc: "BUILD TARGET",
         captures: [ target, project, configuration ],
+        format: "[{target}] Build with {configuration}",
         pattern: r"={3}\sBUILD\sTARGET\s(?P<target>.*)\sOF\sPROJECT\s(?P<project>.*)\sWITH.*CONFIGURATION\s(?P<configuration>.*)\s={3}",
         tests: {
             "=== BUILD TARGET ExampleTarget OF PROJECT ExampleProject WITH THE DEFAULT CONFIGURATION Local ===" =>
@@ -48,6 +51,7 @@ define::define! [
     ident: AggregateTarget,
     desc: "BUILD AGGREGATE TARGET",
     captures: [ target, project, configuration ],
+    format: "[{target}] Aggregate Build with {configuration}",
     pattern: r"={3}\sBUILD\sAGGREGATE\sTARGET\s(?P<target>.*)\sOF\sPROJECT\s(?P<project>.*)\sWITH.*CONFIGURATION\s(?P<configuration>.*)\s={3}",
     tests: {
         "=== BUILD AGGREGATE TARGET Example Target Name OF PROJECT AggregateTarget WITH CONFIGURATION Debug ===" =>
@@ -63,6 +67,7 @@ define::define! [
     ident: AnalyzeTarget,
     desc: "ANALYZE TARGET",
     captures: [ target, project, configuration ],
+    format: "[{target}] Analyze with {configuration}",
     pattern: r"={3}\sANALYZE\sTARGET\s(?P<target>.*)\sOF\sPROJECT\s(?P<project>.*)\sWITH.*CONFIGURATION\s(?P<configuration>.*)\s={3}",
     tests: {
         "=== ANALYZE TARGET X OF PROJECT Y WITH THE DEFAULT CONFIGURATION Z ===" =>
@@ -78,6 +83,7 @@ define::define! [
     ident: ShellCommand,
     desc: "Shell commands like cd setenv under a compile step",
     captures: [ command,arguments ],
+    format: "",
     pattern: r"\s{4}(?P<command>cd|setenv|(?:[\w/:\s\-.]+?/)?[\w\-]+)\s(?P<arguments>.*)$",
     tests: {
         "    cd /foo/bar/baz" =>
@@ -91,6 +97,7 @@ define::define! [
     ident: CleanRemove,
     desc: "CLEAN REMOVE",
     captures: [ filepath, filename ],
+    format: "Cleaning {filename}",
     pattern: r"(?x)Clean.Remove\sclean\s
       # filepath and filename
       ( ?P<filepath>.*/ ( ?P<filename>.*\.(?:build) ))",
@@ -106,6 +113,7 @@ define::define! [
     ident: CleanTarget,
     desc: "CLEAN TARGET",
     captures: [ target, project, configuration ],
+    format: "[{target}] Clean with {configuration}",
     pattern: r"={3}\sCLEAN\sTARGET\s(?P<target>.*)\sOF\sPROJECT\s(?P<project>.*)\sWITH.*CONFIGURATION\s(?P<configuration>.*)\s={3}",
     tests: {
         "=== CLEAN TARGET X OF PROJECT Y WITH THE DEFAULT CONFIGURATION Z ===" =>
@@ -120,6 +128,7 @@ define::define! [
     ident: CodeSign,
     desc: "CodeSign Phase",
     captures: [ filename, target, project ],
+    format: "[{target}] Signing {filename}",
     pattern: r"CodeSign\s(:?.*/(?P<filename>.*\.(?:app)))(?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
     tests: {
         "CodeSign path/to/DemoTarget.app (in target 'DemoTarget' from project 'DemoProject')" =>
@@ -135,6 +144,7 @@ define::define! [
     ident: Compile,
     desc: r"Compile(Swift|C|\w) Step",
     captures: [ r#type, filename, filepath, target, project ],
+    format: "[{target}] Compiling {filename}",
     pattern: r"(?x)
         # Compile <type>
         Compile(?P<type>[\w]+)\s.+?\s
@@ -174,6 +184,7 @@ define::define! [
     ident: CompileCommand,
     desc: r"Clang and swiftc command",
     captures: [ command, arguments ],
+    format: "",
     pattern: r"\s{4}(:?[^\s]+/(?P<command>\w+))\s(?P<arguments>.*)",
     tests: {
         "    /TOOLCHAIN_BIN/clang -target arm64-apple-macos10.10 -r -isysroot /MACOS_SDK -L/BUILD_ROOT -L/MACOS_SDK/lib -o /BUILD_ROOT/file.o" =>
@@ -194,6 +205,7 @@ define::define! [
     ident: CompileXIB,
     desc: r"CompileXIB",
     captures: [ filename, filepath, project, target ],
+    format: "[{target}] Compiling {filename}",
     pattern: r"CompileXIB\s(?P<filepath>.*/(?P<filename>.*\.xib))(?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
     tests: {
         "CompileXIB /path/to/MainMenu.xib (in target 'Example' from project 'Example')" =>
@@ -210,6 +222,7 @@ define::define! [
     ident: CompileStoryboard,
     desc: r"CompileStoryboard",
     captures: [ filename, filepath, project, target ],
+    format: "[{target}] Compiling {filename}",
     pattern: r"CompileStoryboard\s(?P<filepath>.*/(?P<filename>[^/].*\.storyboard))(?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
     tests: {
         "CompileStoryboard /path/to/LaunchScreen.storyboard (in target 'Example' from project 'Example')" =>
@@ -226,6 +239,7 @@ define::define! [
     ident: CopyCommand,
     desc: r"CpResource|CpHeader|CopyStringsFile|CopyPlistFile",
     captures: [ r#type, filename, filepath, project, target ],
+    format: "[{target}] Copying {filename}",
     pattern: r"(?x)
                (:?Cp|Copy)(?P<type>Resource|Header|PlistFile|StringsFile)\s.*\s
                (?P<filepath>.*/(?P<filename>.*\.(?:\w+)))
@@ -259,9 +273,62 @@ define::define! [
 },
 
 {
+    ident: CoverageReportGeneration,
+    desc: r"Coverage report generation",
+    captures: [ filepath ],
+    format: "Generated code coverage report: {filepath}",
+    pattern: r"(?i)generated\s+coverage\s+report:\s+(?P<filepath>.+)",
+    tests: {
+        "Generated coverage report: /path/to/code coverage.xccovreport" =>
+            |captures| {
+                assert_eq!("/path/to/code coverage.xccovreport", &captures["filepath"]);
+            }
+    }
+},
+
+{
+    ident: GenerateDsymFile,
+    desc: r"GenerateDSYMFile",
+    captures: [ filename, target, project ],
+    format: "[{target}] Generating {filename}",
+    pattern: r"(?x)
+        GenerateDSYMFile\s/.*/
+        (?P<filename>.*\.dSYM)\s/.*
+        \((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\)?",
+    tests: {
+        "GenerateDSYMFile /$BUILD/Release/DemoTarget.app.dSYM /$BUILD/Release/DemoTarget.app/Contents/MacOS/DemoTarget (in target 'DemoTarget' from project 'DemoProject')" =>
+            |captures| {
+                assert_eq!("DemoTarget.app.dSYM", &captures["filename"]);
+                assert_eq!("DemoTarget", &captures["target"]);
+                assert_eq!("DemoProject", &captures["project"]);
+            }
+    }
+},
+
+{
+    ident: Linking,
+    desc: r"Ld",
+    captures: [ filename, target, project ],
+    format: "[{target}] Linking {filename}",
+    pattern: r"Ld\s(?P<filepath>.*/(?P<filename>\w+\.\w+)).*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\)?",
+    tests: {
+        "Ld /path/to/file.o normal x86_64 (in target 'Example' from project 'Example')" =>
+            |captures| {
+                assert_eq!("/path/to/file.o", &captures["filepath"]);
+                assert_eq!("file.o", &captures["filename"]);
+                assert_eq!("Example", &captures["target"]);
+                assert_eq!("Example", &captures["project"]);
+            }
+    }
+},
+
+// - TESTING ----------------------------------------------------------------------
+
+{
     ident: TestExecuted,
     desc: r"Executed number of tests",
     captures: [ tests_count, failed_tests_count, unexpected_test_count, total_exec_time ],
+    format: "",
     pattern: r"(?x)\s*Executed\s
         (?P<tests_count>\d+)\stest[s]?,\swith\s
         (?P<failed_tests_count>\d+)\sfailure[s]?\s
@@ -289,6 +356,7 @@ define::define! [
     ident: TestExecutedWithSkipped,
     desc: r"Executed number of tests with skipped teats",
     captures: [ tests_count, skipped_test_count, failed_tests_count, unexpected_test_count, total_exec_time ],
+    format: "",
     pattern: r"(?x)
         \s*Executed\s
         (?P<tests_count>\d+)\stest[s]?,\swith\s
@@ -320,6 +388,7 @@ define::define! [
     ident: KiwiFailingTest,
     desc: r"Kiwi Test failing",
     captures: [ filepath, suite, case, reason ],
+    format: "",
     pattern: r"(?x)\s*
         (?P<filepath>.+:\d+):\serror:\s[\+\-]
         \[
@@ -342,6 +411,7 @@ define::define! [
     ident: UIFailingTest,
     desc: r"UI Test failing",
     captures: [ filepath, reason ],
+    format: "",
     pattern: r"\s*t = \s+\d+\.\d+s\s+Assertion Failure: (?P<filepath>.*:\d+): (?P<reason>.*)$",
     tests: {
         "t =    22.27s             Assertion Failure: <unknown>:0: UI Testing Failure - Unable to find hit point for element Button 0x608001165880: {{74.0, -54.0}, {44.0, 38.0}}, label: 'Disconnect'" =>
@@ -352,59 +422,12 @@ define::define! [
     }
 },
 
-{
-    ident: CoverageReportGeneration,
-    desc: r"Coverage report generation",
-    captures: [ filepath ],
-    pattern: r"(?i)generated\s+coverage\s+report:\s+(?P<filepath>.+)",
-    tests: {
-        "Generated coverage report: /path/to/code coverage.xccovreport" =>
-            |captures| {
-                assert_eq!("/path/to/code coverage.xccovreport", &captures["filepath"]);
-            }
-    }
-},
-
-{
-    ident: GenerateDsymFile,
-    desc: r"GenerateDSYMFile",
-    captures: [ filename, target, project ],
-    pattern: r"(?x)
-        GenerateDSYMFile\s/.*/
-        (?P<filename>.*\.dSYM)\s/.*
-        \((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\)?",
-    tests: {
-        "GenerateDSYMFile /$BUILD/Release/DemoTarget.app.dSYM /$BUILD/Release/DemoTarget.app/Contents/MacOS/DemoTarget (in target 'DemoTarget' from project 'DemoProject')" =>
-            |captures| {
-                assert_eq!("DemoTarget.app.dSYM", &captures["filename"]);
-                assert_eq!("DemoTarget", &captures["target"]);
-                assert_eq!("DemoProject", &captures["project"]);
-            }
-    }
-},
-
-{
-    ident: Linking,
-    desc: r"Ld",
-    captures: [ filename, target, project ],
-    pattern: r"Ld\s(?P<filepath>.*/(?P<filename>\w+\.\w+)).*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\)?",
-    tests: {
-        "Ld /path/to/file.o normal x86_64 (in target 'Example' from project 'Example')" =>
-            |captures| {
-                assert_eq!("/path/to/file.o", &captures["filepath"]);
-                assert_eq!("file.o", &captures["filename"]);
-                assert_eq!("Example", &captures["target"]);
-                assert_eq!("Example", &captures["project"]);
-            }
-    }
-},
-
-// - TESTING ----------------------------------------------------------------------
 
 {
     ident: TestSuiteStarted,
     desc: r"Test Suites Started",
     captures: [ name, time ],
+    format: "",
     pattern: r"\s*Test Suite '(?:.*/)?(?P<name>.*[ox]ctest.*)' started at (?P<time>.*)",
     tests: {
         "Test Suite 'ObjectiveRecordTests.xctest' started at 2013-12-10 06:15:39 +0000" =>
@@ -419,6 +442,7 @@ define::define! [
     ident: TestSuiteCompleted,
     desc: r"Test Suites Completed",
     captures: [ name, time ],
+    format: "",
     pattern: r"\s*Test Suite '(?:.*/)?(?P<name>.*[ox]ctest.*)' (finished|passed|failed) at (?P<time>.*)\.",
     tests: {
         "Test Suite 'ObjectiveRecordTests.xctest' finished at 2013-12-10 06:15:42 +0000." =>
@@ -433,6 +457,7 @@ define::define! [
     ident: TestCaseStarted,
     desc: r"Test Case Started",
     captures: [ suite, case],
+    format: "",
     pattern: r"\s*Test Case '-\[(?P<suite>.*) (?P<case>.*)\]' started.$",
     tests: {
         "Test Case '-[viewUITests.vmtAboutWindow testConnectToDesktop]' started." =>
@@ -447,6 +472,7 @@ define::define! [
     ident: TestCasePassed,
     desc: r"Test Case Passed",
     captures: [ suite, case, time ],
+    format: "",
     pattern: r"\s*Test Case\s'-\[(?P<suite>.*)\s(?P<case>.*)\]'\spassed\s\((?P<time>\d*\.\d{3})\sseconds\).",
     tests: {
         "Test Case '-[TestSuite TestCase]' passed (0.001 seconds)." =>
@@ -462,6 +488,7 @@ define::define! [
     ident: KiwiTestCasePending,
     desc: r"Kiwi test case pending",
     captures: [ suite, case ],
+    format: "",
     pattern: r"Test Case\s'-\[(?P<suite>.*)\s(?P<case>.*)PENDING\]'\spassed",
     tests: {
         "Test Case '-[TestSuite TestCasePENDING]' passed (0.001 seconds)." =>
@@ -476,6 +503,7 @@ define::define! [
     ident: TestCaseMeasure,
     desc: r"Test case measuring",
     captures: [ suite, case, time ],
+    format: "",
     pattern: r"[^:]*:[^:]*:\sTest Case\s'-\[(?P<suite>.*)\s(?P<case>.*)\]'\smeasured\s\[Time,\sseconds\]\saverage:\s(?P<time>\d*\.\d{3})(.*){4}",
     tests: {
         r#"<unknown>:0: Test Case '-[TestSuite TestCase]' measured [Time, seconds] average: 0.013, relative standard deviation: 26.773%, values: [0.023838, 0.012034, ], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100"# =>
@@ -491,6 +519,7 @@ define::define! [
     ident: ParallelTestCasePassed,
     desc: r"Parallel TestCase passed",
     captures: [ suite, case, time, medium ],
+    format: "",
     pattern: r"Test\s+case\s+'(?P<suite>.*)\.(?P<case>.*)\(\)'\s+passed\s+on\s+'(?P<medium>.*)'\s+\((?P<time>\d*\.(.*){3})\s+seconds\)",
     tests: {
         "Test case 'TestSuite.testCase()' passed on 'xctest (49438)' (0.131 seconds)" =>
@@ -507,6 +536,7 @@ define::define! [
     ident: ParallelTestCaseAppKitPassed,
     desc: r"Parallel TestCase AppKit Passed",
     captures: [ suite, case, time, medium ],
+    format: "",
     pattern: r"\s*Test case\s'-\[(?P<suite>.*)\s(?P<case>.*)\]'\spassed\son\s'(?P<medium>.*)'\s\((?P<time>\d*\.\d{3})\sseconds\)",
     tests: {
         "Test case '-[TestSuite testCase]' passed on 'xctest (49438)' (0.131 seconds)." =>
@@ -523,6 +553,7 @@ define::define! [
     ident: ParallelTestCaseFailed,
     desc: r"Parallel TestCase Failed",
     captures: [ suite, case, time, medium ],
+    format: "",
     pattern: r"Test\s+case\s+'(?P<suite>.*)\.(?P<case>.*)\(\)'\s+failed\s+on\s+'(?P<medium>.*)'\s+\((?P<time>\d*\.(.*){3})\s+seconds\)",
     tests: {
         "Test case 'TestSuite.testCase()' failed on 'iPhone 11' (7.158 seconds)" =>
@@ -539,6 +570,7 @@ define::define! [
     ident: ParallelTestingStarted,
     desc: r"Parallel Testing Started",
     captures: [ suite, case, time, medium ],
+    format: "",
     pattern: r"Testing\s+started\s+on\s+'(?P<medium>.*)'",
     tests: {
         "Testing started on 'iPhone X'" =>
@@ -552,6 +584,7 @@ define::define! [
     ident: ParallelTestingPassed,
     desc: r"Parallel Testing Passed",
     captures: [ suite, case, time, medium ],
+    format: "",
     pattern: r"Testing\s+passed\s+on\s+'(?P<medium>.*)'",
     tests: {
         "Testing passed on 'iPhone X'" =>
@@ -565,6 +598,7 @@ define::define! [
     ident: ParallelTestingFailed,
     desc: r"Parallel Testing Failed",
     captures: [ suite, case, time, medium ],
+    format: "",
     pattern: r"Testing\s+failed\s+on\s+'(?P<medium>.*)'",
     tests: {
         "Testing failed on 'iPhone X'" =>
@@ -578,6 +612,7 @@ define::define! [
     ident: ParallelTestFailed,
     desc: r"Parallel Testing Failed",
     captures: [ suite, case, time, medium ],
+    format: "",
     pattern: r"(?i)\s*Test\s+Suite\s+'(?P<suite>.*)'\s+started\s+on\s+'(?P<medium>.*)'",
     tests: {
         "Test suite 'TestSuite (iOS).xctest' started on 'iPhone X'" =>
@@ -592,6 +627,7 @@ define::define! [
     ident: PhaseScriptExecution,
     desc: r"PhaseScriptExecution",
     captures: [ name, target, project ],
+    format: "",
     pattern: r"(?x)PhaseScriptExecution\s(?P<name>.*)\s/.*\.sh( ?:\s.* \((?:in\starget\s      '(?P<target>.*)'\s  from\sproject\s   '(?P<project>.*)' )\)  ) ?",
     tests: {
         "PhaseScriptExecution Format\\ Swift\\ Files /path/to/file.sh (in target 'DemoTarget' from project 'DemoProject')" =>
@@ -614,6 +650,7 @@ define::define! [
     ident: ProcessPCH,
     desc: r"ProcessPCH",
     captures: [ filename, target, project ],
+    format: "[{target}] Processing {filename}",
     pattern: r"(?x)ProcessPCH(?:\+\+)?\s.*\s/.*/(?P<filename>.*.pch)( ?:\s.* \((?:in\starget\s      '(?P<target>.*)'\s  from\sproject\s   '(?P<project>.*)' )\)  ) ?",
     tests: {
         "ProcessPCH /path/to/file.pch.gch /path/to/file.pch normal x86_64 objective-c com.apple.compilers.llvm.clang.1_0.analyzer (in target 'App' from project 'App')" =>
@@ -629,6 +666,7 @@ define::define! [
     ident: ProcessPCHCommand,
     desc: r"ProcessPchCommand",
     captures: [ ],
+    format: "",
     pattern: r"\s*.*/usr/bin/clang\s.*\s\-c\s(.*.pch)\s.*\-o\s.*",
     tests: {}
 },
@@ -637,6 +675,7 @@ define::define! [
     ident: PbxCopy,
     desc: r"PBXCp",
     captures: [ filename, target, project ],
+    format: "[{target}] Copying {filename}",
     pattern: r"(?x)PBXCp\s(?P<filepath>/.*)\s/.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\)",
     tests: {
         "PBXCp /path/to/header.h /path/to/output.h (in target 'App' from project 'App')" =>
@@ -652,6 +691,7 @@ define::define! [
     ident: ProcessInfoPlistFile,
     desc: r"ProcessInfoPlistFile",
     captures: [ filename, filepath, target, project ],
+    format: "[{target}] Processing {filename}",
     pattern: r"(?x)ProcessInfoPlistFile\s.*\s
         (?P<filepath>/(?:\.|[^\s])+/(?P<filename>(?:\.|[^\s])+\.(?:plist)))
         (?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
@@ -671,6 +711,7 @@ define::define! [
     ident: CheckDependencies,
     desc: r"Check dependencies",
     captures: [],
+    format: "Checking dependencies",
     pattern: r"Check dependencies",
     tests: {}
 },
@@ -679,6 +720,7 @@ define::define! [
     ident: RestartingTests,
     desc: r"Test restarting",
     captures: [],
+    format: "",
     pattern:r"Restarting after unexpected exit.+$",
     tests: {}
 },
@@ -687,15 +729,17 @@ define::define! [
     ident: CoverageDataGeneration,
     desc: r"Coverage Data Generation",
     captures: [],
-    pattern:r"generating\s+coverage\s+data\.*",
+    format: "Generating code coverage data...",
+    pattern: r"generating\s+coverage\s+data\.*",
     tests: {}
 },
 
 {
     ident: PhaseSuccess,
     desc: r"Phase Success",
-    captures: [],
-    pattern: r"\*\*\s(.*)\sSUCCEEDED\s\*\*",
+    captures: [ name ],
+    format: "{name} Succeeded",
+    pattern: r"\*\*\s(P?<name>.*)\sSUCCEEDED\s\*\*",
     tests:{}
 },
 
@@ -703,6 +747,7 @@ define::define! [
     ident: TestSuiteAllTestsPassed,
     desc: r"Test Suite All Tests Passed",
     captures: [],
+    format: "",
     pattern: r"\s*Test Suite 'All tests' passed at",
     tests:{}
 },
@@ -711,6 +756,7 @@ define::define! [
     ident: TestSuiteAllTestsFailed,
     desc: r"Test Suite All Tests Passed",
     captures: [],
+    format: "",
     pattern: r"\s*Test Suite 'All tests' failed at",
     tests: {}
 },
@@ -719,6 +765,7 @@ define::define! [
     ident: Touch,
     desc: r"Touch file",
     captures: [ filename, filepath, target, project ],
+    format: "[{target}] Touching {filename}",
     pattern: r"(?x)Touch\s(?P<filepath>/(?:\.|[^\s])+/(?P<filename>(?:\.|[^\s])+\.(?:\w+)))
         (?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
     tests: {
@@ -739,6 +786,7 @@ define::define! [
     ident: CompileWarning,
     desc: r"Compile Warning",
     captures: [ location, filepath, message ],
+    format: "⚠️ {location}: {message}",
     pattern: r"(?P<location>(?P<filepath>[^:]*):\d*:\d*):\swarning:\s(?P<message>.*)$",
     tests: {
         "/path/file.swift:64:69: warning: 'flatMap' is deprecated: Please use compactMap(_:) for the case where closure returns an optional value" =>
@@ -755,7 +803,8 @@ define::define! [
     ident: LdWarning,
     desc: r"Linking Warning",
     captures: [ prefix, message ],
-    pattern: r"(ld:.*)warning: (?P<msg>.*)",
+    format: "⚠️ {prefix}{message}",
+    pattern: r"(P?<prefix>ld:.*)warning: (?P<message>.*)",
     tests: {}
 },
 
@@ -763,14 +812,16 @@ define::define! [
     ident: GenericWarning,
     desc: r"Generic Error (catch all)",
     captures: [ message ],
+    format: "⚠️ {message}",
     pattern: r"warning:\s(?P<message>.*)$",
     tests: {}
 },
 
 {
     ident: CodeSignWarning,
-    desc: r"Sign warnning",
+    desc: r"Sign warning",
     captures: [ message ],
+    format: "⚠️ {message}",
     pattern: r"(?P<message>.* will not be code signed because .*)$",
     tests: {}
 },
@@ -781,6 +832,7 @@ define::define! [
     ident: ClangError,
     desc: r"Clang Error",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r"(?P<message>clang: error:.*)$",
     tests: {
         "clang: error: linker command failed with exit code 1 (use -v to see invocation)" =>
@@ -795,6 +847,7 @@ define::define! [
     ident: CheckDependenciesError,
     desc: r"Check Dependencies error",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r"(?P<message>Code\s?Sign error:.*|Code signing is required for product type .* in SDK .*|No profile matching .* found:.*|Provisioning profile .* doesn't .*|Swift is unavailable on .*|.?Use Legacy Swift Language Version.*)$",
     tests: {}
 },
@@ -803,14 +856,16 @@ define::define! [
     ident: ProvisioningProfileRequiredError,
     desc: r"General Check Depeds error",
     captures: [ message ],
-    pattern: r"(.*requires a provisioning profile.*)$",
+    format: "❌ {message}",
+    pattern: r"(?P<message>.*requires a provisioning profile.*)$",
     tests: {}
 },
 
 {
     ident: NoCertificateError,
-    desc: r"General Check Depeds error",
+    desc: r"No certificate error",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r"(?P<message>No certificate matching.*)$",
     tests: {}
 },
@@ -818,7 +873,8 @@ define::define! [
 {
     ident: CompileError,
     desc: r"Compile Error",
-    captures: [ message ],
+    captures: [ location, filepath, message ],
+    format: "❌ {location}: {message}",
     pattern: r"\s*(?P<location>(?P<filepath>[^:]*):\d*:\d*):\s(?:fatal\s)?error:\s(?P<message>.*)$",
     tests: {
         "/path/file.swift:64:69: error: cannot find 'input' in scope" =>
@@ -834,6 +890,7 @@ define::define! [
     ident: Cursor,
     desc: r"Cursor",
     captures: [ content ],
+    format: " {content}",
     pattern: r"(?P<content>[\s~]*\^[\s~]*)$",
     tests: {}
 },
@@ -842,6 +899,7 @@ define::define! [
     ident: FatalError,
     desc: r"Compile Error",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r"(?P<message>fatal error:.*)$",
     tests: {}
 },
@@ -850,6 +908,7 @@ define::define! [
     ident: FileMissingError,
     desc: r"File missing Error",
     captures: [ message, filepath ],
+    format: "❌ {filepath}: {message}",
     pattern: r"<unknown>:0:\s(?P<message>error:\s.*)\s'(?P<filepath>/.+/.*\..*)'$",
     tests: {}
 },
@@ -858,6 +917,7 @@ define::define! [
     ident: LdError,
     desc: r"Ld Error",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r"(P<message>ld:.*)",
     tests: {}
 },
@@ -866,6 +926,7 @@ define::define! [
     ident: LinkerDuplicateSymbolsLocationError,
     desc: r"duplicate symbols location",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r"\s+(?P<message>/.*\.o[\)]?)$",
     tests: {}
 },
@@ -874,6 +935,7 @@ define::define! [
     ident: LinkerDuplicateSymbolsError,
     desc: r"Linker Duplicate Symbols Error",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r"(?P<message>duplicate symbol .*):$",
     tests: {}
 },
@@ -882,6 +944,7 @@ define::define! [
     ident: LinkerUndefinedSymbolsLocationError,
     desc: r"Linker Undefined Symbols Location Error",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r"(P?<message>.* in .*\.o)$",
     tests: {}
 },
@@ -890,6 +953,7 @@ define::define! [
     ident: LinkerUndefinedSymbolsError,
     desc: r"Undefined symbols",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r"(P?<message>.* in .*\.o)$",
     tests: {}
 },
@@ -898,6 +962,7 @@ define::define! [
     ident: PodsError,
     desc: r"Pods error",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r"(P?<message>error:\s.*)",
     tests: {}
 },
@@ -906,6 +971,7 @@ define::define! [
     ident: SymbolReferencedFrom,
     desc: r"Symbol reference from error",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: "\\s+\"(?P<message>.*)\", referenced from:$",
     tests: {}
 },
@@ -914,6 +980,7 @@ define::define! [
     ident: ModuleIncludesError,
     desc: r"module includes error",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r"<module-includes>:.*?:.*?:\s(?:fatal\s)?(P?<message>error:\s.*)$/",
     tests: {}
 },
@@ -922,6 +989,7 @@ define::define! [
     ident: UndefinedSymbolLocationError,
     desc: r"Undefined symol location",
     captures: [ message ],
+    format: "❌ {message}",
     pattern: r".+ in (.+)\((.+)\.o\)$",
     tests: {}
 },
@@ -929,23 +997,26 @@ define::define! [
 {
     ident: PackageGraphResolvingStart,
     desc: r"Package Graph Resolving Start",
-    captures: [ message ],
-    pattern: r"\s*(Resolve Package Graph)\s*$",
+    captures: [  ],
+    format: "Resolving Packages",
+    pattern: r"\s*Resolve Package Graph\s*$",
     tests: {}
 },
 
 {
     ident: PackageGraphResolvingEnd,
     desc: r"Package Graph Resolving Ended",
-    captures: [ message ],
-    pattern: r"(Resolved source packages):$",
+    captures: [  ],
+    format: "",
+    pattern: r"Resolved source packages:$",
     tests: {}
 },
 
 {
     ident: PackageGraphResolvedItem,
     desc: r"Package Graph Resolved Item",
-    captures: [ message ],
+    captures: [ ],
+    format: "",
     pattern: r"\s*([^\s:]+):\s([^ ]+)\s@\s(\d+\.\d+\.\d+)",
     tests: {}
 }

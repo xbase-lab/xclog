@@ -3,6 +3,7 @@ macro_rules! define
     ident: $name:ident,
     desc: $desc:literal,
     captures: [ $( $capture:ident ),* ],
+    format: $format:literal,
     pattern: $pattern:literal,
     tests: { $($test_value:literal => $expr:expr),* }
      }),* $(,)?)
@@ -42,16 +43,22 @@ macro_rules! define
             pub fn captures<'a>(&'a self, text: &'a str) -> Captures<'a> {
                 self.re.captures(text).unwrap()
             }
-            /// TODO: method to format output
-            pub fn format<'a>(&'a self, captures: &'a Captures<'a>) -> String {
-                format!("{:#?}", captures)
+            /// Pretty print captures
+            pub fn format<'a>(&'a self, _captures: &'a Captures<'a>) -> Option<String> {
+                if $format.is_empty() {
+                    return None
+                }
+                // TODO: ignore captures ending with _
+                $(
+                    #[allow(unused_variables)]
+                    let $capture = &_captures[stringify!($capture)];
+                 )*
+                Some(format!($format))
             }
             /// Get struct representation
-            pub fn data<'a>(&'a self, text: &'a str) -> [<$name Data>] {
-                #[allow(unused_variables)]
-                let captures = self.captures(text);
+            pub fn data<'a>(&'a self, _captures: &'a Captures<'a>) -> [<$name Data>] {
                 [<$name Data>]  {
-                    $($capture: captures[stringify!($capture)].to_string()),*
+                    $($capture: _captures[stringify!($capture)].to_string()),*
 
                 }
             }
@@ -84,7 +91,7 @@ macro_rules! define
         }
 
         /// Format text
-        pub fn format<'a>(&'a self, text: &'a str) -> String {
+        pub fn format<'a>(&'a self, text: &'a str) -> Option<String> {
             match self {
                 $(Self::$name(v) => v.format(&v.captures(text)),)*
 
@@ -135,6 +142,7 @@ macro_rules! define
     // Statics -----------------------------------------------------------------------------------------------
     lazy_static! {
         /// All Regex matchers
+        // TODO: change implementation  to storing dynamic implementation of inner parser
         pub static ref PARSERS: Vec<InnerParser> = vec![
             $(InnerParser::$name([<$name Parser>]::new(Regex::new($pattern).unwrap() ))),*
         ];
