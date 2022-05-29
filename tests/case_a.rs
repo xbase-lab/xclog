@@ -1,6 +1,7 @@
 use xcodebuild::parser::*;
 
 #[test]
+#[cfg(feature = "regex")]
 fn test() {
     let lines = include_str!("./case_a.log").split("\n");
     println!("starting");
