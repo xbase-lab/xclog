@@ -3,7 +3,7 @@ mod description;
 mod error;
 mod outputs;
 mod step;
-mod util;
+pub mod util;
 
 use async_trait::async_trait;
 use process_stream::ProcessItem;
