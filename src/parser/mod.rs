@@ -139,18 +139,18 @@ define::define! [
 {
     ident: Compile,
     desc: r"Compile(Swift|C|\w) Step",
-    captures: [ r#type, filename, filepath, target, project ],
+    captures: [ kind, filename, filepath, target, project ],
     format: "[{target}] Compiling {filename}",
     pattern: r"(?x)
-        # Compile <type>
-        Compile(?P<type>[\w]+)\s.+?\s
+        # Compile <kind>
+        Compile(?P<kind>[\w]+)\s.+?\s
         # <filepath>
         (?P<filepath>(?:\.|[^\s])+/(?P<filename>(?:\.|[^\s])+\.(?:m|mm|c|cc|cpp|cxx|swift)))
         (?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
     tests: {
         "CompileSwift normal arm64 /path/to/ToastView.swift (in target 'Example' from project 'Example')" =>
             |captures| {
-                assert_eq!("Swift", &captures["type"]);
+                assert_eq!("Swift", &captures["kind"]);
                 assert_eq!("/path/to/ToastView.swift", &captures["filepath"]);
                 assert_eq!("ToastView.swift", &captures["filename"]);
                 assert_eq!("Example", &captures["project"]);
@@ -158,7 +158,7 @@ define::define! [
             },
         "CompileC /path/to/output/arm64/bridge.o /path/to/bridge.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler (in target 'Example' from project 'Example')" =>
             |captures| {
-                assert_eq!("C", &captures["type"]);
+                assert_eq!("C", &captures["kind"]);
                 assert_eq!("/path/to/bridge.c", &captures["filepath"]);
                 assert_eq!("bridge.c", &captures["filename"]);
                 assert_eq!("Example", &captures["project"]);
@@ -166,7 +166,7 @@ define::define! [
             }
             // "CompileAssetCatalog /output/Example.app /input/Assets.xcassets (in target 'Example' from project 'Example')" =>
             //     |captures| {
-            //     assert_eq!("AssetCatalog", &captures["type"]);
+            //     assert_eq!("AssetCatalog", &captures["kind"]);
             //     assert_eq!("/input/Assets.xcassets", &captures["filepath"]);
             //     assert_eq!("Assets.xcassets", &captures["filename"]);
             //     assert_eq!("Example", &captures["project"]);
@@ -229,16 +229,16 @@ define::define! [
 {
     ident: CopyCommand,
     desc: r"CpResource|CpHeader|CopyStringsFile|CopyPlistFile",
-    captures: [ r#type, filename, filepath, project, target ],
+    captures: [ kind, filename, filepath, project, target ],
     format: "[{target}] Copying {filename}",
     pattern: r"(?x)
-               (:?Cp|Copy)(?P<type>Resource|Header|PlistFile|StringsFile)\s.*\s
+               (:?Cp|Copy)(?P<kind>Resource|Header|PlistFile|StringsFile)\s.*\s
                (?P<filepath>.*/(?P<filename>.*\.(?:\w+)))
                (?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
     tests: {
         "CpResource /output/EnWords.txt /path/to/EnWords.txt (in target 'Example' from project 'Example')" =>
             |captures| {
-                assert_eq!("Resource", &captures["type"]);
+                assert_eq!("Resource", &captures["kind"]);
                 assert_eq!("/path/to/EnWords.txt", &captures["filepath"]);
                 assert_eq!("EnWords.txt", &captures["filename"]);
                 assert_eq!("Example", &captures["project"]);
@@ -246,14 +246,14 @@ define::define! [
             },
         "CpHeader /output/file.h /path/to/file.h (in target 'Example' from project 'Example')" =>
             |captures| {
-                assert_eq!("Header", &captures["type"]);
+                assert_eq!("Header", &captures["kind"]);
                 assert_eq!("/path/to/file.h", &captures["filepath"]);
                 assert_eq!("file.h", &captures["filename"]);
                 assert_eq!("Example", &captures["project"]);
                 assert_eq!("Example", &captures["target"]);
             },
          "CopyStringsFile /output/InfoPlist.strings path/to/en.lproj/InfoPlist.strings (in target 'Example' from project 'Example')" => |captures| {
-                assert_eq!("StringsFile", &captures["type"]);
+                assert_eq!("StringsFile", &captures["kind"]);
                 assert_eq!("path/to/en.lproj/InfoPlist.strings", &captures["filepath"]);
                 assert_eq!("InfoPlist.strings", &captures["filename"]);
                 assert_eq!("Example", &captures["project"]);
