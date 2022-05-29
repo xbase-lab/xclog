@@ -5,6 +5,9 @@ edition = "2021"
 description = "xcodebuild command wrapper, runner and log parser."
 license = "MIT OR Apache-2.0"
 
+[profile.release]
+debug = true
+
 [dependencies]
 # Utilities
 shell-words           = "1.1.0"
