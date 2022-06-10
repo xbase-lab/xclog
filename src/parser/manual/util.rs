@@ -102,8 +102,7 @@ pub(crate) mod test {
                 .tap_mut(|s| {
                     s.next();
                 })
-                .as_str()
-                .to_string();
+                .collect::<String>();
 
             let step = $t::parse_from_stream(line, &mut stream).await;
             #[cfg(feature = "tracing")]
