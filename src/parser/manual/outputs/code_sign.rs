@@ -42,7 +42,7 @@ impl ParsableFromStream for CodeSign {
             line.trim()
                 .strip_prefix("Signing Identity:")
                 .ok_or_else(|| {
-                    #[cfg(feature = "tracing")]
+                    #[cfg(feature = "with_tracing")]
                     tracing::error!("line: {line}");
                     Error::Failure("Striping identity prefix".into())
                 })?
@@ -87,7 +87,7 @@ impl ParsableFromStream for CodeSign {
 }
 
 #[tokio::test]
-#[cfg_attr(feature = "tracing", tracing_test::traced_test)]
+#[cfg_attr(feature = "with_tracing", tracing_test::traced_test)]
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
@@ -135,7 +135,7 @@ impl Display for CodeSign {
 }
 
 #[tokio::test]
-#[cfg_attr(feature = "tracing", tracing_test::traced_test)]
+#[cfg_attr(feature = "with_tracing", tracing_test::traced_test)]
 async fn fmt() {
     let data = CodeSign {
         description: Description {

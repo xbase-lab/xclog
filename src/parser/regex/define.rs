@@ -114,7 +114,7 @@ macro_rules! define
         pub fn get_parser_for(&self, text: &str) -> Option<&'static InnerParser> {
             let matches = self.inner.matches(text);
             if !matches.matched_any() {
-                #[cfg(feature = "tracing")]
+                #[cfg(feature = "with_tracing")]
                 tracing::warn!("No match for `{text}`");
                 return None;
             }
@@ -124,7 +124,7 @@ macro_rules! define
                     .iter()
                     .map(|idx| self.inner.patterns().get(idx).unwrap());
 
-                #[cfg(feature = "tracing")]
+                #[cfg(feature = "with_tracing")]
                 tracing::error!(
                     "Multiple matches for {text}\n\nmatching patterns {:#?}",
                     patterns

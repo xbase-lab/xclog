@@ -1,7 +1,7 @@
-#[cfg(feature = "regex")]
+#[cfg(feature = "with_regex")]
 mod regex;
 
-#[cfg(feature = "regex")]
+#[cfg(feature = "with_regex")]
 pub use self::regex::*;
 
 #[cfg(feature = "manual")]

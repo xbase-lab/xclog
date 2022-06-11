@@ -2,7 +2,7 @@ use xcodebuild::parser::*;
 // Right now manual is 1040 faster then regex!
 
 #[test]
-#[cfg(feature = "regex")]
+#[cfg(feature = "with_regex")]
 fn test_regex() {
     let lines = include_str!("./case_a.log").split("\n");
     println!("starting");

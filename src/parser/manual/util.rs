@@ -105,7 +105,7 @@ pub(crate) mod test {
                 .collect::<String>();
 
             let step = $t::parse_from_stream(line, &mut stream).await;
-            #[cfg(feature = "tracing")]
+            #[cfg(feature = "with_tracing")]
             tracing::info!("Result: {:#?}", step);
             step
         }};

@@ -1,12 +1,9 @@
 [package]
 name = "xcodebuild"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2021"
 description = "xcodebuild command wrapper, runner and log parser."
 license = "MIT OR Apache-2.0"
-
-[profile.release]
-debug = true
 
 [dependencies]
 # Utilities
@@ -38,6 +35,6 @@ tracing-test = "0.2.1"
 
 [features]
 default = [ "manual" ]
-regex   = [ "dep:regex" ]
-manual = [ "tracing" ]
-tracing = [ "dep:tracing", "tracing-appender", "tracing-subscriber" ]
+with_regex   = [ "regex" ]
+manual = [ "with_tracing" ]
+with_tracing = [ "tracing", "tracing-appender", "tracing-subscriber" ]

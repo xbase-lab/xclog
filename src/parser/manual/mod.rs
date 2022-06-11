@@ -129,7 +129,7 @@ pub async fn parse_step_from_stream(
             }
         }
         _ => {
-            #[cfg(feature = "tracing")]
+            #[cfg(feature = "with_tracing")]
             tracing::error!("Skipping: {cmd}");
             consume_till_empty_line(stream).await;
             return Ok(None);

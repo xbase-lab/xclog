@@ -49,7 +49,7 @@ impl Display for CompileStoryboard {
 }
 
 #[tokio::test]
-#[cfg_attr(feature = "tracing", tracing_test::traced_test)]
+#[cfg_attr(feature = "with_tracing", tracing_test::traced_test)]
 async fn test() {
     use crate::parser::util::test::to_stream_test;
 
