@@ -48,7 +48,7 @@ pub async fn parse_step_from_stream(
                 consume_till_empty_line(stream).await;
                 return Ok(None);
             }
-            (cmd.to_string(), chunks.collect::<String>())
+            (cmd.to_string(), chunks.collect::<Vec<&str>>().join(" "))
         }
         None => return Err(Error::Failure("Empty Line, couldn't identity step".into())),
     };
