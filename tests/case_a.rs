@@ -5,10 +5,9 @@ use xcodebuild::parser::*;
 #[cfg(feature = "with_regex")]
 fn test_regex() {
     let lines = include_str!("./case_a.log").split("\n");
-    println!("starting");
     for line in lines {
-        if let Some(parser) = MATCHER.get_parser_for(line) {
-            if let Some(line) = parser.format(line) {
+        if let Some(capture) = MATCHER.capture(line) {
+            if let Some(line) = capture.format() {
                 println!("{line}");
             }
         }

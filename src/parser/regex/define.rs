@@ -9,153 +9,102 @@ macro_rules! define
      }),* $(,)?)
 =>
 { paste::paste! {
-
-    // use crate::parser::output::*;
     use lazy_static::lazy_static;
-    use regex::{Regex, Captures};
-    use regex::{RegexSet};
+    use regex::{Regex, Captures as RegexCaptures};
 
-    /// All possible patterns that XCode Log might result to.
-    // #[derive(PartialEq, Eq)]
-    // pub enum MatchKind {
-    //     $(
-    //         #[doc = "`"$name "`: " $desc "\n\nCaptures"]
-    //         $(#[doc = "- $" $capture "\n"])*
-    //         $name
-    //      ),*
-    // }
+    lazy_static! {
+        /// Main Matcher for `PARSERS`
+        pub static ref MATCHER: Matcher = Matcher::new();
+    }
 
-
-    // Helpers ---------------------------------------------------------------------------------------------
     $(
-        #[doc = "Static parser for " $name]
-        pub struct [<$name Parser>] {
-            re: Regex
-        }
-
-        impl [<$name Parser>] {
-        #[doc = "Create enw instance of " $name " parser"]
-            pub fn new(re: Regex) -> Self {
-                Self { re }
-            }
-
-            /// Get captures from a text
-            pub fn captures<'a>(&'a self, text: &'a str) -> Captures<'a> {
-                self.re.captures(text).unwrap()
-            }
-            /// Pretty print captures
-            pub fn format<'a>(&'a self, _captures: &'a Captures<'a>) -> Option<String> {
-                if $format.is_empty() {
-                    return None
-                }
-                // TODO: ignore captures ending with _
+        #[doc = $name "Captures" "created by `" $name "Parser`" ]
+        pub struct [<$name Match>]<'a> { _inner: RegexCaptures<'a> }
+        impl<'a> [<$name Match>]<'a> {
+            /// Pretty format
+            pub fn format(&self) -> Option<String> {
+                if $format.is_empty() { return None }
                 $(
                     #[allow(unused_variables)]
-                    let $capture = &_captures[stringify!($capture)];
+                    let $capture = &self._inner[stringify!($capture)];
                  )*
+
                 Some(format!($format))
             }
-            /// Get struct representation
-            pub fn data<'a>(&'a self, _captures: &'a Captures<'a>) -> [<$name Data>] {
-                [<$name Data>]  {
-                    $($capture: _captures[stringify!($capture)].to_string()),*
 
+            #[doc = "Get data struct representation of `" $name "`"]
+            pub fn data(&self, ) -> [<$name Data>] {
+                [<$name Data>] { $($capture: self._inner[stringify!($capture)].to_string()),* }
+            }
+        }
+
+        #[doc = "Static parser for " $name]
+        pub struct [<$name Parser>] { re: Regex }
+        impl [<$name Parser>] {
+        #[doc = "Create enw instance of " $name " parser"]
+            pub fn new(re: Regex) -> Self { Self { re } }
+
+            /// Get captures from a text
+            pub fn captures<'a>(&'a self, text: &'a str) -> Option<[<$name Match>]<'a>> {
+                let captures = self.re.captures(text);
+
+                if let Some(captures) = captures {
+                    Some([<$name Match>] { _inner: captures })
+                } else {
+                    None
                 }
             }
         }
 
         #[doc = "Data representation of " $name]
-        pub struct [<$name Data>] {
-            $(#[doc = $capture:upper]
-              pub $capture: String
-              ),*
-        }
+        pub struct [<$name Data>] { $(#[doc = $capture:upper] pub $capture: String),* }
     )*
 
-    // InnerParser -------------------------------------------------------------------------------------------
-    /// ...
-    pub enum InnerParser {
-        $(
-            #[doc = "..."]
-            $name([<$name Parser>])
-         ),*
-    }
-
-    impl InnerParser {
-        /// Get captures regardless of match type
-        pub fn captures<'a>(&'a self, text: &'a str) -> Captures<'a> {
+    /// A enum with all possible matches
+    pub enum Match<'a> { $(#[doc = $name " Match "] $name([<$name Match>]<'a>)),* }
+    impl<'a> Match<'a> {
+        /// Format capture as text
+        pub fn format(&'a self) -> Option<String> {
             match self {
-                $(Self::$name(v) => v.captures(text),)*
+                $(Self::$name(v) => v.format(),)*
 
             }
         }
+    }
 
-        /// Format text
-        pub fn format<'a>(&'a self, text: &'a str) -> Option<String> {
+    /// Collection of all supported parsers
+    pub enum Parser { $(#[doc = "..."] $name([<$name Parser>])),* }
+    impl Parser {
+        pub fn capture<'a>(&'a self, text: &'a str) -> Option<Match<'a>> {
             match self {
-                $(Self::$name(v) => v.format(&v.captures(text)),)*
-
+                $(Self::$name(v) => v.captures(text).map(Match::$name),)*
             }
         }
-
     }
 
 
-    // Matcher ----------------------------------------------------------------------------------------------
-    /// Regex Set to match against
-    pub struct Matcher {
-        inner: RegexSet,
-    }
-
+    /// Matchers Using a vector of [`Parser`]
+    pub struct Matcher { inner: Vec<Parser> }
     impl Matcher {
-        /// Return regex reference to matching pattern.
-        /// If multiple matches found, then it will print error for now with the pattern that this
-        /// applied.
-        pub fn get_parser_for(&self, text: &str) -> Option<&'static InnerParser> {
-            let matches = self.inner.matches(text);
-            if !matches.matched_any() {
-                #[cfg(feature = "with_tracing")]
-                tracing::warn!("No match for `{text}`");
-                return None;
+        /// create new match instance
+        pub fn new() -> Self {
+            Self {
+                inner: vec![
+                    $(Parser::$name([<$name Parser>]::new(Regex::new($pattern).unwrap() ))),*
+                ]
             }
+        }
 
-            if matches.len() > 1 {
-                let patterns = matches
-                    .iter()
-                    .map(|idx| self.inner.patterns().get(idx).unwrap());
-
-                #[cfg(feature = "with_tracing")]
-                tracing::error!(
-                    "Multiple matches for {text}\n\nmatching patterns {:#?}",
-                    patterns
-                    );
-            };
-
-            for match_idx in matches.iter() {
-                if let Some(matched) = PARSERS.get(match_idx) {
-                    return Some(matched);
+        /// Return [`Match`] if any thing is matched
+        pub fn capture<'a>(&'a self, text: &'a str) -> Option<Match<'a>> {
+            for parser in self.inner.iter() {
+                let captures = parser.capture(text);
+                if captures.is_some() {
+                    return captures
                 }
             }
             None
         }
-
-    }
-
-    // Statics -----------------------------------------------------------------------------------------------
-    lazy_static! {
-        /// All Regex matchers
-        // TODO: change implementation  to storing dynamic implementation of inner parser
-        pub static ref PARSERS: Vec<InnerParser> = vec![
-            $(InnerParser::$name([<$name Parser>]::new(Regex::new($pattern).unwrap() ))),*
-        ];
-
-        /// Main Matcher for `PARSERS`
-        pub static ref MATCHER: Matcher = {
-            let mut patterns = vec![];
-            $(patterns.push($pattern));*;
-            let inner = RegexSet::new(&patterns).unwrap();
-            Matcher {inner}
-        };
     }
 
     // Tests ------------------------------------------------------------------------------------------------
