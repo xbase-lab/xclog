@@ -33,7 +33,7 @@ macro_rules! define
             }
 
             #[doc = "Get data struct representation of `" $name "`"]
-            pub fn data(&self, ) -> [<$name Data>] {
+            pub fn as_data(&self) -> [<$name Data>] {
                 [<$name Data>] { $($capture: self._inner[stringify!($capture)].to_string()),* }
             }
         }
@@ -57,6 +57,7 @@ macro_rules! define
         }
 
         #[doc = "Data representation of " $name]
+        #[derive(Debug)]
         pub struct [<$name Data>] { $(#[doc = $capture:upper] pub $capture: String),* }
     )*
 
@@ -65,11 +66,21 @@ macro_rules! define
     impl<'a> Match<'a> {
         /// Format capture as text
         pub fn format(&'a self) -> Option<String> {
-            match self {
-                $(Self::$name(v) => v.format(),)*
-
-            }
+            match self { $(Self::$name(v) => v.format(),)* }
         }
+
+        $(
+            #[doc = "Check whether Match is `" $name "Match`"]
+            pub fn [<is_ $name:snake:lower>](&self) -> bool {
+                matches!(self, Match::$name(_))
+            }
+
+            #[doc = "Return some if Match is `" $name "Match`"]
+            pub fn [<as_ $name:snake:lower>](&self) -> Option<&[<$name Match>]<'a>> {
+                if let Match::$name(m) = self { Some(m) } else { None }
+            }
+
+        )*
     }
 
     /// Collection of all supported parsers
