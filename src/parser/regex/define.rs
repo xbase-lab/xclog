@@ -43,7 +43,7 @@ macro_rules! define
                  )*
                 let leading = match self.kind {
                     OutputKind::Error => "[Error] ",
-                    OutputKind::Warning => "[Warn] ",
+                    OutputKind::Warning => "[Warning] ",
                     _ => "",
 
                 };
@@ -109,6 +109,11 @@ macro_rules! define
         /// Check whether match is test
         pub fn is_test(&'a self) -> bool {
             match self { $(Self::$name(_) => OutputKind::$kind.is_test(),)* }
+        }
+
+        /// Check whether match is warning
+        pub fn is_warning(&'a self) -> bool {
+            match self { $(Self::$name(_) => OutputKind::$kind.is_warning(),)* }
         }
 
         $(
