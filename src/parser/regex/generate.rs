@@ -173,7 +173,8 @@ define! [
                 assert_eq!("Example", &captures["project"]);
                 assert_eq!("Example", &captures["target"]);
             },
-        "CompileC /Users/xpeng/Library/Developer/Xcode/DerivedData/ToScanner-ftdaekkkwvklasgvfxoiqxewrlzg/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/FlexLayout.build/Objects-normal/arm64/UIView+Yoga.o /Users/xpeng/Project/ToScanner/Pods/FlexLayout/Sources/YogaKit/UIView+Yoga.mm normal arm64 objective-c++ com.apple.compilers.llvm.clang.1_0.compiler (in target 'FlexLayout' from project 'Pods')" => |captures| {
+        "CompileC /Users/xpeng/Library/Developer/Xcode/DerivedData/ToScanner-ftdaekkkwvklasgvfxoiqxewrlzg/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/FlexLayout.build/Objects-normal/arm64/UIView+Yoga.o /Users/xpeng/Project/ToScanner/Pods/FlexLayout/Sources/YogaKit/UIView+Yoga.mm normal arm64 objective-c++ com.apple.compilers.llvm.clang.1_0.compiler (in target 'FlexLayout' from project 'Pods')" =>
+            |captures| {
                 assert_eq!("C", &captures["kind"]);
                 assert_eq!("/Users/xpeng/Project/ToScanner/Pods/FlexLayout/Sources/YogaKit/UIView+Yoga.mm", &captures["filepath"]);
                 assert_eq!("UIView+Yoga.mm", &captures["filename"]);

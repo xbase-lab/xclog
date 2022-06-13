@@ -61,20 +61,12 @@ async fn parse(line: String, stream: &mut OutputStream) -> Result<Vec<String>> {
         lines.push(line);
     }
 
-    if matcher.is_warning() || matcher.is_error() {
-        if let Some(issue) = stream.next().await {
-            let output_line = issue.to_string();
-            if let Some(line) = MATCHER
-                .capture(&output_line)
-                .map(|m| m.output().ok())
-                .flatten()
-                .map(|o| o.value)
-                .flatten()
-            {
-                lines.push(line)
-            } else {
-                lines.push(format!("[Warning] {output_line}"))
+    if matcher.is_compile_warning() || matcher.is_compile_error() {
+        while let Some(line) = stream.next().await.map(|s| s.to_string()) {
+            if line.is_empty() {
+                break;
             }
+            lines.push(format!("[Warning] {line}"));
         }
     }
 
