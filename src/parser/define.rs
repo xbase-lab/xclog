@@ -138,7 +138,7 @@ macro_rules! define
     /// Collection of all supported parsers
     pub enum Parser { $(#[doc = "..."] $name([<$name Parser>])),* }
     impl Parser {
-        pub fn capture<'a>(&'a self, text: &'a str) -> Option<Match<'a>> {
+        pub(crate) fn capture<'a>(&'a self, text: &'a str) -> Option<Match<'a>> {
             match self {
                 $(Self::$name(v) => v.captures(text).map(Match::$name),)*
             }
@@ -170,7 +170,6 @@ macro_rules! define
         }
     }
 
-    // Tests ------------------------------------------------------------------------------------------------
     #[cfg(test)]
     mod tests {
         use regex::{Captures, Regex};
@@ -183,7 +182,7 @@ macro_rules! define
             lazy_static! { static ref [<$name:snake:upper>]: Regex = Regex::new($pattern).unwrap(); }
 
             #[test]
-            fn [<test_ $name:snake:lower>]() {
+            fn [<$name:snake:lower>]() {
                 $(
                     let captures = match [<$name:snake:upper>].captures($test_value) {
                         Some(cp)=> cp,
@@ -197,7 +196,6 @@ macro_rules! define
 
          )*
     }
-// --------------------------------------------------------------------------------------------------------
 }};}
 
 pub(crate) use define;

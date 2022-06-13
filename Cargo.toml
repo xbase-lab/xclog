@@ -1,21 +1,20 @@
 [package]
-name = "xcodebuild"
-version = "0.1.10"
+name = "xclog"
+version = "0.2.0"
 edition = "2021"
-description = "xcodebuild command wrapper, runner and log parser."
+description = "xcodebuild build-log formater and parser"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
 # Utilities
 shell-words           = "1.1.0"
 tap                   = "1.0.1"
-thiserror             = "1.0.30"
-regex                 = { version = "1.5", optional = true }
-lazy_static           = { version = "1.4.0" }
+regex                 = "1.5"
+lazy_static           = "1.4.0"
 derive-deref-rs       = "0.1.1"
 
 # Async Runtime
-tokio                 = {version = "1.18.0", features = [ "rt-multi-thread", "macros", "process"] }
+tokio                 = { version = "1.18.0", features = [ "rt-multi-thread", "macros", "process"] }
 tokio-stream          = { version = "0.1.8", features = ["io-util"] }
 parity-tokio-ipc      = "0.9.0"
 async-trait           = "0.1.52"
@@ -35,7 +34,5 @@ derive_is_enum_variant = "0.1.1"
 tracing-test = "0.2.1"
 
 [features]
-default = [ "manual" ]
-with_regex   = [ "regex", "with_tracing" ]
-manual = [ "with_tracing" ]
+default = [ "with_tracing" ]
 with_tracing = [ "tracing", "tracing-appender", "tracing-subscriber" ]
