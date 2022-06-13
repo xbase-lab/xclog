@@ -35,8 +35,9 @@ impl XcodeLogger for Process {
                 match output {
                     ProcessItem::Output(line) | ProcessItem::Error(line) => {
                         match parse(line, &mut stream).await {
-                            Ok(lines) => { for line in lines.into_iter() { yield line } },
+                            Ok(Some(lines)) => { for line in lines.into_iter() { yield line } },
                             Err(e) => tracing::error!("ParseError: {e}"),
+                            _ => ()
                         }
                     },
                     ProcessItem::Exit(status) => yield format!("[Exit] {status}")
@@ -48,29 +49,46 @@ impl XcodeLogger for Process {
     }
 }
 
-async fn parse(line: String, stream: &mut OutputStream) -> Result<Vec<String>> {
-    let mut lines = vec![];
+async fn parse(line: String, stream: &mut OutputStream) -> Result<Option<Vec<String>>> {
+    if line.contains("ONLY_ACTIVE_ARCH=YES") {
+        return Ok(None);
+    }
 
     let matcher = match MATCHER.capture(&line) {
         Some(m) => m,
-        None => return Ok(lines),
+        None => return Ok(None),
     };
 
-    let output = matcher.output()?;
-    if let Some(line) = output.value {
-        lines.push(line);
-    }
+    let mut lines = vec![];
+    let line = match matcher.output()?.value {
+        Some(line) => line,
+        None => return Ok(None),
+    };
 
-    if matcher.is_compile_warning() || matcher.is_compile_error() {
+    let (is_compile_warning, is_compile_error) =
+        (matcher.is_compile_warning(), matcher.is_compile_error());
+    if is_compile_warning || is_compile_error {
+        let leading = if is_compile_error {
+            "[Error]"
+        } else {
+            "[Warning]"
+        };
+        lines.push(leading.to_string());
+        lines.push(leading.to_string());
+        lines.push(line);
         while let Some(line) = stream.next().await.map(|s| s.to_string()) {
             if line.is_empty() {
                 break;
             }
-            lines.push(format!("[Warning] {line}"));
+            lines.push(format!("{leading} {line}"));
         }
+        lines.push(leading.to_string());
+        lines.push(leading.to_string());
+    } else {
+        lines.push(line);
     }
 
-    Ok(lines)
+    Ok(Some(lines))
 }
 
 #[tokio::test]
