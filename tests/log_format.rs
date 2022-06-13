@@ -2,12 +2,18 @@ use xcodebuild::parser::*;
 
 #[test]
 #[cfg(feature = "with_regex")]
+#[ignore = "passing"]
 fn test_regex_format_case_a() {
     let lines = include_str!("./case_a.log").split("\n");
     for line in lines {
         if let Some(m) = MATCHER.capture(line) {
-            if let Some(line) = m.output().value {
-                println!("{line}");
+            match m.output() {
+                Ok(output) => {
+                    if let Some(line) = output.value {
+                        println!("{line}");
+                    }
+                }
+                Err(e) => panic!("{e}"),
             }
         }
     }
@@ -15,12 +21,36 @@ fn test_regex_format_case_a() {
 
 #[test]
 #[cfg(feature = "with_regex")]
+#[ignore = "passing"]
 fn test_regex_format_case_b() {
     let lines = include_str!("./case_b.log").split("\n");
     for line in lines {
         if let Some(m) = MATCHER.capture(line) {
-            if let Some(line) = m.output().value {
-                println!("{line}");
+            match m.output() {
+                Ok(output) => {
+                    if let Some(line) = output.value {
+                        println!("{line}");
+                    }
+                }
+                Err(e) => panic!("{e}"),
+            }
+        }
+    }
+}
+
+#[test]
+#[cfg(feature = "with_regex")]
+fn test_regex_format_tmtbo() {
+    let lines = include_str!("./case_c.log").split("\n");
+    for line in lines {
+        if let Some(m) = MATCHER.capture(line) {
+            match m.output() {
+                Ok(output) => {
+                    if let Some(line) = output.value {
+                        println!("{line}");
+                    }
+                }
+                Err(e) => panic!("{e}"),
             }
         }
     }

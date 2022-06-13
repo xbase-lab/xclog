@@ -154,7 +154,7 @@ define! [
         # Compile <kind>
         Compile(?P<kind>[\w]+)\s.+?\s
         # <filepath>
-        (?P<filepath>(?:\.|[^\s])+/(?P<filename>(?:\.|[^\s])+\.(?:m|mm|c|cc|cpp|cxx|swift)))
+        (?P<filepath>(?:\.|[^\s])+/(?P<filename>(?:\.|[^\s])+\.(?:mm|m|cpp|cxx|cc|c|swift)))
         (?:\s.*\((?:in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)')\))?",
     tests: {
         "CompileSwift normal arm64 /path/to/ToastView.swift (in target 'Example' from project 'Example')" =>
@@ -172,15 +172,14 @@ define! [
                 assert_eq!("bridge.c", &captures["filename"]);
                 assert_eq!("Example", &captures["project"]);
                 assert_eq!("Example", &captures["target"]);
-            }
-            // "CompileAssetCatalog /output/Example.app /input/Assets.xcassets (in target 'Example' from project 'Example')" =>
-            //     |captures| {
-            //     assert_eq!("AssetCatalog", &captures["kind"]);
-            //     assert_eq!("/input/Assets.xcassets", &captures["filepath"]);
-            //     assert_eq!("Assets.xcassets", &captures["filename"]);
-            //     assert_eq!("Example", &captures["project"]);
-            //     assert_eq!("Example", &captures["target"]);
-            // }
+            },
+        "CompileC /Users/xpeng/Library/Developer/Xcode/DerivedData/ToScanner-ftdaekkkwvklasgvfxoiqxewrlzg/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/FlexLayout.build/Objects-normal/arm64/UIView+Yoga.o /Users/xpeng/Project/ToScanner/Pods/FlexLayout/Sources/YogaKit/UIView+Yoga.mm normal arm64 objective-c++ com.apple.compilers.llvm.clang.1_0.compiler (in target 'FlexLayout' from project 'Pods')" => |captures| {
+                assert_eq!("C", &captures["kind"]);
+                assert_eq!("/Users/xpeng/Project/ToScanner/Pods/FlexLayout/Sources/YogaKit/UIView+Yoga.mm", &captures["filepath"]);
+                assert_eq!("UIView+Yoga.mm", &captures["filename"]);
+                assert_eq!("Pods", &captures["project"]);
+                assert_eq!("FlexLayout", &captures["target"]);
+        }
     }
 },
 {

@@ -28,16 +28,18 @@ macro_rules! define
 
         impl<'a> [<$name Match>]<'a> {
             /// Pretty format
-            pub fn output(&self) -> MatchOutput {
+            pub fn output(&self) -> anyhow::Result<MatchOutput> {
                 if $format.is_empty() {
-                    return  MatchOutput {
+                    return  Ok(MatchOutput {
                         value: None,
                         kind: self.kind.clone(),
-                    }
+                    })
                 }
                 $(
                     #[allow(unused_variables)]
-                    let $capture = &self._inner[stringify!($capture)];
+                    let $capture = &self._inner.name(stringify!($capture))
+                                .ok_or_else(|| anyhow::anyhow!("\n\nMissing [`{}`] from captures\n\n{:#?}", stringify!($capture), self._inner))?
+                                .as_str();
                  )*
                 let leading = match self.kind {
                     OutputKind::Error => "[Error] ",
@@ -46,10 +48,10 @@ macro_rules! define
 
                 };
 
-                MatchOutput {
+                Ok(MatchOutput {
                     value: Some(format!("{}{}", leading, format!($format))),
                     kind: self.kind.clone(),
-                }
+                })
             }
 
             #[doc = "Get data struct representation of `" $name "`"]
@@ -85,7 +87,7 @@ macro_rules! define
     pub enum Match<'a> { $(#[doc = $name " Match "] $name([<$name Match>]<'a>)),* }
     impl<'a> Match<'a> {
         /// Format capture as text
-        pub fn output(&'a self) -> MatchOutput {
+        pub fn output(&'a self) -> anyhow::Result<MatchOutput> {
             match self { $(Self::$name(v) => v.output(),)* }
         }
 
