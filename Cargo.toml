@@ -36,6 +36,6 @@ tracing-test = "0.2.1"
 
 [features]
 default = [ "manual" ]
-with_regex   = [ "regex" ]
+with_regex   = [ "regex", "with_tracing" ]
 manual = [ "with_tracing" ]
 with_tracing = [ "tracing", "tracing-appender", "tracing-subscriber" ]

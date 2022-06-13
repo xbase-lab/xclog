@@ -7,5 +7,4 @@
 
 /// Regex based Parser
 pub mod parser;
-#[cfg(feature = "manual")]
 pub mod runner;

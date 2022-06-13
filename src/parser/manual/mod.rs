@@ -5,6 +5,7 @@ mod outputs;
 mod step;
 pub mod util;
 
+use crate::parser::OutputStream;
 use async_trait::async_trait;
 use process_stream::ProcessItem;
 use tap::Pipe;
@@ -15,8 +16,6 @@ pub use error::Error;
 pub use outputs::*;
 pub use step::Step;
 pub use util::*;
-
-pub type OutputStream = dyn tokio_stream::Stream<Item = ProcessItem> + Unpin + Send;
 
 #[async_trait]
 pub trait ParsableFromStream {
