@@ -1,4 +1,6 @@
+#[cfg(feature = "manual")]
 use crate::parser::BuildSettings;
+#[cfg(feature = "manual")]
 use crate::parser::{parse_step_from_stream, Step};
 use anyhow::Result;
 use process_stream::{Process, ProcessItem, Stream, StreamExt};
@@ -8,6 +10,7 @@ use std::process::Stdio;
 use tap::Pipe;
 use tokio::process::Command;
 
+#[cfg(feature = "manual")]
 pub async fn spawn<P, I, S>(root: P, args: I) -> Result<impl Stream<Item = crate::parser::Step>>
 where
     I: IntoIterator<Item = S>,
@@ -52,6 +55,7 @@ where
     .pipe(Ok)
 }
 
+#[cfg(feature = "manual")]
 pub async fn build_settings<P, I, S>(root: P, args: I) -> Result<BuildSettings>
 where
     P: AsRef<Path>,
@@ -78,6 +82,7 @@ where
 
 #[tokio::test]
 #[tracing_test::traced_test]
+#[cfg(feature = "manual")]
 async fn test_build_settings() {
     let root = "/Users/tami5/repos/swift/wordle";
     let data = build_settings(
