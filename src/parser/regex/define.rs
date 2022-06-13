@@ -1,6 +1,7 @@
 macro_rules! define
 { ($({
     ident: $name:ident,
+    kind: $kind:ident,
     desc: $desc:literal,
     captures: [ $( $capture:ident ),* ],
     format: $format:literal,
@@ -11,6 +12,7 @@ macro_rules! define
 { paste::paste! {
     use lazy_static::lazy_static;
     use regex::{Regex, Captures as RegexCaptures};
+    use super::{MatchOutput, OutputKind};
 
     lazy_static! {
         /// Main Matcher for `PARSERS`
@@ -19,17 +21,29 @@ macro_rules! define
 
     $(
         #[doc = $name "Captures" "created by `" $name "Parser`" ]
-        pub struct [<$name Match>]<'a> { _inner: RegexCaptures<'a> }
+        pub struct [<$name Match>]<'a> {
+            _inner: RegexCaptures<'a>,
+            kind: OutputKind,
+        }
+
         impl<'a> [<$name Match>]<'a> {
             /// Pretty format
-            pub fn format(&self) -> Option<String> {
-                if $format.is_empty() { return None }
+            pub fn output(&self) -> MatchOutput {
+                if $format.is_empty() {
+                    return  MatchOutput {
+                        value: None,
+                        kind: self.kind.clone(),
+                    }
+                }
                 $(
                     #[allow(unused_variables)]
                     let $capture = &self._inner[stringify!($capture)];
                  )*
 
-                Some(format!($format))
+                MatchOutput {
+                    value: Some(format!($format)),
+                    kind: self.kind.clone(),
+                }
             }
 
             #[doc = "Get data struct representation of `" $name "`"]
@@ -49,7 +63,7 @@ macro_rules! define
                 let captures = self.re.captures(text);
 
                 if let Some(captures) = captures {
-                    Some([<$name Match>] { _inner: captures })
+                    Some([<$name Match>] { _inner: captures, kind: OutputKind::$kind })
                 } else {
                     None
                 }
@@ -65,8 +79,28 @@ macro_rules! define
     pub enum Match<'a> { $(#[doc = $name " Match "] $name([<$name Match>]<'a>)),* }
     impl<'a> Match<'a> {
         /// Format capture as text
-        pub fn format(&'a self) -> Option<String> {
-            match self { $(Self::$name(v) => v.format(),)* }
+        pub fn output(&'a self) -> MatchOutput {
+            match self { $(Self::$name(v) => v.output(),)* }
+        }
+
+        /// Check whether match is error
+        pub fn is_error(&'a self) -> bool {
+            match self { $(Self::$name(_) => OutputKind::$kind.is_error(),)* }
+        }
+
+        /// Check whether match is warning
+        pub fn is_task(&'a self) -> bool {
+            match self { $(Self::$name(_) => OutputKind::$kind.is_task(),)* }
+        }
+
+        /// Check whether match is result
+        pub fn is_result(&'a self) -> bool {
+            match self { $(Self::$name(_) => OutputKind::$kind.is_result(),)* }
+        }
+
+        /// Check whether match is test
+        pub fn is_test(&'a self) -> bool {
+            match self { $(Self::$name(_) => OutputKind::$kind.is_test(),)* }
         }
 
         $(
@@ -78,6 +112,11 @@ macro_rules! define
             #[doc = "Return some if Match is `" $name "Match`"]
             pub fn [<as_ $name:snake:lower>](&self) -> Option<&[<$name Match>]<'a>> {
                 if let Match::$name(m) = self { Some(m) } else { None }
+            }
+
+            #[doc = "Return `" $name "Data` if match is " $name]
+            pub fn [<as_ $name:snake:lower _data>](&self) -> Option<[<$name Data>]> {
+                if let Match::$name(m) = self { Some(m.as_data()) } else { None }
             }
 
         )*

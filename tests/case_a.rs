@@ -1,13 +1,25 @@
 use xcodebuild::parser::*;
-// Right now manual is 1040 faster then regex!
 
 #[test]
 #[cfg(feature = "with_regex")]
-fn test_regex() {
+fn test_regex_format_case_a() {
     let lines = include_str!("./case_a.log").split("\n");
     for line in lines {
-        if let Some(capture) = MATCHER.capture(line) {
-            if let Some(line) = capture.format() {
+        if let Some(m) = MATCHER.capture(line) {
+            if let Some(line) = m.output().value {
+                println!("{line}");
+            }
+        }
+    }
+}
+
+#[test]
+#[cfg(feature = "with_regex")]
+fn test_regex_format_case_b() {
+    let lines = include_str!("./case_b.log").split("\n");
+    for line in lines {
+        if let Some(m) = MATCHER.capture(line) {
+            if let Some(line) = m.output().value {
                 println!("{line}");
             }
         }
@@ -16,7 +28,7 @@ fn test_regex() {
 
 #[test]
 #[cfg(feature = "manual")]
-fn test_old() {
+fn test_manual_case_a() {
     tokio::runtime::Runtime::new().unwrap().block_on(async {
         use async_stream::stream;
         use process_stream::{ProcessItem, StreamExt};

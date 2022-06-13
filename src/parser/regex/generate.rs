@@ -3,6 +3,7 @@ use super::define::define;
 define! [
 {
     ident: Analyze,
+    kind: Task,
     desc: "Analyze/AnalyzeShallow",
     captures: [ filepath, filename, target, project ],
     format: "[{target}] Analyzing {filename}",
@@ -33,6 +34,7 @@ define! [
 },
 {
     ident: BuildTarget,
+    kind: Task,
     desc: "BUILD TARGET",
     captures: [ target, project, configuration ],
     format: "[{target}] Build with {configuration}",
@@ -48,6 +50,7 @@ define! [
 },
 {
     ident: AggregateTarget,
+    kind: Task,
     desc: "BUILD AGGREGATE TARGET",
     captures: [ target, project, configuration ],
     format: "[{target}] Aggregate Build with {configuration}",
@@ -63,6 +66,7 @@ define! [
 },
 {
     ident: AnalyzeTarget,
+    kind: Task,
     desc: "ANALYZE TARGET",
     captures: [ target, project, configuration ],
     format: "[{target}] Analyze with {configuration}",
@@ -78,6 +82,7 @@ define! [
 },
 {
     ident: ShellCommand,
+    kind: Task,
     desc: "Shell commands like cd setenv under a compile step",
     captures: [ command,arguments ],
     format: "",
@@ -92,6 +97,7 @@ define! [
 },
 {
     ident: CleanRemove,
+    kind: Task,
     desc: "CLEAN REMOVE",
     captures: [ filepath, filename ],
     format: "Cleaning {filename}",
@@ -108,6 +114,7 @@ define! [
 },
 {
     ident: CleanTarget,
+    kind: Task,
     desc: "CLEAN TARGET",
     captures: [ target, project, configuration ],
     format: "[{target}] Clean with {configuration}",
@@ -123,6 +130,7 @@ define! [
 },
 {
     ident: CodeSign,
+    kind: Task,
     desc: "CodeSign Phase",
     captures: [ filename, target, project ],
     format: "[{target}] Signing {filename}",
@@ -138,6 +146,7 @@ define! [
 },
 {
     ident: Compile,
+    kind: Task,
     desc: r"Compile(Swift|C|\w) Step",
     captures: [ kind, filename, filepath, target, project ],
     format: "[{target}] Compiling {filename}",
@@ -176,6 +185,7 @@ define! [
 },
 {
     ident: CompileCommand,
+    kind: Task,
     desc: r"Clang and swiftc command",
     captures: [ command, arguments ],
     format: "",
@@ -196,6 +206,7 @@ define! [
 },
 {
     ident: CompileXIB,
+    kind: Task,
     desc: r"CompileXIB",
     captures: [ filename, filepath, project, target ],
     format: "[{target}] Compiling {filename}",
@@ -212,6 +223,7 @@ define! [
 },
 {
     ident: CompileStoryboard,
+    kind: Task,
     desc: r"CompileStoryboard",
     captures: [ filename, filepath, project, target ],
     format: "[{target}] Compiling {filename}",
@@ -228,6 +240,7 @@ define! [
 },
 {
     ident: CopyCommand,
+    kind: Task,
     desc: r"CpResource|CpHeader|CopyStringsFile|CopyPlistFile",
     captures: [ kind, filename, filepath, project, target ],
     format: "[{target}] Copying {filename}",
@@ -263,6 +276,7 @@ define! [
 },
 {
     ident: CoverageReportGeneration,
+    kind: Task,
     desc: r"Coverage report generation",
     captures: [ filepath ],
     format: "Generated code coverage report: {filepath}",
@@ -276,6 +290,7 @@ define! [
 },
 {
     ident: GenerateDsymFile,
+    kind: Task,
     desc: r"GenerateDSYMFile",
     captures: [ filename, target, project ],
     format: "[{target}] Generating {filename}",
@@ -294,6 +309,7 @@ define! [
 },
 {
     ident: Linking,
+    kind: Task,
     desc: r"Ld",
     captures: [ filename, target, project ],
     format: "[{target}] Linking {filename}",
@@ -311,6 +327,7 @@ define! [
 // - TESTING ----------------------------------------------------------------------
 {
     ident: TestExecuted,
+    kind: Result,
     desc: r"Executed number of tests",
     captures: [ tests_count, failed_tests_count, unexpected_test_count, total_exec_time ],
     format: "",
@@ -338,6 +355,7 @@ define! [
 },
 {
     ident: TestExecutedWithSkipped,
+    kind: Result,
     desc: r"Executed number of tests with skipped teats",
     captures: [ tests_count, skipped_test_count, failed_tests_count, unexpected_test_count, total_exec_time ],
     format: "",
@@ -369,6 +387,7 @@ define! [
 },
 {
     ident: KiwiFailingTest,
+    kind: Error,
     desc: r"Kiwi Test failing",
     captures: [ filepath, suite, case, reason ],
     format: "",
@@ -391,6 +410,7 @@ define! [
 },
 {
     ident: UIFailingTest,
+    kind: Error,
     desc: r"UI Test failing",
     captures: [ filepath, reason ],
     format: "",
@@ -405,6 +425,7 @@ define! [
 },
 {
     ident: TestSuiteStarted,
+    kind: Test,
     desc: r"Test Suites Started",
     captures: [ name, time ],
     format: "",
@@ -419,6 +440,7 @@ define! [
 },
 {
     ident: TestSuiteCompleted,
+    kind: Test,
     desc: r"Test Suites Completed",
     captures: [ name, time ],
     format: "",
@@ -433,6 +455,7 @@ define! [
 },
 {
     ident: TestCaseStarted,
+    kind: Test,
     desc: r"Test Case Started",
     captures: [ suite, case],
     format: "",
@@ -447,6 +470,7 @@ define! [
 },
 {
     ident: TestCasePassed,
+    kind: Test,
     desc: r"Test Case Passed",
     captures: [ suite, case, time ],
     format: "",
@@ -462,6 +486,7 @@ define! [
 },
 {
     ident: KiwiTestCasePending,
+    kind: Test,
     desc: r"Kiwi test case pending",
     captures: [ suite, case ],
     format: "",
@@ -476,6 +501,7 @@ define! [
 },
 {
     ident: TestCaseMeasure,
+    kind: Test,
     desc: r"Test case measuring",
     captures: [ suite, case, time ],
     format: "",
@@ -491,6 +517,7 @@ define! [
 },
 {
     ident: ParallelTestCasePassed,
+    kind: Test,
     desc: r"Parallel TestCase passed",
     captures: [ suite, case, time, medium ],
     format: "",
@@ -507,6 +534,7 @@ define! [
 },
 {
     ident: ParallelTestCaseAppKitPassed,
+    kind: Test,
     desc: r"Parallel TestCase AppKit Passed",
     captures: [ suite, case, time, medium ],
     format: "",
@@ -523,6 +551,7 @@ define! [
 },
 {
     ident: ParallelTestCaseFailed,
+    kind: Error,
     desc: r"Parallel TestCase Failed",
     captures: [ suite, case, time, medium ],
     format: "",
@@ -539,6 +568,7 @@ define! [
 },
 {
     ident: ParallelTestingStarted,
+    kind: Error,
     desc: r"Parallel Testing Started",
     captures: [ suite, case, time, medium ],
     format: "",
@@ -552,6 +582,7 @@ define! [
 },
 {
     ident: ParallelTestingPassed,
+    kind: Test,
     desc: r"Parallel Testing Passed",
     captures: [ suite, case, time, medium ],
     format: "",
@@ -565,6 +596,7 @@ define! [
 },
 {
     ident: ParallelTestingFailed,
+    kind: Error,
     desc: r"Parallel Testing Failed",
     captures: [ suite, case, time, medium ],
     format: "",
@@ -578,6 +610,7 @@ define! [
 },
 {
     ident: ParallelTestFailed,
+    kind: Error,
     desc: r"Parallel Testing Failed",
     captures: [ suite, case, time, medium ],
     format: "",
@@ -592,9 +625,10 @@ define! [
 },
 {
     ident: PhaseScriptExecution,
+    kind: Task,
     desc: r"PhaseScriptExecution",
     captures: [ name, target, project ],
-    format: "",
+    format: "[{target}] Executing {name}",
     pattern: r"(?x)PhaseScriptExecution\s(?P<name>.*)\s/.*\.sh( ?:\s.* \((?:in\starget\s      '(?P<target>.*)'\s  from\sproject\s   '(?P<project>.*)' )\)  ) ?",
     tests: {
         "PhaseScriptExecution Format\\ Swift\\ Files /path/to/file.sh (in target 'DemoTarget' from project 'DemoProject')" =>
@@ -613,6 +647,7 @@ define! [
 },
 {
     ident: ProcessPCH,
+    kind: Task,
     desc: r"ProcessPCH",
     captures: [ filename, target, project ],
     format: "[{target}] Processing {filename}",
@@ -628,6 +663,7 @@ define! [
 },
 {
     ident: ProcessPCHCommand,
+    kind: Task,
     desc: r"ProcessPchCommand",
     captures: [ ],
     format: "",
@@ -636,6 +672,7 @@ define! [
 },
 {
     ident: PbxCopy,
+    kind: Task,
     desc: r"PBXCp",
     captures: [ filename, target, project ],
     format: "[{target}] Copying {filename}",
@@ -651,6 +688,7 @@ define! [
 },
 {
     ident: ProcessInfoPlistFile,
+    kind: Task,
     desc: r"ProcessInfoPlistFile",
     captures: [ filename, filepath, target, project ],
     format: "[{target}] Processing {filename}",
@@ -669,6 +707,7 @@ define! [
 },
 {
     ident: CheckDependencies,
+    kind: Task,
     desc: r"Check dependencies",
     captures: [],
     format: "Checking dependencies",
@@ -677,6 +716,7 @@ define! [
 },
 {
     ident: RestartingTests,
+    kind: Test,
     desc: r"Test restarting",
     captures: [],
     format: "",
@@ -685,6 +725,7 @@ define! [
 },
 {
     ident: CoverageDataGeneration,
+    kind: Task,
     desc: r"Coverage Data Generation",
     captures: [],
     format: "Generating code coverage data...",
@@ -693,14 +734,16 @@ define! [
 },
 {
     ident: PhaseSuccess,
+    kind: Result,
     desc: r"Phase Success",
     captures: [ name ],
-    format: "{name} Succeeded",
+    format: "[{name}] Succeeded",
     pattern: r"\*\*\s(P?<name>.*)\sSUCCEEDED\s\*\*",
     tests:{}
 },
 {
     ident: TestSuiteAllTestsPassed,
+    kind: Test,
     desc: r"Test Suite All Tests Passed",
     captures: [],
     format: "",
@@ -709,6 +752,7 @@ define! [
 },
 {
     ident: TestSuiteAllTestsFailed,
+    kind: Error,
     desc: r"Test Suite All Tests Passed",
     captures: [],
     format: "",
@@ -717,6 +761,7 @@ define! [
 },
 {
     ident: Touch,
+    kind: Task,
     desc: r"Touch file",
     captures: [ filename, filepath, target, project ],
     format: "[{target}] Touching {filename}",
@@ -735,6 +780,7 @@ define! [
 // - Warning ----------------------------------------------------------------------
 {
     ident: CompileWarning,
+    kind: Warning,
     desc: r"Compile Warning",
     captures: [ location, filepath, message ],
     format: "⚠️ {location}: {message}",
@@ -750,6 +796,7 @@ define! [
 },
 {
     ident: LdWarning,
+    kind: Warning,
     desc: r"Linking Warning",
     captures: [ prefix, message ],
     format: "⚠️ {prefix}{message}",
@@ -758,6 +805,7 @@ define! [
 },
 {
     ident: GenericWarning,
+    kind: Warning,
     desc: r"Generic Error (catch all)",
     captures: [ message ],
     format: "⚠️ {message}",
@@ -766,6 +814,7 @@ define! [
 },
 {
     ident: CodeSignWarning,
+    kind: Warning,
     desc: r"Sign warning",
     captures: [ message ],
     format: "⚠️ {message}",
@@ -775,6 +824,7 @@ define! [
 // - Error ------------------------------------------------------------------------
 {
     ident: ClangError,
+    kind: Error,
     desc: r"Clang Error",
     captures: [ message ],
     format: "❌ {message}",
@@ -788,6 +838,7 @@ define! [
 },
 {
     ident: CheckDependenciesError,
+    kind: Error,
     desc: r"Check Dependencies error",
     captures: [ message ],
     format: "❌ {message}",
@@ -796,6 +847,7 @@ define! [
 },
 {
     ident: ProvisioningProfileRequiredError,
+    kind: Error,
     desc: r"General Check Depeds error",
     captures: [ message ],
     format: "❌ {message}",
@@ -804,6 +856,7 @@ define! [
 },
 {
     ident: NoCertificateError,
+    kind: Error,
     desc: r"No certificate error",
     captures: [ message ],
     format: "❌ {message}",
@@ -812,6 +865,7 @@ define! [
 },
 {
     ident: CompileError,
+    kind: Error,
     desc: r"Compile Error",
     captures: [ location, filepath, message ],
     format: "❌ {location}: {message}",
@@ -827,6 +881,7 @@ define! [
 },
 {
     ident: Cursor,
+    kind: Warning,
     desc: r"Cursor",
     captures: [ content ],
     format: " {content}",
@@ -835,6 +890,7 @@ define! [
 },
 {
     ident: FatalError,
+    kind: Error,
     desc: r"Compile Error",
     captures: [ message ],
     format: "❌ {message}",
@@ -843,6 +899,7 @@ define! [
 },
 {
     ident: FileMissingError,
+    kind: Error,
     desc: r"File missing Error",
     captures: [ message, filepath ],
     format: "❌ {filepath}: {message}",
@@ -851,6 +908,7 @@ define! [
 },
 {
     ident: LdError,
+    kind: Error,
     desc: r"Ld Error",
     captures: [ message ],
     format: "❌ {message}",
@@ -859,6 +917,7 @@ define! [
 },
 {
     ident: LinkerDuplicateSymbolsLocationError,
+    kind: Error,
     desc: r"duplicate symbols location",
     captures: [ message ],
     format: "❌ {message}",
@@ -867,6 +926,7 @@ define! [
 },
 {
     ident: LinkerDuplicateSymbolsError,
+    kind: Error,
     desc: r"Linker Duplicate Symbols Error",
     captures: [ message ],
     format: "❌ {message}",
@@ -875,6 +935,7 @@ define! [
 },
 {
     ident: LinkerUndefinedSymbolsLocationError,
+    kind: Error,
     desc: r"Linker Undefined Symbols Location Error",
     captures: [ message ],
     format: "❌ {message}",
@@ -883,6 +944,7 @@ define! [
 },
 {
     ident: LinkerUndefinedSymbolsError,
+    kind: Error,
     desc: r"Undefined symbols",
     captures: [ message ],
     format: "❌ {message}",
@@ -891,6 +953,7 @@ define! [
 },
 {
     ident: PodsError,
+    kind: Error,
     desc: r"Pods error",
     captures: [ message ],
     format: "❌ {message}",
@@ -899,6 +962,7 @@ define! [
 },
 {
     ident: SymbolReferencedFrom,
+    kind: Error,
     desc: r"Symbol reference from error",
     captures: [ message ],
     format: "❌ {message}",
@@ -907,6 +971,7 @@ define! [
 },
 {
     ident: ModuleIncludesError,
+    kind: Error,
     desc: r"module includes error",
     captures: [ message ],
     format: "❌ {message}",
@@ -915,6 +980,7 @@ define! [
 },
 {
     ident: UndefinedSymbolLocationError,
+    kind: Error,
     desc: r"Undefined symol location",
     captures: [ message ],
     format: "❌ {message}",
@@ -923,6 +989,7 @@ define! [
 },
 {
     ident: PackageGraphResolvingStart,
+    kind: Task,
     desc: r"Package Graph Resolving Start",
     captures: [  ],
     format: "Resolving Packages",
@@ -931,6 +998,7 @@ define! [
 },
 {
     ident: PackageGraphResolvingEnd,
+    kind: Task,
     desc: r"Package Graph Resolving Ended",
     captures: [  ],
     format: "",
@@ -939,6 +1007,7 @@ define! [
 },
 {
     ident: PackageGraphResolvedItem,
+    kind: Task,
     desc: r"Package Graph Resolved Item",
     captures: [ ],
     format: "",
