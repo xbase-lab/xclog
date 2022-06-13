@@ -56,6 +56,7 @@ pub(crate) async fn parse(line: String, stream: &mut OutputStream) -> Result<Opt
 
 #[tokio::test]
 #[tracing_test::traced_test]
+#[ignore = "Local tests"]
 async fn test_case_2() {
     use crate::get_log_stream;
     use process_stream::StreamExt;
