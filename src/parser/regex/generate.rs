@@ -783,7 +783,7 @@ define! [
     kind: Warning,
     desc: r"Compile Warning",
     captures: [ location, filepath, message ],
-    format: "⚠️ {location}: {message}",
+    format: "{location}: {message}",
     pattern: r"(?P<location>(?P<filepath>[^:]*):\d*:\d*):\swarning:\s(?P<message>.*)$",
     tests: {
         "/path/file.swift:64:69: warning: 'flatMap' is deprecated: Please use compactMap(_:) for the case where closure returns an optional value" =>
@@ -799,7 +799,7 @@ define! [
     kind: Warning,
     desc: r"Linking Warning",
     captures: [ prefix, message ],
-    format: "⚠️ {prefix}{message}",
+    format: "{prefix}{message}",
     pattern: r"(P?<prefix>ld:.*)warning: (?P<message>.*)",
     tests: {}
 },
@@ -808,7 +808,7 @@ define! [
     kind: Warning,
     desc: r"Generic Error (catch all)",
     captures: [ message ],
-    format: "⚠️ {message}",
+    format: "{message}",
     pattern: r"warning:\s(?P<message>.*)$",
     tests: {}
 },
@@ -817,7 +817,7 @@ define! [
     kind: Warning,
     desc: r"Sign warning",
     captures: [ message ],
-    format: "⚠️ {message}",
+    format: "{message}",
     pattern: r"(?P<message>.* will not be code signed because .*)$",
     tests: {}
 },
@@ -827,7 +827,7 @@ define! [
     kind: Error,
     desc: r"Clang Error",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"(?P<message>clang: error:.*)$",
     tests: {
         "clang: error: linker command failed with exit code 1 (use -v to see invocation)" =>
@@ -841,7 +841,7 @@ define! [
     kind: Error,
     desc: r"Check Dependencies error",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"(?P<message>Code\s?Sign error:.*|Code signing is required for product type .* in SDK .*|No profile matching .* found:.*|Provisioning profile .* doesn't .*|Swift is unavailable on .*|.?Use Legacy Swift Language Version.*)$",
     tests: {}
 },
@@ -850,7 +850,7 @@ define! [
     kind: Error,
     desc: r"General Check Depeds error",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"(?P<message>.*requires a provisioning profile.*)$",
     tests: {}
 },
@@ -859,7 +859,7 @@ define! [
     kind: Error,
     desc: r"No certificate error",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"(?P<message>No certificate matching.*)$",
     tests: {}
 },
@@ -868,7 +868,7 @@ define! [
     kind: Error,
     desc: r"Compile Error",
     captures: [ location, filepath, message ],
-    format: "❌ {location}: {message}",
+    format: "{location}: {message}",
     pattern: r"\s*(?P<location>(?P<filepath>[^:]*):\d*:\d*):\s(?:fatal\s)?error:\s(?P<message>.*)$",
     tests: {
         "/path/file.swift:64:69: error: cannot find 'input' in scope" =>
@@ -893,7 +893,7 @@ define! [
     kind: Error,
     desc: r"Compile Error",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"(?P<message>fatal error:.*)$",
     tests: {}
 },
@@ -902,7 +902,7 @@ define! [
     kind: Error,
     desc: r"File missing Error",
     captures: [ message, filepath ],
-    format: "❌ {filepath}: {message}",
+    format: "{filepath}: {message}",
     pattern: r"<unknown>:0:\s(?P<message>error:\s.*)\s'(?P<filepath>/.+/.*\..*)'$",
     tests: {}
 },
@@ -911,16 +911,18 @@ define! [
     kind: Error,
     desc: r"Ld Error",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"(P<message>ld:.*)",
     tests: {}
 },
 {
+    // TODO: Add tests
+    // NOTE: Bad format, the command ran is the message
     ident: LinkerDuplicateSymbolsLocationError,
     kind: Error,
     desc: r"duplicate symbols location",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"\s+(?P<message>/.*\.o[\)]?)$",
     tests: {}
 },
@@ -929,7 +931,7 @@ define! [
     kind: Error,
     desc: r"Linker Duplicate Symbols Error",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"(?P<message>duplicate symbol .*):$",
     tests: {}
 },
@@ -938,7 +940,7 @@ define! [
     kind: Error,
     desc: r"Linker Undefined Symbols Location Error",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"(P?<message>.* in .*\.o)$",
     tests: {}
 },
@@ -947,7 +949,7 @@ define! [
     kind: Error,
     desc: r"Undefined symbols",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"(P?<message>.* in .*\.o)$",
     tests: {}
 },
@@ -956,7 +958,7 @@ define! [
     kind: Error,
     desc: r"Pods error",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"(P?<message>error:\s.*)",
     tests: {}
 },
@@ -965,7 +967,7 @@ define! [
     kind: Error,
     desc: r"Symbol reference from error",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: "\\s+\"(?P<message>.*)\", referenced from:$",
     tests: {}
 },
@@ -974,7 +976,7 @@ define! [
     kind: Error,
     desc: r"module includes error",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r"<module-includes>:.*?:.*?:\s(?:fatal\s)?(P?<message>error:\s.*)$/",
     tests: {}
 },
@@ -983,7 +985,7 @@ define! [
     kind: Error,
     desc: r"Undefined symol location",
     captures: [ message ],
-    format: "❌ {message}",
+    format: "{message}",
     pattern: r".+ in (.+)\((.+)\.o\)$",
     tests: {}
 },

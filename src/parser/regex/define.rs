@@ -39,9 +39,15 @@ macro_rules! define
                     #[allow(unused_variables)]
                     let $capture = &self._inner[stringify!($capture)];
                  )*
+                let leading = match self.kind {
+                    OutputKind::Error => "[Error] ",
+                    OutputKind::Warning => "[Warn] ",
+                    _ => "",
+
+                };
 
                 MatchOutput {
-                    value: Some(format!($format)),
+                    value: Some(format!("{}{}", leading, format!($format))),
                     kind: self.kind.clone(),
                 }
             }
