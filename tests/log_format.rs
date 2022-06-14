@@ -19,7 +19,7 @@ fn case_a() {
     tokio::runtime::Runtime::new().unwrap().block_on(async {
         let lines = get_case_lines(include_str!("./case_a.log"));
         let mut stream = get_stream(lines).await;
-        while let Some(line) = stream.stream.next().await {
+        while let Some(line) = stream.next().await {
             println!("{line}");
         }
     })
@@ -31,7 +31,7 @@ fn case_b() {
     tokio::runtime::Runtime::new().unwrap().block_on(async {
         let lines = get_case_lines(include_str!("./case_b.log"));
         let mut stream = get_stream(lines).await;
-        while let Some(line) = stream.stream.next().await {
+        while let Some(line) = stream.next().await {
             println!("{line}");
         }
     })
@@ -42,7 +42,7 @@ fn case_c() {
     tokio::runtime::Runtime::new().unwrap().block_on(async {
         let lines = get_case_lines(include_str!("./case_c.log"));
         let mut stream = get_stream(lines).await;
-        while let Some(line) = stream.stream.next().await {
+        while let Some(line) = stream.next().await {
             println!("{line}");
         }
     })

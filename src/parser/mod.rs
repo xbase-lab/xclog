@@ -90,7 +90,7 @@ async fn test_case_2() {
         "BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug"
     ]).unwrap();
 
-    while let Some(line) = StreamExt::next(&mut stream.stream).await {
+    while let Some(line) = stream.next().await {
         println!("{}", line)
     }
 }

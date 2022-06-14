@@ -6,11 +6,12 @@ use std::path::PathBuf;
 use std::{path::Path, pin::Pin};
 
 /// XCLogger struct
+#[derive(derive_deref_rs::Deref)]
 pub struct XCLogger {
     #[allow(dead_code)]
     root: PathBuf,
-    /// ..
-    pub stream: Pin<Box<dyn Stream<Item = XCOutput> + Send>>,
+    #[deref]
+    stream: Pin<Box<dyn Stream<Item = XCOutput> + Send>>,
 }
 
 impl XCLogger {
