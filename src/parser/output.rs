@@ -1,6 +1,6 @@
 /// Kinds of outputs
 #[derive(derive_is_enum_variant::is_enum_variant, Clone)]
-pub enum OutputKind {
+pub enum XCOutputTask {
     /// Task like Compile, Mkdir ..
     Task,
     /// Test step or result
@@ -15,13 +15,13 @@ pub enum OutputKind {
 
 /// Formatted results of a given match
 #[derive(derive_deref_rs::Deref)]
-pub struct MatchOutput {
+pub struct XCOutput {
     #[deref]
     pub(crate) value: Option<String>,
-    pub(crate) kind: OutputKind,
+    pub(crate) kind: XCOutputTask,
 }
 
-impl MatchOutput {
+impl XCOutput {
     /// Whether the output is a task
     pub fn is_task(&self) -> bool {
         self.kind.is_task()

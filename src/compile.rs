@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tap::Pipe;
 
-use crate::parser::CompileCommandData;
+use crate::parser::XCCompileCommandData;
 
 /// A clang-compatible compilation database
 ///
@@ -38,7 +38,7 @@ impl XCCompilationDatabase {
             .await
             .into_iter()
             .map(|o| {
-                crate::parser::MATCHER
+                crate::parser::XCLOG_MATCHER
                     .get_compile_command(o.to_string().as_str())
                     .map(XCCompileCommand::from_compile_command_data)
                     .flatten()
@@ -80,8 +80,8 @@ pub struct XCCompileCommand {
 
 // TODO: Remove duplication and keep current architecture?
 impl XCCompileCommand {
-    /// Convert [`CompileCommandData`] to [`XCCompileCommand`].
-    pub fn from_compile_command_data(data: CompileCommandData) -> Option<Self> {
+    /// Convert [`XCCompileCommandData`] to [`XCCompileCommand`].
+    pub fn from_compile_command_data(data: XCCompileCommandData) -> Option<Self> {
         let is_clang = data.name == "clang";
         let ref args = data.arguments;
         let mut command = Self::default();
@@ -123,12 +123,12 @@ impl XCCompileCommand {
 }
 
 #[cfg(test)]
-use crate::parser::MATCHER;
+use crate::parser::XCLOG_MATCHER;
 
 #[cfg(test)]
 async fn test(lines: Vec<String>) {
     for line in lines {
-        if let Some(command) = MATCHER.get_compile_command(&line) {
+        if let Some(command) = XCLOG_MATCHER.get_compile_command(&line) {
             XCCompileCommand::from_compile_command_data(command);
         }
     }

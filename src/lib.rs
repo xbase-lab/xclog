@@ -8,6 +8,7 @@ mod build_settings;
 mod compile;
 mod logger;
 pub mod parser;
-pub use build_settings::*;
-pub use compile::*;
-pub use logger::*;
+
+pub use build_settings::XCBuildSettings;
+pub use compile::{XCCompilationDatabase, XCCompileCommand};
+pub use logger::XCLogger;

@@ -12,25 +12,25 @@ macro_rules! define
 { paste::paste! {
     use lazy_static::lazy_static;
     use regex::{Regex, Captures as RegexCaptures};
-    use super::{MatchOutput, OutputKind};
+    use super::{XCOutput, XCOutputTask};
 
     lazy_static! {
         /// Main Matcher for `PARSERS`
-        pub static ref MATCHER: Matcher = Matcher::new();
+        pub static ref XCLOG_MATCHER: XCLogMatcher = XCLogMatcher::new();
     }
 
     $(
         #[doc = $name "Captures" "created by `" $name "Parser`" ]
-        pub struct [<$name Match>]<'a> {
+        pub struct [<XC $name Match>]<'a> {
             _inner: RegexCaptures<'a>,
-            kind: OutputKind,
+            kind: XCOutputTask,
         }
 
-        impl<'a> [<$name Match>]<'a> {
+        impl<'a> [<XC $name Match>]<'a> {
             /// Pretty format
-            pub fn output(&self) -> anyhow::Result<MatchOutput> {
+            pub fn output(&self) -> anyhow::Result<XCOutput> {
                 if $format.is_empty() {
-                    return  Ok(MatchOutput {
+                    return  Ok(XCOutput {
                         value: None,
                         kind: self.kind.clone(),
                     })
@@ -42,127 +42,127 @@ macro_rules! define
                                 .as_str();
                  )*
                 let leading = match self.kind {
-                    OutputKind::Error => "[Error] ",
-                    OutputKind::Warning => "[Warning] ",
+                    XCOutputTask::Error => "[Error] ",
+                    XCOutputTask::Warning => "[Warning] ",
                     _ => "",
 
                 };
 
-                Ok(MatchOutput {
+                Ok(XCOutput {
                     value: Some(format!("{}{}", leading, format!($format))),
                     kind: self.kind.clone(),
                 })
             }
 
-            #[doc = "Get data struct representation of `" $name "`"]
-            pub fn as_data(&self) -> [<$name Data>] {
-                [<$name Data>] { $($capture: self._inner[stringify!($capture)].to_string()),* }
+            #[doc = "Get data struct representation of `XC" $name "`"]
+            pub fn as_data(&self) -> [<XC $name Data>] {
+                [<XC $name Data>] { $($capture: self._inner[stringify!($capture)].to_string()),* }
             }
         }
 
-        #[doc = "Static parser for " $name]
-        pub struct [<$name Parser>] { re: Regex }
-        impl [<$name Parser>] {
-        #[doc = "Create enw instance of " $name " parser"]
+        #[doc = "Parser for XC `" $name "`"]
+        pub struct [<XC $name Parser>] { re: Regex }
+        impl [<XC $name Parser>] {
+        #[doc = "Create enw instance of XC" $name " parser"]
             pub fn new(re: Regex) -> Self { Self { re } }
 
             /// Get captures from a text
-            pub fn captures<'a>(&'a self, text: &'a str) -> Option<[<$name Match>]<'a>> {
+            pub fn captures<'a>(&'a self, text: &'a str) -> Option<[<XC $name Match>]<'a>> {
                 let captures = self.re.captures(text);
 
                 if let Some(captures) = captures {
-                    Some([<$name Match>] { _inner: captures, kind: OutputKind::$kind })
+                    Some([<XC $name Match>] { _inner: captures, kind: XCOutputTask::$kind })
                 } else {
                     None
                 }
             }
         }
 
-        #[doc = "Data representation of " $name]
+        #[doc = "Data representation of `XC" $name "`"]
         #[derive(Debug)]
-        pub struct [<$name Data>] { $(#[doc = $capture:upper] pub $capture: String),* }
+        pub struct [<XC $name Data>] { $(#[doc = $capture:upper] pub $capture: String),* }
     )*
 
     /// A enum with all possible matches
-    pub enum Match<'a> { $(#[doc = $name " Match "] $name([<$name Match>]<'a>)),* }
-    impl<'a> Match<'a> {
+    pub enum XCMatch<'a> { $(#[doc = "XC" $name " Match "] $name([<XC $name Match>]<'a>)),* }
+    impl<'a> XCMatch<'a> {
         /// Format capture as text
-        pub fn output(&'a self) -> anyhow::Result<MatchOutput> {
+        pub fn output(&'a self) -> anyhow::Result<XCOutput> {
             match self { $(Self::$name(v) => v.output(),)* }
         }
 
         /// Check whether match is error
         pub fn is_error(&'a self) -> bool {
-            match self { $(Self::$name(_) => OutputKind::$kind.is_error(),)* }
+            match self { $(Self::$name(_) => XCOutputTask::$kind.is_error(),)* }
         }
 
         /// Check whether match is warning
         pub fn is_task(&'a self) -> bool {
-            match self { $(Self::$name(_) => OutputKind::$kind.is_task(),)* }
+            match self { $(Self::$name(_) => XCOutputTask::$kind.is_task(),)* }
         }
 
         /// Check whether match is result
         pub fn is_result(&'a self) -> bool {
-            match self { $(Self::$name(_) => OutputKind::$kind.is_result(),)* }
+            match self { $(Self::$name(_) => XCOutputTask::$kind.is_result(),)* }
         }
 
         /// Check whether match is test
         pub fn is_test(&'a self) -> bool {
-            match self { $(Self::$name(_) => OutputKind::$kind.is_test(),)* }
+            match self { $(Self::$name(_) => XCOutputTask::$kind.is_test(),)* }
         }
 
         /// Check whether match is warning
         pub fn is_warning(&'a self) -> bool {
-            match self { $(Self::$name(_) => OutputKind::$kind.is_warning(),)* }
+            match self { $(Self::$name(_) => XCOutputTask::$kind.is_warning(),)* }
         }
 
         $(
-            #[doc = "Check whether Match is `" $name "Match`"]
+            #[doc = "Check whether Match is `XC" $name "Match`"]
             pub fn [<is_ $name:snake:lower>](&self) -> bool {
-                matches!(self, Match::$name(_))
+                matches!(self, XCMatch::$name(_))
             }
 
-            #[doc = "Return some if Match is `" $name "Match`"]
-            pub fn [<as_ $name:snake:lower>](&self) -> Option<&[<$name Match>]<'a>> {
-                if let Match::$name(m) = self { Some(m) } else { None }
+            #[doc = "Return some if Match is `XC" $name "Match`"]
+            pub fn [<as_ $name:snake:lower>](&self) -> Option<&[<XC $name Match>]<'a>> {
+                if let XCMatch::$name(m) = self { Some(m) } else { None }
             }
 
             #[doc = "Return `" $name "Data` if match is " $name]
-            pub fn [<as_ $name:snake:lower _data>](&self) -> Option<[<$name Data>]> {
-                if let Match::$name(m) = self { Some(m.as_data()) } else { None }
+            pub fn [<as_ $name:snake:lower _data>](&self) -> Option<[<XC $name Data>]> {
+                if let XCMatch::$name(m) = self { Some(m.as_data()) } else { None }
             }
 
         )*
     }
 
     /// Collection of all supported parsers
-    pub enum Parser { $(#[doc = "..."] $name(&'static [<$name Parser>])),* }
-    impl Parser {
-        pub(crate) fn capture<'a>(&'a self, text: &'a str) -> Option<Match<'a>> {
+    pub enum XCParser { $(#[doc = "..."] $name(&'static [<XC $name Parser>])),* }
+    impl XCParser {
+        pub(crate) fn capture<'a>(&'a self, text: &'a str) -> Option<XCMatch<'a>> {
             match self {
-                $(Self::$name(v) => v.captures(text).map(Match::$name),)*
+                $(Self::$name(v) => v.captures(text).map(XCMatch::$name),)*
             }
         }
     }
 
     $(
     lazy_static::lazy_static! {
-            static ref [<$name:snake:upper _PARSER>]: [<$name Parser>] = [<$name Parser>]::new(Regex::new($pattern).unwrap());
+            static ref [<XC_ $name:snake:upper _PARSER>]: [<XC $name Parser>] = [<XC $name Parser>]::new(Regex::new($pattern).unwrap());
     }
     )*
 
-    /// Matchers Using a vector of [`Parser`]
-    pub struct Matcher { inner: Vec<Parser> }
-    impl Matcher {
+    /// Matchers Using a vector of [`XCParser`]
+    pub struct XCLogMatcher { inner: Vec<XCParser> }
+    impl XCLogMatcher {
         /// create new match instance
         pub fn new() -> Self {
             Self {
-                inner: vec![$(Parser::$name(&*[<$name:snake:upper _PARSER>])),*]
+                inner: vec![$(XCParser::$name(&*[<XC_ $name:snake:upper _PARSER>])),*]
             }
         }
 
-        /// Return [`Match`] if any thing is matched
-        pub fn capture<'a>(&'a self, text: &'a str) -> Option<Match<'a>> {
+        /// Return [`XCMatch`] if any thing is matched
+        pub fn capture<'a>(&'a self, text: &'a str) -> Option<XCMatch<'a>> {
             for parser in self.inner.iter() {
                 let captures = parser.capture(text);
                 if captures.is_some() {
@@ -172,9 +172,9 @@ macro_rules! define
             None
         }
 
-        /// Return [`Match`] if any thing is matched
-        pub fn get_compile_command(&self, text: &str) -> Option<CompileCommandData> {
-            let ref parser = COMPILE_COMMAND_PARSER;
+        /// Return [`XCMatch`] if any thing is matched
+        pub fn get_compile_command(&self, text: &str) -> Option<XCCompileCommandData> {
+            let ref parser = XC_COMPILE_COMMAND_PARSER;
             if parser.re.is_match(text) {
                 return parser.captures(text).map(|m| m.as_data())
             }
@@ -192,12 +192,12 @@ macro_rules! define
         }
 
         $(
-            lazy_static! { static ref [<$name:snake:upper>]: Regex = Regex::new($pattern).unwrap(); }
+            lazy_static! { static ref [<XC_ $name:snake:upper>]: Regex = Regex::new($pattern).unwrap(); }
 
             #[test]
             fn [<$name:snake:lower>]() {
                 $(
-                    let captures = match [<$name:snake:upper>].captures($test_value) {
+                    let captures = match [<XC_ $name:snake:upper>].captures($test_value) {
                         Some(cp)=> cp,
                         None => {
                             panic!("\nNo capture groups in\n\n```\n{}\n```\n\npattern:\n\n```\n{}\n```\n\n", $test_value, $pattern);

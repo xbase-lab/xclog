@@ -17,7 +17,7 @@ pub(crate) async fn parse(line: String, stream: &mut OutputStream) -> Result<Opt
         return Ok(None);
     }
 
-    let matcher = match MATCHER.capture(&line) {
+    let matcher = match XCLOG_MATCHER.capture(&line) {
         Some(m) => m,
         None => return Ok(None),
     };
