@@ -1,4 +1,4 @@
-use crate::parser;
+use crate::parser::{parse, XCOutput, XCOutputTask};
 use anyhow::Result;
 use process_stream::{Process, ProcessItem, Stream, StreamExt};
 use std::ffi;
@@ -10,7 +10,7 @@ pub struct XCLogger {
     #[allow(dead_code)]
     root: PathBuf,
     /// ..
-    pub stream: Pin<Box<dyn Stream<Item = String> + Send>>,
+    pub stream: Pin<Box<dyn Stream<Item = XCOutput> + Send>>,
 }
 
 impl XCLogger {
@@ -53,18 +53,20 @@ impl XCLogger {
 /// TODO: return MatchOutput or XCLoggerOutput
 fn output_stream_to_xclogger_stream(
     mut output_stream: Pin<Box<dyn Stream<Item = process_stream::ProcessItem> + Send>>,
-) -> Pin<Box<dyn Stream<Item = String> + Send>> {
+) -> Pin<Box<dyn Stream<Item = XCOutput> + Send>> {
     async_stream::stream! {
         while let Some(output) = output_stream.next().await {
             match output {
                 ProcessItem::Output(line) | ProcessItem::Error(line) => {
-                    match parser::parse(line, &mut output_stream).await {
+                    match parse(line, &mut output_stream).await {
                         Ok(Some(lines)) => { for line in lines.into_iter() { yield line } },
                         Err(e) => tracing::error!("ParseError: {e}"),
                         _ => ()
                     }
                 },
-                ProcessItem::Exit(status) => yield format!("[Exit] {status}")
+                ProcessItem::Exit(status) => yield XCOutput {
+                    value: format!("[Exit] {status}"), kind: XCOutputTask::Result
+                }
             }
         }
     }

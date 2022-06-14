@@ -1,5 +1,5 @@
 /// Kinds of outputs
-#[derive(derive_is_enum_variant::is_enum_variant, Clone)]
+#[derive(Clone, derive_is_enum_variant::is_enum_variant)]
 pub enum XCOutputTask {
     /// Task like Compile, Mkdir ..
     Task,
@@ -14,10 +14,10 @@ pub enum XCOutputTask {
 }
 
 /// Formatted results of a given match
-#[derive(derive_deref_rs::Deref)]
+#[derive(Clone, derive_deref_rs::Deref)]
 pub struct XCOutput {
     #[deref]
-    pub(crate) value: Option<String>,
+    pub(crate) value: String,
     pub(crate) kind: XCOutputTask,
 }
 
@@ -40,5 +40,11 @@ impl XCOutput {
     /// Whether the output is a result
     pub fn is_result(&self) -> bool {
         self.kind.is_result()
+    }
+}
+
+impl std::fmt::Display for XCOutput {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.value.fmt(f)
     }
 }

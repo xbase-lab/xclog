@@ -12,7 +12,10 @@ pub use output::*;
 
 pub(crate) type OutputStream = dyn tokio_stream::Stream<Item = ProcessItem> + Unpin + Send;
 
-pub(crate) async fn parse(line: String, stream: &mut OutputStream) -> Result<Option<Vec<String>>> {
+pub(crate) async fn parse(
+    line: String,
+    stream: &mut OutputStream,
+) -> Result<Option<Vec<XCOutput>>> {
     if line.contains("ONLY_ACTIVE_ARCH=YES") {
         return Ok(None);
     }
@@ -23,7 +26,7 @@ pub(crate) async fn parse(line: String, stream: &mut OutputStream) -> Result<Opt
     };
 
     let mut lines = vec![];
-    let line = match matcher.output()?.value {
+    let line = match matcher.output()? {
         Some(line) => line,
         None => return Ok(None),
     };
@@ -32,22 +35,34 @@ pub(crate) async fn parse(line: String, stream: &mut OutputStream) -> Result<Opt
         (matcher.is_compile_warning(), matcher.is_compile_error());
 
     if is_compile_warning || is_compile_error {
-        let leading = if is_compile_error {
-            "[Error]"
+        let (leading, kind) = if is_compile_error {
+            ("[Error]", XCOutputTask::Error)
         } else {
-            "[Warning]"
+            ("[Warning]", XCOutputTask::Warning)
         };
-        lines.push(leading.to_string());
-        lines.push(leading.to_string());
+
+        let whitespace = XCOutput {
+            value: leading.to_string(),
+            kind: kind.clone(),
+        };
+
+        lines.push(whitespace.clone());
+        lines.push(whitespace.clone());
+
         lines.push(line);
+
         while let Some(line) = stream.next().await.map(|s| s.to_string()) {
             if line.is_empty() {
                 break;
             }
-            lines.push(format!("{leading} {line}"));
+            lines.push(XCOutput {
+                value: format!("{leading} {line}"),
+                kind: kind.clone(),
+            });
         }
-        lines.push(leading.to_string());
-        lines.push(leading.to_string());
+
+        lines.push(whitespace.clone());
+        lines.push(whitespace);
     } else {
         lines.push(line);
     }

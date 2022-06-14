@@ -31,7 +31,6 @@ impl XCCompilationDatabase {
         process.current_dir(root);
         process.arg("clean");
         process.args(args);
-
         process
             .spawn_and_stream()?
             .collect::<Vec<_>>()

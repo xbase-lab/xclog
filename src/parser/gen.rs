@@ -13,6 +13,7 @@ macro_rules! define
     use lazy_static::lazy_static;
     use regex::{Regex, Captures as RegexCaptures};
     use super::{XCOutput, XCOutputTask};
+    use anyhow::{Result, anyhow};
 
     lazy_static! {
         /// Main Matcher for `PARSERS`
@@ -28,18 +29,20 @@ macro_rules! define
 
         impl<'a> [<XC $name Match>]<'a> {
             /// Pretty format
-            pub fn output(&self) -> anyhow::Result<XCOutput> {
+            pub fn output(&self) -> Result<Option<XCOutput>> {
                 if $format.is_empty() {
-                    return  Ok(XCOutput {
-                        value: None,
-                        kind: self.kind.clone(),
-                    })
+                    return  Ok(None)
                 }
                 $(
                     #[allow(unused_variables)]
-                    let $capture = &self._inner.name(stringify!($capture))
-                                .ok_or_else(|| anyhow::anyhow!("\n\nMissing [`{}`] from captures\n\n{:#?}", stringify!($capture), self._inner))?
-                                .as_str();
+                    let $capture = &self._inner
+                        .name(stringify!($capture))
+                        .ok_or_else(|| anyhow!{
+                            "\n\nMissing [`{}`] from captures\n\n{:#?}",
+                            stringify!($capture),
+                            self._inner
+                        })?
+                        .as_str();
                  )*
                 let leading = match self.kind {
                     XCOutputTask::Error => "[Error] ",
@@ -48,10 +51,10 @@ macro_rules! define
 
                 };
 
-                Ok(XCOutput {
-                    value: Some(format!("{}{}", leading, format!($format))),
+                Ok(Some(XCOutput {
+                    value: format!("{}{}", leading, format!($format)),
                     kind: self.kind.clone(),
-                })
+                }))
             }
 
             #[doc = "Get data struct representation of `XC" $name "`"]
@@ -87,7 +90,7 @@ macro_rules! define
     pub enum XCMatch<'a> { $(#[doc = "XC" $name " Match "] $name([<XC $name Match>]<'a>)),* }
     impl<'a> XCMatch<'a> {
         /// Format capture as text
-        pub fn output(&'a self) -> anyhow::Result<XCOutput> {
+        pub fn output(&'a self) -> Result<Option<XCOutput>> {
             match self { $(Self::$name(v) => v.output(),)* }
         }
 
