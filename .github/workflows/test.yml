@@ -1,31 +1,51 @@
 name: "Test"
-on:
-  # Build on push to master
-  push:
-    branches:
-      - master
-
-  # Build on internal pull requests
-  pull_request:
-
-  # Allow to trigger for external PRs
-  workflow_dispatch:
-
+on: [pull_request, push]
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest]
+  test:
+    name: Test
+    env:
+      # credit https://dev.to/bampeers/rust-ci-with-github-actions-1ne9
+      PROJECT_NAME_UNDERSCORE: xclog
+      CARGO_INCREMENTAL: 0
+      RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
+      RUSTDOCFLAGS: -Cpanic=abort
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
         with:
-          # Nix Flakes doesn't work on shallow clones
-          fetch-depth: 0
-      - uses: cachix/install-nix-action@v16
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-dependencies
         with:
-          install_url: https://github.com/numtide/nix-flakes-installer/releases/download/nix-2.7.0pre20220209_52f5231/install
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-      - name: Building package
-        run: nix build
+          path: |
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            target
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+      - name: Generate test result and coverage report
+        run: |
+          cargo install cargo2junit grcov;
+          cargo test $CARGO_OPTIONS -- -Z unstable-options --format json | cargo2junit > results.xml;
+          zip -0 ccov.zip `find . \( -name "$PROJECT_NAME_UNDERSCORE*.gc*" \) -print`;
+          grcov ccov.zip -s . -t lcov --llvm --ignore-not-existing --ignore "/*" --ignore "tests/*" -o lcov.info;
+      - name: Upload test results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          check_name: Test Results
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          files: results.xml
+      - name: Upload to CodeCov
+        uses: codecov/codecov-action@v1
+        with:
+          # required for private repositories:
+          # token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./lcov.info
+          fail_ci_if_error: true
