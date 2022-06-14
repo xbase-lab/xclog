@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tap::Pipe;
 
-use crate::parser::XCCompileCommandData;
+use crate::parser::{XCCompileCommandData, XCLOG_MATCHER};
 
 /// A clang-compatible compilation database
 ///
@@ -38,7 +38,7 @@ impl XCCompilationDatabase {
             .await
             .into_iter()
             .map(|o| {
-                crate::parser::XCLOG_MATCHER
+                XCLOG_MATCHER
                     .get_compile_command(o.to_string().as_str())
                     .map(XCCompileCommand::from_compile_command_data)
                     .flatten()
@@ -47,6 +47,21 @@ impl XCCompilationDatabase {
             .collect::<Vec<_>>()
             .pipe(|vec| XCCompilationDatabase(vec))
             .pipe(Ok)
+    }
+
+    /// Generate XCCompilationDatabase from a vector build log lines
+    pub fn from_lines(lines: Vec<String>) -> Self {
+        lines
+            .iter()
+            .map(|line| {
+                XCLOG_MATCHER
+                    .get_compile_command(line)
+                    .map(XCCompileCommand::from_compile_command_data)
+                    .flatten()
+            })
+            .flatten()
+            .collect::<Vec<_>>()
+            .pipe(|vec| XCCompilationDatabase(vec))
     }
 }
 
@@ -123,18 +138,6 @@ impl XCCompileCommand {
 }
 
 #[cfg(test)]
-use crate::parser::XCLOG_MATCHER;
-
-#[cfg(test)]
-async fn test(lines: Vec<String>) {
-    for line in lines {
-        if let Some(command) = XCLOG_MATCHER.get_compile_command(&line) {
-            XCCompileCommand::from_compile_command_data(command);
-        }
-    }
-}
-
-#[cfg(test)]
 fn get_case_lines(content: &str) -> Vec<String> {
     content
         .split("\n")
@@ -142,28 +145,89 @@ fn get_case_lines(content: &str) -> Vec<String> {
         .collect::<Vec<String>>()
 }
 
+#[cfg(test)]
+macro_rules! test_compile_commands_output {
+    ($cmd:ident, $($idx:literal: $key:ident, $value:expr),*) => {
+        $(
+            assert_eq!($cmd[$idx].$key, $value);
+        )*
+    };
+}
+
 #[tokio::test]
 #[tracing_test::traced_test]
-#[ignore = ".."]
 async fn case_a() {
     let lines = get_case_lines(include_str!("../tests/case_a.log"));
-    test(lines).await;
+    let compile_commands = XCCompilationDatabase::from_lines(lines);
+
+    assert_eq!(compile_commands.len(), 3);
+    test_compile_commands_output! { compile_commands,
+        0: name, Some("Logging".to_string()),
+        0: directory, String::from("/DERIVED_DATA_ROOT/SourcePackages/checkouts/swift-log"),
+        0: file_lists, vec![PathBuf::from("/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging.SwiftFileList")],
+        1: name, Some("Logging".to_string()),
+        1: directory, String::from("/DERIVED_DATA_ROOT/SourcePackages/checkouts/swift-log"),
+        1: file_lists, vec![PathBuf::from("/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/arm64/Logging.SwiftFileList")],
+        2: name, Some("Example".to_string()),
+        2: directory, String::from("/PROJECT_ROOT"),
+        2: file_lists, vec![PathBuf::from("/BUILD_ROOT/Example.build/Debug-iphoneos/Example.build/Objects-normal/arm64/Example.SwiftFileList")]
+    };
 }
 
 #[tokio::test]
 #[tracing_test::traced_test]
-#[ignore = ".."]
 async fn case_b() {
     let lines = get_case_lines(include_str!("../tests/case_b.log"));
-    test(lines).await;
+    let compile_commands = XCCompilationDatabase::from_lines(lines);
+
+    assert_eq!(compile_commands.len(), 12);
+    test_compile_commands_output! {compile_commands,
+    0: name, Some("ArgumentParserToolInfo".to_string()),
+    0: directory, String::from("/DERIVED_DATA_ROOT/SourcePackages/checkouts/swift-argument-parser"),
+    0: file_lists, vec![PathBuf::from("/BUILD_ROOT/swift-argument-parser.build/Debug/ArgumentParserToolInfo.build/Objects-normal/x86_64/ArgumentParserToolInfo.SwiftFileList")],
+    1: name, Some("ArgumentParserToolInfo".to_string()),
+    1: directory, String::from("/DERIVED_DATA_ROOT/SourcePackages/checkouts/swift-argument-parser"),
+    1: file_lists, vec![PathBuf::from("/BUILD_ROOT/swift-argument-parser.build/Debug/ArgumentParserToolInfo.build/Objects-normal/arm64/ArgumentParserToolInfo.SwiftFileList")],
+    2: name, Some("ArgumentParser".to_string()),
+    2: directory, String::from("/DERIVED_DATA_ROOT/SourcePackages/checkouts/swift-argument-parser"),
+    2: file_lists, vec![PathBuf::from("/BUILD_ROOT/swift-argument-parser.build/Debug/ArgumentParser.build/Objects-normal/x86_64/ArgumentParser.SwiftFileList")],
+    3: name, Some("ArgumentParser".to_string()),
+    3: directory, String::from("/DERIVED_DATA_ROOT/SourcePackages/checkouts/swift-argument-parser"),
+    3: file_lists, vec![PathBuf::from("/BUILD_ROOT/swift-argument-parser.build/Debug/ArgumentParser.build/Objects-normal/arm64/ArgumentParser.SwiftFileList")],
+    4: name, Some("Socket".to_string()),
+    4: directory, String::from("/DERIVED_DATA_ROOT/SourcePackages/checkouts/BlueSocket"),
+    4: file_lists, vec![PathBuf::from("/BUILD_ROOT/Socket.build/Debug/Socket.build/Objects-normal/arm64/Socket.SwiftFileList")],
+    5: name, Some("Socket".to_string()),
+    5: directory, String::from("/DERIVED_DATA_ROOT/SourcePackages/checkouts/BlueSocket"),
+    5: file_lists, vec![PathBuf::from("/BUILD_ROOT/Socket.build/Debug/Socket.build/Objects-normal/x86_64/Socket.SwiftFileList")],
+    6: name, Some("SwiftyBeaver".to_string()),
+    6: directory, String::from("/DERIVED_DATA_ROOT/SourcePackages/checkouts/SwiftyBeaver"),
+    6: file_lists, vec![PathBuf::from("/BUILD_ROOT/SwiftyBeaver.build/Debug/SwiftyBeaver.build/Objects-normal/x86_64/SwiftyBeaver.SwiftFileList")],
+    7: name, Some("SwiftyBeaver".to_string()),
+    7: directory, String::from("/DERIVED_DATA_ROOT/SourcePackages/checkouts/SwiftyBeaver"),
+    7: file_lists, vec![PathBuf::from("/BUILD_ROOT/SwiftyBeaver.build/Debug/SwiftyBeaver.build/Objects-normal/arm64/SwiftyBeaver.SwiftFileList")],
+    8: name, Some("Example".to_string()),
+    8: directory, String::from("/PROJECT_ROOT"),
+    8: file_lists, vec![PathBuf::from("/BUILD_ROOT/Example.build/Debug/Example.build/Objects-normal/x86_64/Example.SwiftFileList")],
+    9: name, Some("Example".to_string()),
+    9: directory, String::from("/PROJECT_ROOT"),
+    9: file_lists, vec![PathBuf::from("/BUILD_ROOT/Example.build/Debug/Example.build/Objects-normal/arm64/Example.SwiftFileList")],
+    10: name, None,
+    10: directory, String::from("/"),
+    10: file, Some(PathBuf::from("/PROJECT_ROOT/src/client/bridge.c")),
+    11: name, None,
+    11: directory, String::from("/"),
+    11: file, Some(PathBuf::from("/PROJECT_ROOT/src/client/bridge.c"))
+    }
 }
 
 #[tokio::test]
 #[tracing_test::traced_test]
-#[ignore = ".."]
 async fn case_c() {
-    let lines = get_case_lines(include_str!("../tests/case_b.log"));
-    test(lines).await;
+    let lines = get_case_lines(include_str!("../tests/case_c.log"));
+    let compile_commands = XCCompilationDatabase::from_lines(lines);
+    // THIS DOESN'T FEEL CORRECT
+    assert_eq!(compile_commands.len(), 104)
 }
 
 #[tokio::test]
@@ -193,4 +257,6 @@ async fn test_get_compile_commands() {
             println!("{:?}", command);
         }
     }
+    // In the case above the compile commands is indeed 12
+    assert_eq!(compile_commands.len(), 12);
 }
