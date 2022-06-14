@@ -1,13 +1,13 @@
 //! Regex based Parser
 #[macro_use]
-mod define;
-mod generate;
+mod defs;
+mod gen;
 mod output;
 
 use anyhow::Result;
 use process_stream::{ProcessItem, StreamExt};
 
-pub use generate::*;
+pub use defs::*;
 pub use output::*;
 
 pub(crate) type OutputStream = dyn tokio_stream::Stream<Item = ProcessItem> + Unpin + Send;

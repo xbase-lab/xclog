@@ -1,4 +1,4 @@
-use super::define::define;
+use super::gen::define;
 
 define! [
 {
