@@ -1,5 +1,7 @@
-name: "Test"
-on: [pull_request, push]
+name: Cargo Test
+
+on: [ pull_request, push ]
+
 jobs:
   test:
     name: Test
@@ -10,6 +12,11 @@ jobs:
       RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
       RUSTDOCFLAGS: -Cpanic=abort
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      checks: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -17,7 +24,7 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-      - name: Cache dependencies
+      - name: Cache Dependencies
         uses: actions/cache@v2
         env:
           cache-name: cache-dependencies
@@ -37,13 +44,14 @@ jobs:
           zip -0 ccov.zip `find . \( -name "$PROJECT_NAME_UNDERSCORE*.gc*" \) -print`;
           grcov ccov.zip -s . -t lcov --llvm --ignore-not-existing --ignore "/*" --ignore "tests/*" -o lcov.info;
       - name: Upload test results
-        uses: EnricoMi/publish-unit-test-result-action@v1
+        uses: EnricoMi/publish-unit-test-result-action@v1.19
+        if: always()
         with:
           check_name: Test Results
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           files: results.xml
       - name: Upload to CodeCov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           # required for private repositories:
           # token: ${{ secrets.CODECOV_TOKEN }}
