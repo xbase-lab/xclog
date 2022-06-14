@@ -81,21 +81,6 @@ define! [
     }
 },
 {
-    ident: ShellCommand,
-    kind: Task,
-    desc: "Shell commands like cd setenv under a compile step",
-    captures: [ command,arguments ],
-    format: "",
-    pattern: r"\s{4}(?P<command>cd|setenv|(?:[\w/:\s\-.]+?/)?[\w\-]+)\s(?P<arguments>.*)$",
-    tests: {
-        "    cd /foo/bar/baz" =>
-            |captures| {
-                assert_eq!("cd", &captures["command"]);
-                assert_eq!("/foo/bar/baz", &captures["arguments"]);
-            }
-    }
-},
-{
     ident: CleanRemove,
     kind: Task,
     desc: "CLEAN REMOVE",
@@ -189,19 +174,24 @@ define! [
     desc: r"Clang and swiftc command",
     captures: [ command, arguments ],
     format: "",
-    pattern: r"\s{4}(:?[^\s]+/(?P<command>\w+))\s(?P<arguments>.*)",
+    pattern: r"^\s{4}(?P<command>/\S+)\s(?P<arguments>.*)",
     tests: {
         "    /TOOLCHAIN_BIN/clang -target arm64-apple-macos10.10 -r -isysroot /MACOS_SDK -L/BUILD_ROOT -L/MACOS_SDK/lib -o /BUILD_ROOT/file.o" =>
             |captures| {
-                assert_eq!("clang", &captures["command"]);
+                assert_eq!("/TOOLCHAIN_BIN/clang", &captures["command"]);
                 assert_eq!("-target arm64-apple-macos10.10 -r -isysroot /MACOS_SDK -L/BUILD_ROOT -L/MACOS_SDK/lib -o /BUILD_ROOT/file.o", &captures["arguments"]);
             },
         r"    /TOOLCHAIN_BIN/swiftc -incremental -module-name Example -Onone -enable-batch-mode -enforce-exclusivity\=checked -working-directory /PROJECT_ROOT" =>
             |captures| {
-                assert_eq!("swiftc", &captures["command"]);
+                assert_eq!("/TOOLCHAIN_BIN/swiftc", &captures["command"]);
                 assert_eq!(r"-incremental -module-name Example -Onone -enable-batch-mode -enforce-exclusivity\=checked -working-directory /PROJECT_ROOT", &captures["arguments"]);
-            }
-            // NOTE: Won't match  /TOOLCHAIN_BIN/swift-frontend -frontend -c file.swift
+            },
+        r"    /TOOLCHAIN_BIN/swiftc -incremental -module-name Logging -Onone -enable-batch-mode -enforce-exclusivity\=checked @/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DXcode -sdk /IPHONE_SDK -target armv7-apple-ios9.0 -g -Xfrontend -serialize-debugging-options -embed-bitcode-marker -enable-testing -swift-version 5 -I /BUILD_ROOT -I /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib -F /BUILD_ROOT -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -F /IPHONE_SDK/Developer/Library/Frameworks -c -j8 -output-file-map /BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging-OutputFileMap.json -parseable-output -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging.swiftmodule -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/swift-overrides.hmap -Xcc -I/BUILD_ROOT/include -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/DerivedSources-normal/armv7 -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/DerivedSources/armv7 -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging-Swift.h -working-directory /DERIVED_DATA_ROOT/SourcePackages/checkouts/swift-log"
+            => |captures| {
+                assert_eq!("/TOOLCHAIN_BIN/swiftc", &captures["command"]);
+                assert_eq!(r"-incremental -module-name Logging -Onone -enable-batch-mode -enforce-exclusivity\=checked @/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DXcode -sdk /IPHONE_SDK -target armv7-apple-ios9.0 -g -Xfrontend -serialize-debugging-options -embed-bitcode-marker -enable-testing -swift-version 5 -I /BUILD_ROOT -I /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib -F /BUILD_ROOT -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -F /IPHONE_SDK/Developer/Library/Frameworks -c -j8 -output-file-map /BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging-OutputFileMap.json -parseable-output -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging.swiftmodule -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/swift-overrides.hmap -Xcc -I/BUILD_ROOT/include -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/DerivedSources-normal/armv7 -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/DerivedSources/armv7 -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging-Swift.h -working-directory /DERIVED_DATA_ROOT/SourcePackages/checkouts/swift-log", &captures["arguments"]);
+        }
+
     }
 },
 {
