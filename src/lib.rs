@@ -10,5 +10,5 @@ mod logger;
 pub mod parser;
 
 pub use build_settings::XCBuildSettings;
-pub use compile::{XCCompilationDatabase, XCCompileCommand};
+pub use compile::{XCCompilationDatabase, XCCompileArgs, XCCompileCommand};
 pub use logger::XCLogger;
