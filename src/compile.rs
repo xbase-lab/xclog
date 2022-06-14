@@ -9,7 +9,7 @@ use tap::Pipe;
 
 use crate::parser::CompileCommandData;
 
-/// A clang-compatible compilation Database
+/// A clang-compatible compilation database
 ///
 /// It depends on build logs generated from xcode
 ///
@@ -17,9 +17,9 @@ use crate::parser::CompileCommandData;
 ///
 /// See <https://clang.llvm.org/docs/JSONCompilationDatabase.html>
 #[derive(Debug, Deserialize, Serialize, derive_deref_rs::Deref)]
-pub struct CompilationDatabase(pub(crate) Vec<CompileCommand>);
+pub struct XCCompilationDatabase(pub(crate) Vec<XCCompileCommand>);
 
-impl CompilationDatabase {
+impl XCCompilationDatabase {
     /// Generate complation database from running xcodebuild arguments in a given root.
     pub async fn generate<P, I, S>(root: P, args: I) -> Result<Self>
     where
@@ -40,12 +40,12 @@ impl CompilationDatabase {
             .map(|o| {
                 crate::parser::MATCHER
                     .get_compile_command(o.to_string().as_str())
-                    .map(CompileCommand::from_compile_command_data)
+                    .map(XCCompileCommand::from_compile_command_data)
                     .flatten()
             })
             .flatten()
             .collect::<Vec<_>>()
-            .pipe(|vec| CompilationDatabase(vec))
+            .pipe(|vec| XCCompilationDatabase(vec))
             .pipe(Ok)
     }
 }
@@ -53,7 +53,7 @@ impl CompilationDatabase {
 /// Single Compilation Database Command Representation
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct CompileCommand {
+pub struct XCCompileCommand {
     /// Module name. NOTE: not sure if this required
     #[serde(rename(serialize = "module_name"))]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -79,8 +79,8 @@ pub struct CompileCommand {
 }
 
 // TODO: Remove duplication and keep current architecture?
-impl CompileCommand {
-    /// Convert [`CompileCommandData`] to [`CompileCommand`].
+impl XCCompileCommand {
+    /// Convert [`CompileCommandData`] to [`XCCompileCommand`].
     pub fn from_compile_command_data(data: CompileCommandData) -> Option<Self> {
         let is_clang = data.name == "clang";
         let ref args = data.arguments;
@@ -129,7 +129,7 @@ use crate::parser::MATCHER;
 async fn test(lines: Vec<String>) {
     for line in lines {
         if let Some(command) = MATCHER.get_compile_command(&line) {
-            CompileCommand::from_compile_command_data(command);
+            XCCompileCommand::from_compile_command_data(command);
         }
     }
 }
@@ -171,7 +171,7 @@ async fn case_c() {
 #[ignore = "Local tests"]
 async fn test_get_compile_commands() {
     let root = "/Users/tami5/repos/swift/yabaimaster";
-    let compile_commands = CompilationDatabase::generate(root, &[
+    let compile_commands = XCCompilationDatabase::generate(root, &[
         "clean",
         "build",
         "-configuration",

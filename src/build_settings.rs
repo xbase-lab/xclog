@@ -1,3 +1,4 @@
+use process_stream::Process;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -5,122 +6,202 @@ use tap::Pipe;
 
 /// Subset of build settings
 #[derive(Debug, Default)]
-pub struct BuildSettings {
+pub struct XCBuildSettings {
+    /// Whether adhoc Code Signing Allowed
     pub ad_hoc_code_signing_allowed: bool,
+    /// Whether target platform is specified
     pub allow_target_platform_specialization: bool,
+    /// Whether there is alternate owner
     pub alternate_owner: bool,
+    /// Whether to always search user paths
     pub always_search_user_paths: bool,
+    /// Whether to always use seprate headermaps
     pub always_use_separate_headermaps: bool,
+    /// Whether the application extension is api only
     pub application_extension_api_only: bool,
+    /// Whether to apply rules in copy files
     pub apply_rules_in_copy_files: bool,
+    /// Whether to apply rules in header files
     pub apply_rules_in_copy_headers: bool,
+    /// build architecture
     pub archs: Vec<String>,
+    /// Whether to build active resources only
     pub build_active_resources_only: bool,
+    /// Path to build directory
     pub build_dir: PathBuf,
+    /// Whether it is a build library for distribution
     pub build_library_for_distribution: bool,
+    /// Path to build root
     pub build_root: PathBuf,
+    /// Path to build product directory
     pub built_products_dir: PathBuf,
+    /// Path to cache root
     pub cache_root: PathBuf,
+    /// Path to class files directory
     pub class_file_dir: PathBuf,
+    /// Whether to clean
     pub clean_precomps: bool,
+    /// Whether to colone headers
     pub clone_headers: bool,
+    /// Path to codesigning folder
     pub codesigning_folder_path: PathBuf,
+    /// Whether code signing is allowed
     pub code_signing_allowed: bool,
+    /// Whether code signing is required
     pub code_signing_required: bool,
+    /// Whether code signing identiry
     pub code_sign_identity: String,
+    /// Whether to inject entitlements with code signing
     pub code_sign_inject_base_entitlements: bool,
+    /// Whether to use colors in diagnostics
     pub color_diagnostics: bool,
-    pub combine_hidpi_images: bool,
+    /// Path to composite sdk directory
     pub composite_sdk_dirs: PathBuf,
+    /// Whether to compress png files
     pub compress_png_files: bool,
+    /// Name of Build configuration
     pub configuration: String,
+    /// Path to build configuration directory
     pub configuration_build_dir: PathBuf,
+    /// Path to tmp configuration directory
     pub configuration_temp_dir: PathBuf,
-    pub contents_folder_path: String,
-    pub contents_folder_path_shallow_bundle_no: String,
-    pub contents_folder_path_shallow_bundle_yes: String,
+    /// Path to tmp configuration directory
     pub copying_preserves_hfs_data: bool,
-    pub copy_headers_run_unifdef: bool,
+    /// Whether to strip in copy phase
     pub copy_phase_strip: bool,
+    /// Whether to copy resources from static frameworks
     pub copy_resources_from_static_frameworks: bool,
+    /// Path to device platform directory
     pub corresponding_device_platform_dir: PathBuf,
+    /// Name of device platform
     pub corresponding_device_platform_name: String,
+    /// Path to device platform sdk directory
     pub corresponding_device_sdk_dir: PathBuf,
+    /// Name of device sdk
     pub corresponding_device_sdk_name: String,
+    /// Whether to include info plist in binary
     pub create_infoplist_section_in_binary: bool,
+    /// Debug information format
     pub debug_information_format: String,
-    pub defines_module: bool,
+    /// Whether deployment_ ocation is specified
     pub deployment_location: bool,
+    /// Path to derived directory
     pub derived_files_dir: PathBuf,
+    /// Path to derived directory
     pub derived_file_dir: PathBuf,
+    /// Path to derived sources directory
     pub derived_sources_dir: PathBuf,
+    /// Path to developer applications directory
     pub developer_applications_dir: PathBuf,
+    /// Path to developer bind directory
     pub developer_bin_dir: PathBuf,
+    /// Path to developer directory
     pub developer_dir: PathBuf,
+    /// Name of development team
     pub development_team: String,
+    /// Whether manual target order build warning is disabled
     pub disable_manual_target_order_build_warning: bool,
+    /// Path to documentation directory
     pub documentation_folder_path: String,
+    /// Path to destination root
     pub dstroot: PathBuf,
+    /// DWARF dysm file name
     pub dwarf_dsym_file_name: String,
+    /// Whether DWARF should include product
     pub dwarf_dsym_file_should_accompany_product: bool,
+    /// DWARF dysm folder path
     pub dwarf_dsym_folder_path: PathBuf,
+    /// Platform name
     pub effective_platform_name: String,
+    /// Whether sandbox is enabled
     pub enable_app_sandbox: bool,
+    /// Whether bitcode is enabled
     pub enable_bitcode: bool,
-    pub enable_default_header_search_paths: bool,
-    pub enable_default_search_paths: bool,
-    pub enable_hardened_runtime: bool,
-    pub enable_header_dependencies: bool,
-    pub enable_on_demand_resources: bool,
-    pub enable_strict_objc_msgsend: bool,
+    /// Whether testability is enabled
     pub enable_testability: bool,
+    /// Whether searching path of tests is enabled
     pub enable_testing_search_paths: bool,
+    /// Whether entitlements is required
     pub entitlements_required: bool,
+    /// Path to executable folder
     pub executable_folder_path: String,
-    pub executable_folder_path_shallow_bundle_no: String,
-    pub executable_folder_path_shallow_bundle_yes: String,
+    /// Name of executable
     pub executable_name: String,
+    /// Path to executable file
     pub executable_path: String,
+    /// Path to file list
     pub file_list: PathBuf,
+    /// Full product name
     pub full_product_name: String,
+    /// Path to modulemap directory
     pub generated_modulemap_dir: PathBuf,
-    pub generate_infoplist_file: bool,
-    pub generate_master_object_file: bool,
-    pub generate_pkginfo_file: bool,
-    pub generate_profiling_code: bool,
-    pub generate_text_based_stubs: bool,
+    /// info list file
     pub infoplist_file: String,
-    pub infoplist_path: String,
-    pub infoplist_preprocess: bool,
+    /// Path to infolist directory
+    pub infoplist_path: PathBuf,
+    /// Installation owner
     pub install_owner: String,
+    /// Path to install file
     pub install_path: PathBuf,
+    /// Path to install root
     pub install_root: PathBuf,
+    /// Path to file specifying ld linking dependency
     pub ld_dependency_info_file: PathBuf,
-    pub library_dext_install_path: PathBuf,
-    pub library_kext_install_path: PathBuf,
-    pub localization_export_supported: bool,
+    /// Path to metal output directory
     pub metal_library_output_dir: PathBuf,
-    pub no_common: bool,
+    /// Product handle identifier
     pub product_bundle_identifier: String,
+    /// Product module name
     pub product_module_name: String,
+    /// Product name
     pub product_name: String,
+    /// Path to Product settings file
     pub product_settings_path: PathBuf,
+    /// Product type
     pub product_type: String,
+    /// Project Name
     pub project: String,
+    /// Project directory
     pub project_dir: PathBuf,
+    /// Project file path
     pub project_file_path: PathBuf,
-    pub sdkroot: PathBuf,
-    pub sdk_dir: PathBuf,
-    pub sdk_version: String,
-    pub shallow_bundle: bool,
-    pub shallow_bundle_triple: String,
-    pub symroot: PathBuf,
-    pub version_info_builder: String,
-    pub wrapper_name: String,
+    /// Platform display name
     pub platform_display_name: String,
+    /// Path to SDK
+    pub sdkroot: PathBuf,
+    /// Path to directory
+    pub sdk_dir: PathBuf,
+    /// SDK version
+    pub sdk_version: String,
+    /// Path to `symroot`
+    pub symroot: PathBuf,
+    /// Wrapper name
+    pub wrapper_name: String,
 }
 
-impl BuildSettings {
+impl XCBuildSettings {
+    /// Generate Build Settings from given root and build arguments
+    pub async fn new<P, I, S>(root: P, args: I) -> Result<XCBuildSettings>
+    where
+        P: AsRef<Path> + Send,
+        I: IntoIterator<Item = S> + Send,
+        S: AsRef<std::ffi::OsStr> + Send,
+    {
+        let mut process = Process::new("/usr/bin/xcodebuild");
+
+        process.current_dir(root);
+        process.args(args);
+
+        let output = process.spawn()?.wait_with_output().await?;
+
+        if output.status.success() {
+            Self::generate_from_lines(String::from_utf8(output.stdout)?.split("\n"))
+        } else {
+            anyhow::bail!(String::from_utf8(output.stderr)?)
+        }
+    }
+
+    /// Get path to output directory
     pub fn path_to_output_folder(&self) -> Result<&Path> {
         let Self {
             codesigning_folder_path: codesign_folder,
@@ -148,13 +229,14 @@ impl BuildSettings {
         .pipe(Ok)
     }
 
+    /// Get path to output binaray
     pub fn path_to_output_binary(&self) -> Result<PathBuf> {
         let mut app_folder = self.path_to_output_folder()?.to_path_buf();
         app_folder.extend(self.executable_path.split("/").skip(1));
         app_folder.pipe(Ok)
     }
 
-    pub fn new(mut lines: std::str::Split<'_, &str>) -> Result<BuildSettings> {
+    fn generate_from_lines(mut lines: std::str::Split<'_, &str>) -> Result<XCBuildSettings> {
         let mut data = Self::default();
         while let Some(line) = lines.next() {
             if line.contains("Build settings for action build and target") {
@@ -215,23 +297,14 @@ impl BuildSettings {
                     data.code_sign_inject_base_entitlements = yes_no_bool(value)
                 }
                 "COLOR_DIAGNOSTICS" => data.color_diagnostics = yes_no_bool(value),
-                "COMBINE_HIDPI_IMAGES" => data.combine_hidpi_images = yes_no_bool(value),
                 "COMPOSITE_SDK_DIRS" => data.composite_sdk_dirs = value.into(),
                 "COMPRESS_PNG_FILES" => data.compress_png_files = yes_no_bool(value),
                 "CONFIGURATION" => data.configuration = value.to_string(),
                 "CONFIGURATION_BUILD_DIR" => data.configuration_build_dir = value.into(),
                 "CONFIGURATION_TEMP_DIR" => data.configuration_temp_dir = value.into(),
-                "CONTENTS_FOLDER_PATH" => data.contents_folder_path = value.into(),
-                "CONTENTS_FOLDER_PATH_SHALLOW_BUNDLE_NO" => {
-                    data.contents_folder_path_shallow_bundle_no = value.to_string()
-                }
-                "CONTENTS_FOLDER_PATH_SHALLOW_BUNDLE_YES" => {
-                    data.contents_folder_path_shallow_bundle_yes = value.to_string()
-                }
                 "COPYING_PRESERVES_HFS_DATA" => {
                     data.copying_preserves_hfs_data = yes_no_bool(value)
                 }
-                "COPY_HEADERS_RUN_UNIFDEF" => data.copy_headers_run_unifdef = yes_no_bool(value),
                 "COPY_PHASE_STRIP" => data.copy_phase_strip = yes_no_bool(value),
                 "COPY_RESOURCES_FROM_STATIC_FRAMEWORKS" => {
                     data.copy_resources_from_static_frameworks = yes_no_bool(value)
@@ -250,7 +323,6 @@ impl BuildSettings {
                     data.create_infoplist_section_in_binary = yes_no_bool(value)
                 }
                 "DEBUG_INFORMATION_FORMAT" => data.debug_information_format = value.to_string(),
-                "DEFINES_MODULE" => data.defines_module = yes_no_bool(value),
                 "DEPLOYMENT_LOCATION" => data.deployment_location = yes_no_bool(value),
                 "DERIVED_FILES_DIR" => data.derived_files_dir = value.into(),
                 "DERIVED_FILE_DIR" => data.derived_file_dir = value.into(),
@@ -272,60 +344,24 @@ impl BuildSettings {
                 "EFFECTIVE_PLATFORM_NAME" => data.effective_platform_name = value.to_string(),
                 "ENABLE_APP_SANDBOX" => data.enable_app_sandbox = yes_no_bool(value),
                 "ENABLE_BITCODE" => data.enable_bitcode = yes_no_bool(value),
-                "ENABLE_DEFAULT_HEADER_SEARCH_PATHS" => {
-                    data.enable_default_header_search_paths = yes_no_bool(value)
-                }
-                "ENABLE_DEFAULT_SEARCH_PATHS" => {
-                    data.enable_default_search_paths = yes_no_bool(value)
-                }
-                "ENABLE_HARDENED_RUNTIME" => data.enable_hardened_runtime = yes_no_bool(value),
-                "ENABLE_HEADER_DEPENDENCIES" => {
-                    data.enable_header_dependencies = yes_no_bool(value)
-                }
-                "ENABLE_ON_DEMAND_RESOURCES" => {
-                    data.enable_on_demand_resources = yes_no_bool(value)
-                }
-                "ENABLE_STRICT_OBJC_MSGSEND" => {
-                    data.enable_strict_objc_msgsend = yes_no_bool(value)
-                }
                 "ENABLE_TESTABILITY" => data.enable_testability = yes_no_bool(value),
                 "ENABLE_TESTING_SEARCH_PATHS" => {
                     data.enable_testing_search_paths = yes_no_bool(value)
                 }
                 "ENTITLEMENTS_REQUIRED" => data.entitlements_required = yes_no_bool(value),
                 "EXECUTABLE_FOLDER_PATH" => data.executable_folder_path = value.to_string(),
-                "EXECUTABLE_FOLDER_PATH_SHALLOW_BUNDLE_NO" => {
-                    data.executable_folder_path_shallow_bundle_no = value.to_string()
-                }
-                "EXECUTABLE_FOLDER_PATH_SHALLOW_BUNDLE_YES" => {
-                    data.executable_folder_path_shallow_bundle_yes = value.to_string()
-                }
                 "EXECUTABLE_NAME" => data.executable_name = value.to_string(),
                 "EXECUTABLE_PATH" => data.executable_path = value.to_string(),
                 "FILE_LIST" => data.file_list = value.into(),
                 "FULL_PRODUCT_NAME" => data.full_product_name = value.to_string(),
                 "GENERATED_MODULEMAP_DIR" => data.generated_modulemap_dir = value.into(),
-                "GENERATE_INFOPLIST_FILE" => data.generate_infoplist_file = yes_no_bool(value),
-                "GENERATE_MASTER_OBJECT_FILE" => {
-                    data.generate_master_object_file = yes_no_bool(value)
-                }
-                "GENERATE_PKGINFO_FILE" => data.generate_pkginfo_file = yes_no_bool(value),
-                "GENERATE_PROFILING_CODE" => data.generate_profiling_code = yes_no_bool(value),
-                "GENERATE_TEXT_BASED_STUBS" => data.generate_text_based_stubs = yes_no_bool(value),
                 "INFOPLIST_FILE" => data.infoplist_file = value.to_string(),
-                "INFOPLIST_PATH" => data.infoplist_path = value.to_string(),
-                "INFOPLIST_PREPROCESS" => data.infoplist_preprocess = yes_no_bool(value),
+                "INFOPLIST_PATH" => data.infoplist_path = value.into(),
                 "INSTALL_OWNER" => data.install_owner = value.to_string(),
                 "INSTALL_PATH" => data.install_path = value.into(),
                 "INSTALL_ROOT" => data.install_root = value.into(),
                 "LD_DEPENDENCY_INFO_FILE" => data.ld_dependency_info_file = value.into(),
-                "LIBRARY_DEXT_INSTALL_PATH" => data.library_dext_install_path = value.into(),
-                "LIBRARY_KEXT_INSTALL_PATH" => data.library_kext_install_path = value.into(),
-                "LOCALIZATION_EXPORT_SUPPORTED" => {
-                    data.localization_export_supported = yes_no_bool(value)
-                }
                 "METAL_LIBRARY_OUTPUT_DIR" => data.metal_library_output_dir = value.into(),
-                "NO_COMMON" => data.no_common = yes_no_bool(value),
                 "PRODUCT_BUNDLE_IDENTIFIER" => data.product_bundle_identifier = value.to_string(),
                 "PRODUCT_MODULE_NAME" => data.product_module_name = value.to_string(),
                 "PRODUCT_NAME" => data.product_name = value.to_string(),
@@ -337,10 +373,7 @@ impl BuildSettings {
                 "SDKROOT" => data.sdkroot = value.into(),
                 "SDK_DIR" => data.sdk_dir = value.into(),
                 "SDK_VERSION" => data.sdk_version = value.to_string(),
-                "SHALLOW_BUNDLE" => data.shallow_bundle = yes_no_bool(value),
-                "SHALLOW_BUNDLE_TRIPLE" => data.shallow_bundle_triple = value.to_string(),
                 "SYMROOT" => data.symroot = value.into(),
-                "VERSION_INFO_BUILDER" => data.version_info_builder = value.to_string(),
                 "WRAPPER_NAME" => data.wrapper_name = value.to_string(),
                 _ => continue,
             }

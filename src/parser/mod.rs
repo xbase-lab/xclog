@@ -59,11 +59,11 @@ pub(crate) async fn parse(line: String, stream: &mut OutputStream) -> Result<Opt
 #[tracing_test::traced_test]
 #[ignore = "Local tests"]
 async fn test_case_2() {
-    use crate::get_log_stream;
+    use crate::logger::XCLogger;
     use process_stream::StreamExt;
 
     let root = "/Users/tami5/repos/swift/yabaimaster";
-    let mut stream = get_log_stream(root, &[
+    let mut stream = XCLogger::new(root, &[
         "clean",
         "build",
         "-configuration",
@@ -73,9 +73,9 @@ async fn test_case_2() {
         "SYMROOT=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug",
         "CONFIGURATION_BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug",
         "BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug"
-    ]).await.unwrap();
+    ]).unwrap();
 
-    while let Some(line) = StreamExt::next(&mut stream).await {
+    while let Some(line) = StreamExt::next(&mut stream.stream).await {
         println!("{}", line)
     }
 }
