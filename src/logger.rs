@@ -5,8 +5,9 @@ use std::ffi;
 use std::path::PathBuf;
 use std::{path::Path, pin::Pin};
 
-/// XCodeLogger struct
+/// XCLogger struct
 pub struct XCLogger {
+    #[allow(dead_code)]
     root: PathBuf,
     /// ..
     pub stream: Pin<Box<dyn Stream<Item = String> + Send>>,

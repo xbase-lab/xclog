@@ -174,7 +174,7 @@ define! [
     desc: r"Clang and swiftc command",
     captures: [ command, name, arguments ],
     format: "",
-    pattern: r"^\s{4}(?P<command>[^\s]+/(?P<name>swiftc|clang))\s(?P<arguments>.*)",
+    pattern: r"^\s{4}(?P<command>[^\s]+/(?P<name>swiftc|clang\+\+|clang))\s(?P<arguments>.*)",
     tests: {
         "    /TOOLCHAIN_BIN/clang -target arm64-apple-macos10.10 -r -isysroot /MACOS_SDK -L/BUILD_ROOT -L/MACOS_SDK/lib -o /BUILD_ROOT/file.o" =>
             |captures| {

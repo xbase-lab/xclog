@@ -97,7 +97,7 @@ pub struct XCCompileCommand {
 impl XCCompileCommand {
     /// Convert [`XCCompileCommandData`] to [`XCCompileCommand`].
     pub fn from_compile_command_data(data: XCCompileCommandData) -> Option<Self> {
-        let is_clang = data.name == "clang";
+        let is_clang = data.name.contains("clang");
         let ref args = data.arguments;
         let mut command = Self::default();
 
