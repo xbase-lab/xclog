@@ -48,11 +48,12 @@ jobs:
         if: always()
         with:
           check_name: Test Results
-          token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           files: results.xml
       - name: Upload to CodeCov
         uses: codecov/codecov-action@v2
         with:
+          # NOTE: This requires installation of CodeCov app on github
           # required for private repositories:
           # token: ${{ secrets.CODECOV_TOKEN }}
           files: ./lcov.info

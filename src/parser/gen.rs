@@ -17,7 +17,7 @@ macro_rules! define
 
     lazy_static! {
         /// Main Matcher for `PARSERS`
-        pub static ref XCLOG_MATCHER: XCLogMatcher = XCLogMatcher::new();
+        pub static ref XCLOG_MATCHER: XCLogMatcher = XCLogMatcher::default();
     }
 
     $(
@@ -71,13 +71,13 @@ macro_rules! define
 
             /// Get captures from a text
             pub fn captures<'a>(&'a self, text: &'a str) -> Option<[<XC $name Match>]<'a>> {
-                let captures = self.re.captures(text);
-
-                if let Some(captures) = captures {
-                    Some([<XC $name Match>] { _inner: captures, kind: XCOutputTask::$kind })
-                } else {
-                    None
-                }
+                self.re.captures(text)
+                    .map(|captures| {
+                        [<XC $name Match>] {
+                            _inner: captures,
+                            kind: XCOutputTask::$kind
+                        }
+                    })
             }
         }
 
@@ -156,13 +156,16 @@ macro_rules! define
 
     /// Matchers Using a vector of [`XCParser`]
     pub struct XCLogMatcher { inner: Vec<XCParser> }
-    impl XCLogMatcher {
-        /// create new match instance
-        pub fn new() -> Self {
+
+    impl Default for XCLogMatcher {
+        fn default() -> Self {
             Self {
                 inner: vec![$(XCParser::$name(&*[<XC_ $name:snake:upper _PARSER>])),*]
             }
         }
+    }
+
+    impl XCLogMatcher {
 
         /// Return [`XCMatch`] if any thing is matched
         pub fn capture<'a>(&'a self, text: &'a str) -> Option<XCMatch<'a>> {
@@ -177,7 +180,7 @@ macro_rules! define
 
         /// Return [`XCMatch`] if any thing is matched
         pub fn get_compile_command(&self, text: &str) -> Option<XCCompileCommandData> {
-            let ref parser = XC_COMPILE_COMMAND_PARSER;
+            let parser = &XC_COMPILE_COMMAND_PARSER;
             if parser.re.is_match(text) {
                 return parser.captures(text).map(|m| m.as_data())
             }

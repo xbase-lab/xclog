@@ -36,15 +36,13 @@ impl XCCompilationDatabase {
             .collect::<Vec<_>>()
             .await
             .into_iter()
-            .map(|o| {
+            .filter_map(|o| {
                 XCLOG_MATCHER
                     .get_compile_command(o.to_string().as_str())
-                    .map(XCCompileCommand::from_compile_command_data)
-                    .flatten()
+                    .and_then(XCCompileCommand::from_compile_command_data)
             })
-            .flatten()
             .collect::<Vec<_>>()
-            .pipe(|vec| XCCompilationDatabase(vec))
+            .pipe(XCCompilationDatabase)
             .pipe(Ok)
     }
 
@@ -52,15 +50,13 @@ impl XCCompilationDatabase {
     pub fn from_lines(lines: Vec<String>) -> Self {
         lines
             .iter()
-            .map(|line| {
+            .filter_map(|line| {
                 XCLOG_MATCHER
                     .get_compile_command(line)
-                    .map(XCCompileCommand::from_compile_command_data)
-                    .flatten()
+                    .and_then(XCCompileCommand::from_compile_command_data)
             })
-            .flatten()
             .collect::<Vec<_>>()
-            .pipe(|vec| XCCompilationDatabase(vec))
+            .pipe(XCCompilationDatabase)
     }
 }
 
@@ -97,7 +93,7 @@ impl XCCompileCommand {
     /// Convert [`XCCompileCommandData`] to [`XCCompileCommand`].
     pub fn from_compile_command_data(data: XCCompileCommandData) -> Option<Self> {
         let is_clang = data.name.contains("clang");
-        let ref args = data.arguments;
+        let args = &data.arguments;
         let mut command = Self::default();
 
         // TODO: join with args

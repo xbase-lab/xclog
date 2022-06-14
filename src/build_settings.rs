@@ -195,6 +195,7 @@ impl XCBuildSettings {
         let output = process.spawn()?.wait_with_output().await?;
 
         if output.status.success() {
+            #[allow(clippy::single_char_pattern)]
             Self::generate_from_lines(String::from_utf8(output.stdout)?.split("\n"))
         } else {
             anyhow::bail!(String::from_utf8(output.stderr)?)
@@ -211,20 +212,18 @@ impl XCBuildSettings {
 
         if codesign_folder.exists() {
             codesign_folder
-        } else {
-            if let Some(contents) = library_output.parent() {
-                if let Some(folder_path) = contents.parent() {
-                    folder_path
-                } else {
-                    anyhow::bail!(
-                        "Unable to get folder_path from {codesign_folder:?} or {library_output:?}"
-                    );
-                }
+        } else if let Some(contents) = library_output.parent() {
+            if let Some(folder_path) = contents.parent() {
+                folder_path
             } else {
                 anyhow::bail!(
                     "Unable to get folder_path from {codesign_folder:?} or {library_output:?}"
                 );
             }
+        } else {
+            anyhow::bail!(
+                "Unable to get folder_path from {codesign_folder:?} or {library_output:?}"
+            );
         }
         .pipe(Ok)
     }
@@ -232,21 +231,17 @@ impl XCBuildSettings {
     /// Get path to output binaray
     pub fn path_to_output_binary(&self) -> Result<PathBuf> {
         let mut app_folder = self.path_to_output_folder()?.to_path_buf();
-        app_folder.extend(self.executable_path.split("/").skip(1));
+        app_folder.extend(self.executable_path.split('/').skip(1));
         app_folder.pipe(Ok)
     }
 
-    fn generate_from_lines(mut lines: std::str::Split<'_, &str>) -> Result<XCBuildSettings> {
+    fn generate_from_lines(lines: std::str::Split<'_, &str>) -> Result<XCBuildSettings> {
         let mut data = Self::default();
-        while let Some(line) = lines.next() {
+
+        for line in lines {
             if line.contains("Build settings for action build and target") {
                 continue;
-            } else {
-                break;
             }
-        }
-
-        while let Some(line) = lines.next() {
             let line = line.trim();
             let mut parts = line.split(" = ");
             let key = parts.next();
