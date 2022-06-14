@@ -1,4 +1,4 @@
-//! Compiled commands and complation database generated from xcodebuild logs;
+//! Compiled commands and completion database generated from xcodebuild logs;
 
 use anyhow::{Context, Result};
 use lazy_regex::regex_captures as cap;
@@ -16,11 +16,11 @@ use crate::parser::{XCCompileCommandData, XCLOG_MATCHER};
 /// `xcodebuild clean build -verbose`
 ///
 /// See <https://clang.llvm.org/docs/JSONCompilationDatabase.html>
-#[derive(Debug, Deserialize, Serialize, derive_deref_rs::Deref)]
+#[derive(Debug, Deserialize, Serialize, derive_deref_rs::Deref, PartialEq, Eq)]
 pub struct XCCompilationDatabase(pub(crate) Vec<XCCompileCommand>);
 
 impl XCCompilationDatabase {
-    /// Generate complation database from running xcodebuild arguments in a given root.
+    /// Generate completion database from running xcodebuild arguments in a given root.
     pub async fn generate<P, I, S>(root: P, args: I) -> Result<Self>
     where
         P: AsRef<Path> + Send,
@@ -59,17 +59,32 @@ impl XCCompilationDatabase {
             .pipe(Self)
     }
 
-    /// Write complation database to a file
+    /// Write completion database to a file
     pub async fn write<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         serde_json::to_vec_pretty(&self)?
             .pipe_ref(|json| tokio::fs::write(path, json))
             .await
             .context("Unable to write XCCompilationDatabase from the given path.")
     }
+
+    /// Read completion database from file asynchronously
+    pub async fn from_filepath_async<P: AsRef<Path>>(path: P) -> Result<Self> {
+        tokio::fs::read_to_string(path)
+            .await?
+            .pipe_ref(|s| serde_json::from_str::<Self>(s))?
+            .pipe(Ok)
+    }
+
+    /// Read completion database from file synchronously
+    pub fn from_filepath<P: AsRef<Path>>(path: P) -> Result<Self> {
+        std::fs::read_to_string(path)?
+            .pipe_ref(|s| serde_json::from_str::<Self>(s))?
+            .pipe(Ok)
+    }
 }
 
 /// Single Compilation Database Command Representation
-#[derive(Default, Debug, Serialize, Deserialize, Clone)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct XCCompileCommand {
     /// Module name. NOTE: not sure if this required
@@ -87,7 +102,7 @@ pub struct XCCompileCommand {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub files: Option<Vec<PathBuf>>,
     /// For SwiftFileList
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub file_lists: Vec<PathBuf>,
     /// The name of the build output
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -177,12 +192,12 @@ async fn case_a() {
         2: file_lists, vec![PathBuf::from("/BUILD_ROOT/Example.build/Debug-iphoneos/Example.build/Objects-normal/arm64/Example.SwiftFileList")]
     };
 
-    compile_commands
-        .write("/tmp/case_a_compile_commands.json")
-        .await
-        .unwrap();
-    assert!(PathBuf::from("/tmp/case_a_compile_commands.json").exists());
-    std::fs::remove_file("/tmp/case_a_compile_commands.json").unwrap();
+    let file_path = PathBuf::from("/tmp/case_a_compile_commands.json");
+    compile_commands.write(&file_path).await.unwrap();
+    assert!(file_path.exists());
+    let from_filepath = XCCompilationDatabase::from_filepath(&file_path).unwrap();
+    assert_eq!(compile_commands.len(), from_filepath.len());
+    std::fs::remove_file(file_path).unwrap();
 }
 
 #[tokio::test]
@@ -192,12 +207,13 @@ async fn case_b() {
     let compile_commands = XCCompilationDatabase::from_lines(lines);
 
     assert_eq!(compile_commands.len(), 12);
-    compile_commands
-        .write("/tmp/case_b_compile_commands.json")
-        .await
-        .unwrap();
-    assert!(PathBuf::from("/tmp/case_b_compile_commands.json").exists());
-    std::fs::remove_file("/tmp/case_b_compile_commands.json").unwrap();
+    let file_path = PathBuf::from("/tmp/case_b_compile_commands.json");
+    compile_commands.write(&file_path).await.unwrap();
+    assert!(file_path.exists());
+    let from_filepath = XCCompilationDatabase::from_filepath(&file_path).unwrap();
+    assert_eq!(compile_commands.len(), from_filepath.len());
+    std::fs::remove_file(file_path).unwrap();
+
     test_compile_commands_output! {compile_commands,
     0: name, Some("ArgumentParserToolInfo".to_string()),
     0: directory, String::from("/DERIVED_DATA_ROOT/SourcePackages/checkouts/swift-argument-parser"),
