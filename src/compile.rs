@@ -1,8 +1,11 @@
 //! Compiled commands and complation database generated from xcodebuild logs;
 
+use anyhow::Result;
 use lazy_regex::regex_captures as cap;
+use process_stream::{Process, StreamExt};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use tap::Pipe;
 
 use crate::parser::CompileCommandData;
 
@@ -15,6 +18,37 @@ use crate::parser::CompileCommandData;
 /// See <https://clang.llvm.org/docs/JSONCompilationDatabase.html>
 #[derive(Debug, Deserialize, Serialize, derive_deref_rs::Deref)]
 pub struct CompilationDatabase(pub(crate) Vec<CompileCommand>);
+
+impl CompilationDatabase {
+    /// Generate complation database from running xcodebuild arguments in a given root.
+    pub async fn generate<P, I, S>(root: P, args: I) -> Result<Self>
+    where
+        P: AsRef<Path> + Send,
+        I: IntoIterator<Item = S> + Send,
+        S: AsRef<std::ffi::OsStr> + Send,
+    {
+        let mut process = Process::new("/usr/bin/xcodebuild");
+        process.current_dir(root);
+        process.arg("clean");
+        process.args(args);
+
+        process
+            .spawn_and_stream()?
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .map(|o| {
+                crate::parser::MATCHER
+                    .get_compile_command(o.to_string().as_str())
+                    .map(CompileCommand::from_compile_command_data)
+                    .flatten()
+            })
+            .flatten()
+            .collect::<Vec<_>>()
+            .pipe(|vec| CompilationDatabase(vec))
+            .pipe(Ok)
+    }
+}
 
 /// Single Compilation Database Command Representation
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
@@ -112,7 +146,7 @@ fn get_case_lines(content: &str) -> Vec<String> {
 #[tracing_test::traced_test]
 #[ignore = ".."]
 async fn case_a() {
-    let lines = get_case_lines(include_str!("../../tests/case_a.log"));
+    let lines = get_case_lines(include_str!("../tests/case_a.log"));
     test(lines).await;
 }
 
@@ -120,7 +154,7 @@ async fn case_a() {
 #[tracing_test::traced_test]
 #[ignore = ".."]
 async fn case_b() {
-    let lines = get_case_lines(include_str!("../../tests/case_b.log"));
+    let lines = get_case_lines(include_str!("../tests/case_b.log"));
     test(lines).await;
 }
 
@@ -128,6 +162,35 @@ async fn case_b() {
 #[tracing_test::traced_test]
 #[ignore = ".."]
 async fn case_c() {
-    let lines = get_case_lines(include_str!("../../tests/case_b.log"));
+    let lines = get_case_lines(include_str!("../tests/case_b.log"));
     test(lines).await;
+}
+
+#[tokio::test]
+#[tracing_test::traced_test]
+#[ignore = "Local tests"]
+async fn test_get_compile_commands() {
+    let root = "/Users/tami5/repos/swift/yabaimaster";
+    let compile_commands = CompilationDatabase::generate(root, &[
+        "clean",
+        "build",
+        "-configuration",
+        "Debug",
+        "-target",
+        "YabaiMaster",
+        "SYMROOT=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug",
+        "CONFIGURATION_BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug",
+        "BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug"
+    ]).await.unwrap();
+
+    println!("{:#?}", compile_commands.len());
+    for command in compile_commands.iter() {
+        if let Some(ref command) = command.name {
+            println!("{:?}", command);
+        } else if let Some(ref file) = command.file {
+            println!("{:?}", file);
+        } else {
+            println!("{:?}", command);
+        }
+    }
 }
