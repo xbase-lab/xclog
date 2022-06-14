@@ -43,7 +43,9 @@ fn case_c() {
         let lines = get_case_lines(include_str!("./case_c.log"));
         let mut stream = get_stream(lines).await;
         while let Some(line) = stream.stream.next().await {
-            println!("{line}");
+            if line.contains("Error") {
+                println!("{line}");
+            }
         }
     })
 }

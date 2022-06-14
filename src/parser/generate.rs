@@ -311,8 +311,25 @@ define! [
                 assert_eq!("file.o", &captures["filename"]);
                 assert_eq!("Example", &captures["target"]);
                 assert_eq!("Example", &captures["project"]);
+            },
+        "Ld /path/to/derive_data/Products/Debug-iphonesimulator/LookinServer.o normal (in target 'LookinServer' from project 'LookinServer')" =>
+            |captures| {
+                assert_eq!("/path/to/derive_data/Products/Debug-iphonesimulator/LookinServer.o", &captures["filepath"]);
+                assert_eq!("LookinServer.o", &captures["filename"]);
+                assert_eq!("LookinServer", &captures["target"]);
+                assert_eq!("LookinServer", &captures["project"]);
             }
     }
+},
+{
+    ident: RegisterExecutionPolicyException,
+    kind: Task,
+    desc: r"RegisterExecutionPolicyException",
+    captures: [ ],
+    format: "",
+    pattern: r"RegisterExecutionPolicyException.*",
+    tests: {}
+
 },
 // - TESTING ----------------------------------------------------------------------
 {
