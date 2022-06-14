@@ -11,13 +11,13 @@ use crate::parser::{XCCompileCommandData, XCLOG_MATCHER};
 
 /// A clang-compatible compilation database
 ///
-/// It depends on build logs generated from xcode
-///
-/// `xcodebuild clean build -verbose`
-///
 /// See <https://clang.llvm.org/docs/JSONCompilationDatabase.html>
 #[derive(Debug, Deserialize, Serialize, derive_deref_rs::Deref, PartialEq, Eq)]
-pub struct XCCompilationDatabase(pub(crate) Vec<XCCompileCommand>);
+pub struct XCCompilationDatabase {
+    root: PathBuf,
+    #[deref]
+    inner: Vec<XCCompileCommand>,
+}
 
 impl XCCompilationDatabase {
     /// Generate completion database from running xcodebuild arguments in a given root.
@@ -28,7 +28,7 @@ impl XCCompilationDatabase {
         S: AsRef<std::ffi::OsStr> + Send,
     {
         let mut process = Process::new("/usr/bin/xcodebuild");
-        process.current_dir(root);
+        process.current_dir(&root);
         process.arg("clean");
         process.args(args);
         process
@@ -42,11 +42,16 @@ impl XCCompilationDatabase {
                     .and_then(XCCompileCommand::from_compile_command_data)
             })
             .collect::<Vec<_>>()
-            .pipe(Self)
+            .pipe(|inner| Self {
+                root: root.as_ref().to_path_buf(),
+                inner,
+            })
             .pipe(Ok)
     }
 
     /// Generate XCCompilationDatabase from a vector build log lines
+    ///
+    /// Note root is set to default
     pub fn from_lines(lines: Vec<String>) -> Self {
         lines
             .iter()
@@ -56,7 +61,10 @@ impl XCCompilationDatabase {
                     .and_then(XCCompileCommand::from_compile_command_data)
             })
             .collect::<Vec<_>>()
-            .pipe(Self)
+            .pipe(|inner| Self {
+                root: Default::default(),
+                inner,
+            })
     }
 
     /// Write completion database to a file
@@ -80,6 +88,17 @@ impl XCCompilationDatabase {
         std::fs::read_to_string(path)?
             .pipe_ref(|s| serde_json::from_str::<Self>(s))?
             .pipe(Ok)
+    }
+
+    /// Set the xccompilation database's root.
+    pub fn set_root(&mut self, root: PathBuf) {
+        self.root = root;
+    }
+
+    /// Get a reference to the xccompilation database's root.
+    #[must_use]
+    pub fn root(&self) -> &PathBuf {
+        &self.root
     }
 }
 
