@@ -1,3 +1,4 @@
+//! Regex based Parser
 #[macro_use]
 mod define;
 mod generate;

@@ -136,7 +136,7 @@ macro_rules! define
     }
 
     /// Collection of all supported parsers
-    pub enum Parser { $(#[doc = "..."] $name([<$name Parser>])),* }
+    pub enum Parser { $(#[doc = "..."] $name(&'static [<$name Parser>])),* }
     impl Parser {
         pub(crate) fn capture<'a>(&'a self, text: &'a str) -> Option<Match<'a>> {
             match self {
@@ -145,6 +145,11 @@ macro_rules! define
         }
     }
 
+    $(
+    lazy_static::lazy_static! {
+            static ref [<$name:snake:upper _PARSER>]: [<$name Parser>] = [<$name Parser>]::new(Regex::new($pattern).unwrap());
+    }
+    )*
 
     /// Matchers Using a vector of [`Parser`]
     pub struct Matcher { inner: Vec<Parser> }
@@ -152,9 +157,7 @@ macro_rules! define
         /// create new match instance
         pub fn new() -> Self {
             Self {
-                inner: vec![
-                    $(Parser::$name([<$name Parser>]::new(Regex::new($pattern).unwrap() ))),*
-                ]
+                inner: vec![$(Parser::$name(&*[<$name:snake:upper _PARSER>])),*]
             }
         }
 
@@ -166,6 +169,16 @@ macro_rules! define
                     return captures
                 }
             }
+            None
+        }
+
+        /// Return [`Match`] if any thing is matched
+        pub fn get_compile_command(&self, text: &str) -> Option<CompileCommandData> {
+            let ref parser = COMPILE_COMMAND_PARSER;
+            if parser.re.is_match(text) {
+                return parser.captures(text).map(|m| m.as_data())
+            }
+
             None
         }
     }
