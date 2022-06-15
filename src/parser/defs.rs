@@ -195,6 +195,15 @@ define! [
     }
 },
 {
+    ident: OtherCompileCommands,
+    kind: Task,
+    desc: r"SwiftFrontend Compile Commands",
+    captures: [ ],
+    format: "",
+    pattern: r"^\s{4}/[^\s]+.*\s.*",
+    tests: { }
+},
+{
     ident: CompileXIB,
     kind: Task,
     desc: r"CompileXIB",

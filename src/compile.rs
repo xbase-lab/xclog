@@ -7,6 +7,7 @@ mod tests;
 mod util;
 
 use crate::parser::XCLOG_MATCHER;
+use crate::XCLogger;
 use anyhow::{Context, Result};
 use process_stream::{Process, ProcessItem, StreamExt};
 use serde::{Deserialize, Serialize};
@@ -48,11 +49,18 @@ impl XCCompilationDatabase {
         let result = process.spawn_and_stream()?.collect::<Vec<_>>().await;
         if let Some(ProcessItem::Exit(code)) = result.iter().find(|item| item.is_exit()) {
             if code != "0" {
+                let logs = XCLogger::new_from_lines(
+                    PathBuf::default(),
+                    result.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
+                )?
+                .stream
+                .collect::<Vec<_>>()
+                .await;
+
                 return Err(anyhow::anyhow!(
                     "{}",
-                    result
-                        .iter()
-                        .map(|s| s.to_string())
+                    logs.iter()
+                        .map(|l| l.to_string())
                         .collect::<Vec<_>>()
                         .join("\n")
                 ));

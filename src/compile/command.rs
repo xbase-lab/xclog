@@ -39,6 +39,10 @@ pub struct XCCompileCommand {
 impl XCCompileCommand {
     /// Convert [`XCCompileCommandData`] to [`XCCompileCommand`].
     pub fn from_compile_command_data(data: XCCompileCommandData) -> Option<Self> {
+        tracing::info!("{}", data.name);
+        if !(data.name.contains("swiftc") || data.name.contains("clang")) {
+            return None;
+        }
         let is_clang = data.name.contains("clang");
         let args = &data.arguments;
         let mut command = Self::default();

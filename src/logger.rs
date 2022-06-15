@@ -11,7 +11,7 @@ pub struct XCLogger {
     #[allow(dead_code)]
     root: PathBuf,
     #[deref]
-    stream: Pin<Box<dyn Stream<Item = XCOutput> + Send>>,
+    pub(crate) stream: Pin<Box<dyn Stream<Item = XCOutput> + Send>>,
 }
 
 impl XCLogger {
