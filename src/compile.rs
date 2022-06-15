@@ -27,6 +27,16 @@ pub struct XCCompilationDatabase {
     inner: Vec<XCCompileCommand>,
 }
 
+impl IntoIterator for XCCompilationDatabase {
+    type Item = XCCompileCommand;
+
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.inner.into_iter()
+    }
+}
+
 impl XCCompilationDatabase {
     /// Generate completion database from running xcodebuild arguments in a given root.
     pub async fn generate<P, I, S>(root: P, args: I) -> Result<Self>
