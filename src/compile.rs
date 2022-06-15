@@ -8,7 +8,7 @@ mod util;
 
 use crate::parser::XCLOG_MATCHER;
 use anyhow::{Context, Result};
-use process_stream::{Process, StreamExt};
+use process_stream::{Process, ProcessItem, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -45,10 +45,21 @@ impl XCCompilationDatabase {
         process.current_dir(&root);
         process.arg("clean");
         process.args(args);
-        process
-            .spawn_and_stream()?
-            .collect::<Vec<_>>()
-            .await
+        let result = process.spawn_and_stream()?.collect::<Vec<_>>().await;
+        if let Some(ProcessItem::Exit(code)) = result.iter().find(|item| item.is_exit()) {
+            if code != "0" {
+                return Err(anyhow::anyhow!(
+                    "{}",
+                    result
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                ));
+            }
+        }
+
+        result
             .into_iter()
             .filter_map(|o| {
                 XCLOG_MATCHER
