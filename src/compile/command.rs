@@ -62,7 +62,8 @@ impl XCCompileCommand {
             };
         }
 
-        command.index_store_path = cap!(r"-index-store-path\s(.*)\s", args).map(|(_, c)| c.into());
+        command.index_store_path =
+            cap!(r"-index-store-path\s(/[^\s]+)", args).map(|(_, c)| c.into());
         command.directory = cap!(r"-working-directory\s(.*)\s*", args)
             .map(|(_, c)| c.to_string())
             .unwrap_or_else(|| "/".to_string());
