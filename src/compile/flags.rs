@@ -32,9 +32,12 @@ impl XCCompileArgs {
     /// Used as fallback in cases where only the filepath and compile_path is known.
     ///
     /// Please avoid using it directly.
-    pub fn try_from_compile_path<P: AsRef<Path>>(filepath: P, compile_filepath: P) -> Result<Self> {
+    pub fn try_from_compile_path<P: AsRef<Path>>(
+        filepath: P,
+        compile_filepath: &PathBuf,
+    ) -> Result<Self> {
         let filepath = filepath.as_ref();
-        let compile_commands = XCCompilationDatabase::from_filepath(compile_filepath)?;
+        let compile_commands = XCCompilationDatabase::try_from_filepath(compile_filepath)?;
         let mut file_arguments = compile_commands.get_files_compile_args();
 
         file_arguments
@@ -43,18 +46,19 @@ impl XCCompileArgs {
     }
 
     /// Try to get file compile arguments from given filepath.
-    pub fn try_from_filepath(path: PathBuf) -> Result<Self> {
-        let (root, swift_flags, compile_filepath) = util::find_swift_module_root(&path);
+    pub fn try_from_filepath<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let (root, swift_flags, compile_filepath) = util::find_swift_module_root(path.as_ref());
         match root {
             Some(root) => {
                 if let Some(compile_filepath) = compile_filepath {
-                    Self::try_from_compile_path(path, compile_filepath)
+                    Self::try_from_compile_path(path, &compile_filepath)
                 } else {
                     util::generate_compile_args_from_root(root, swift_flags)
                 }
             }
             None => {
                 return path
+                    .as_ref()
                     .to_str()
                     .ok_or_else(|| anyhow::anyhow!("Unable to convert filepath to path"))?
                     .pipe(|f| vec![f.into(), "-sdk".into(), util::SDKPATH.into()])

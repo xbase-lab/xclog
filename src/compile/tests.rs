@@ -1,7 +1,7 @@
 use super::*;
 
 fn get_compile_commands(content: &str) -> XCCompilationDatabase {
-    XCCompilationDatabase::from_lines(
+    XCCompilationDatabase::try_from_lines(
         content
             .split("\n")
             .map(|s| s.to_string())
@@ -55,7 +55,7 @@ mod compile_commands {
         let file_path = PathBuf::from("/tmp/case_a_compile_commands.json");
         compile_commands.write(&file_path).await.unwrap();
         assert!(file_path.exists());
-        let from_filepath = XCCompilationDatabase::from_filepath(&file_path).unwrap();
+        let from_filepath = XCCompilationDatabase::try_from_filepath(&file_path).unwrap();
         assert_eq!(compile_commands.len(), from_filepath.len());
         std::fs::remove_file(file_path).unwrap();
     }
@@ -69,7 +69,7 @@ mod compile_commands {
         let file_path = PathBuf::from("/tmp/case_b_compile_commands.json");
         compile_commands.write(&file_path).await.unwrap();
         assert!(file_path.exists());
-        let from_filepath = XCCompilationDatabase::from_filepath(&file_path).unwrap();
+        let from_filepath = XCCompilationDatabase::try_from_filepath(&file_path).unwrap();
         assert_eq!(compile_commands.len(), from_filepath.len());
         std::fs::remove_file(file_path).unwrap();
 

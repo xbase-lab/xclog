@@ -21,11 +21,7 @@ pub use flags::XCCompileArgs;
 ///
 /// See <https://clang.llvm.org/docs/JSONCompilationDatabase.html>
 #[derive(Debug, Deserialize, Serialize, derive_deref_rs::Deref, PartialEq, Eq)]
-pub struct XCCompilationDatabase {
-    root: PathBuf,
-    #[deref]
-    inner: Vec<XCCompileCommand>,
-}
+pub struct XCCompilationDatabase(Vec<XCCompileCommand>);
 
 impl IntoIterator for XCCompilationDatabase {
     type Item = XCCompileCommand;
@@ -33,7 +29,7 @@ impl IntoIterator for XCCompilationDatabase {
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.inner.into_iter()
+        self.0.into_iter()
     }
 }
 
@@ -60,17 +56,14 @@ impl XCCompilationDatabase {
                     .and_then(XCCompileCommand::from_compile_command_data)
             })
             .collect::<Vec<_>>()
-            .pipe(|inner| Self {
-                root: root.as_ref().to_path_buf(),
-                inner,
-            })
+            .pipe(Self)
             .pipe(Ok)
     }
 
     /// Generate XCCompilationDatabase from a vector build log lines
     ///
     /// Note root is set to default
-    pub fn from_lines(lines: Vec<String>) -> Self {
+    pub fn try_from_lines(lines: Vec<String>) -> Self {
         lines
             .iter()
             .filter_map(|line| {
@@ -79,10 +72,7 @@ impl XCCompilationDatabase {
                     .and_then(XCCompileCommand::from_compile_command_data)
             })
             .collect::<Vec<_>>()
-            .pipe(|inner| Self {
-                root: Default::default(),
-                inner,
-            })
+            .pipe(Self)
     }
 
     /// Get file compile arguments for all projects files
@@ -102,7 +92,7 @@ impl XCCompilationDatabase {
     }
 
     /// Read completion database from file asynchronously
-    pub async fn from_filepath_async<P: AsRef<Path>>(path: P) -> Result<Self> {
+    pub async fn try_from_filepath_async<P: AsRef<Path>>(path: P) -> Result<Self> {
         tokio::fs::read_to_string(path)
             .await?
             .pipe_ref(|s| serde_json::from_str::<Self>(s))?
@@ -110,20 +100,9 @@ impl XCCompilationDatabase {
     }
 
     /// Read completion database from file synchronously
-    pub fn from_filepath<P: AsRef<Path>>(path: P) -> Result<Self> {
+    pub fn try_from_filepath<P: AsRef<Path>>(path: P) -> Result<Self> {
         std::fs::read_to_string(path)?
             .pipe_ref(|s| serde_json::from_str::<Self>(s))?
             .pipe(Ok)
-    }
-
-    /// Set the xccompilation database's root.
-    pub fn set_root(&mut self, root: PathBuf) {
-        self.root = root;
-    }
-
-    /// Get a reference to the xccompilation database's root.
-    #[must_use]
-    pub fn root(&self) -> &PathBuf {
-        &self.root
     }
 }
