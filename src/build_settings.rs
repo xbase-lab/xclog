@@ -1,4 +1,4 @@
-use process_stream::Process;
+use process_stream::{Process, StreamExt};
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -190,16 +190,25 @@ impl XCBuildSettings {
         let mut process = Process::new("/usr/bin/xcodebuild");
 
         process.current_dir(root);
+
         process.args(args);
+        process.arg("-showBuildSettings");
 
-        let output = process.spawn()?.wait_with_output().await?;
+        let output = process
+            .spawn_and_stream()?
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .map(|p| p.to_string())
+            .collect::<Vec<_>>();
 
-        if output.status.success() {
-            #[allow(clippy::single_char_pattern)]
-            Self::generate_from_lines(String::from_utf8(output.stdout)?.split("\n"))
-        } else {
-            anyhow::bail!(String::from_utf8(output.stderr)?)
-        }
+        Self::generate_from_lines(output)
+        // if output.status.success() {
+        //     #[allow(clippy::single_char_pattern)]
+        //     Self::generate_from_lines(String::from_utf8(output.stdout)?.split("\n"))
+        // } else {
+        //     anyhow::bail!(String::from_utf8(output.stderr)?)
+        // }
     }
 
     /// Get path to output directory
@@ -235,7 +244,7 @@ impl XCBuildSettings {
         app_folder.pipe(Ok)
     }
 
-    fn generate_from_lines(lines: std::str::Split<'_, &str>) -> Result<XCBuildSettings> {
+    fn generate_from_lines(lines: Vec<String>) -> Result<XCBuildSettings> {
         let mut data = Self::default();
 
         for line in lines {
@@ -384,4 +393,24 @@ fn yes_no_bool(value: &str) -> bool {
         "Yes" => true,
         _ => false,
     }
+}
+
+#[tokio::test]
+#[tracing_test::traced_test]
+#[ignore = "local"]
+async fn does() {
+    let root = "/Users/tami5/repos/swift/yabaimaster";
+    let args = &[
+        "clean",
+        "build",
+        "-configuration",
+        "Debug",
+        "-target",
+        "YabaiMaster",
+        "SYMROOT=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug",
+        "CONFIGURATION_BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug",
+        "BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug"
+        ];
+    let build_settings = XCBuildSettings::new(root, args).await.unwrap();
+    println!("{:#?}", build_settings);
 }
