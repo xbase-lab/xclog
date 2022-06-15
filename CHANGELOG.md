@@ -1,6 +1,37 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.2.3] - 2022-06-15
+
+### <!-- 0 -->Features
+
+#### Compile
+
+- <a href="https://github.com/tami5/xcodebuild/commit/f818da04f18f977808fbc6002fdb9cd37e65325d"><tt>f818da0</tt></a> Write to desk
+- <a href="https://github.com/tami5/xcodebuild/commit/a8a20f6ef4fa0827a45e512e0866914208787793"><tt>a8a20f6</tt></a> Read from JSON file
+- <a href="https://github.com/tami5/xcodebuild/commit/2dceb23487dc8717e9d5cb6d09c4f9f88109cf70"><tt>2dceb23</tt></a> Compile flags
+- <a href="https://github.com/tami5/xcodebuild/commit/520b92f718a2260a9929198e88023c4c448bd5cd"><tt>520b92f</tt></a> Impl into_iter for compile database
+
+#### Logger
+
+- <a href="https://github.com/tami5/xcodebuild/commit/aca389cae500df82993d82fd58d2c16df280554c"><tt>aca389c</tt></a> Deref to stream
+
+### <!-- 1 -->Bug Fixes
+
+### <!-- 2 -->Refactor
+
+#### Compile
+
+- <a href="https://github.com/tami5/xcodebuild/commit/3f7ce5cc9f57deb9c99326c0686452dbee5e7a65"><tt>3f7ce5c</tt></a> Database keeps track of root
+
+#### Logger
+
+- <a href="https://github.com/tami5/xcodebuild/commit/5b188d989e03d3c298be187d97e2dc773bb08186"><tt>5b188d9</tt></a> Always return XCOutput
+
+### Miscellaneous Tasks
+
+### Ci
+
 ## [0.2.1] - 2022-06-14
 
 ### <!-- 0 -->Features
