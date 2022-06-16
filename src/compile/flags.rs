@@ -26,6 +26,11 @@ impl XCCompileArgs {
         Ok(Self(util::inject_files_list_items(items)?))
     }
 
+    /// unwrap to inner value
+    pub fn into_inner(self) -> Vec<String> {
+        self.0
+    }
+
     /// This reads compile file into [`XCCompilationDatabase`] then generates file compile
     /// arguments and find the given file_path in that.
     ///
