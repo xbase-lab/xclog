@@ -1,5 +1,9 @@
 use process_stream::{Process, StreamExt};
-use std::path::{Path, PathBuf};
+use std::{
+    io::Read,
+    path::{Path, PathBuf},
+    process::Stdio,
+};
 
 use anyhow::Result;
 use tap::Pipe;
@@ -209,6 +213,30 @@ impl XCBuildSettings {
         // } else {
         //     anyhow::bail!(String::from_utf8(output.stderr)?)
         // }
+    }
+
+    /// Generate Build Settings from given root and build arguments
+    pub fn new_sync<P, I, S>(root: P, args: I) -> Result<XCBuildSettings>
+    where
+        P: AsRef<Path> + Send,
+        I: IntoIterator<Item = S> + Send,
+        S: AsRef<std::ffi::OsStr> + Send,
+    {
+        let mut process = std::process::Command::new("/usr/bin/xcodebuild");
+
+        process.current_dir(root);
+
+        process.args(args);
+        process.arg("-showBuildSettings");
+
+        process.stdin(Stdio::null());
+        process.stdout(Stdio::piped());
+        process.stderr(Stdio::null());
+        let output = &mut Default::default();
+
+        process.spawn()?.stdout.unwrap().read_to_string(output)?;
+
+        Self::generate_from_lines(output.split("\n").map(ToString::to_string).collect())
     }
 
     /// Get path to output directory

@@ -51,6 +51,19 @@ impl XCLogger {
     }
 }
 
+impl TryFrom<Process> for XCLogger {
+    type Error = anyhow::Error;
+
+    fn try_from(mut process: Process) -> Result<Self, Self::Error> {
+        let output_stream = process.spawn_and_stream()?;
+
+        Ok(Self {
+            root: Default::default(),
+            stream: output_stream_to_xclogger_stream(output_stream.boxed()),
+        })
+    }
+}
+
 /// TODO: return MatchOutput or XCLoggerOutput
 fn output_stream_to_xclogger_stream(
     mut output_stream: Pin<Box<dyn Stream<Item = process_stream::ProcessItem> + Send>>,
