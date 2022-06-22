@@ -1,6 +1,56 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.2.9] - 2022-06-22
+
+### <!-- 0 -->Features
+
+## [0.2.8] - 2022-06-22
+
+### <!-- 0 -->Features
+
+## [0.2.7] - 2022-06-20
+
+### Miscellaneous Tasks
+
+## [0.2.6] - 2022-06-16
+
+### <!-- 0 -->Features
+
+#### Compile
+
+- <a href="https://github.com/tami5/xcodebuild/commit/4095f2f541e0ab295270aa5016b236c0f5ddffba"><tt>4095f2f</tt></a> Compile args get inner
+
+## [0.2.5] - 2022-06-15
+
+### <!-- 1 -->Bug Fixes
+
+#### Build_settings
+
+- <a href="https://github.com/tami5/xcodebuild/commit/8aa140357db704432ec72f77b594cd1546105ba7"><tt>8aa1403</tt></a> Return empty fields
+
+### <!-- 2 -->Refactor
+
+#### Parser
+
+- <a href="https://github.com/tami5/xcodebuild/commit/61787e81c8bf5240d9dbecd22ce4baa35963cc54"><tt>61787e8</tt></a> Explicitly ignore other commands
+
+## [0.2.4] - 2022-06-15
+
+### <!-- 0 -->Features
+
+#### Compile
+
+- <a href="https://github.com/tami5/xcodebuild/commit/b5f048a9488465fa7af88dd893b219de8ed200e1"><tt>b5f048a</tt></a> Return error if compile generate command fails
+
+### <!-- 2 -->Refactor
+
+#### Compile
+
+- <a href="https://github.com/tami5/xcodebuild/commit/0ca618e510f061a808ac952582321ba5fe4d70ab"><tt>0ca618e</tt></a> Make XCComplationDatabase a tuple
+
+### Miscellaneous Tasks
+
 ## [0.2.3] - 2022-06-15
 
 ### <!-- 0 -->Features
@@ -10,7 +60,7 @@ All notable changes to this project will be documented in this file.
 - <a href="https://github.com/tami5/xcodebuild/commit/f818da04f18f977808fbc6002fdb9cd37e65325d"><tt>f818da0</tt></a> Write to desk
 - <a href="https://github.com/tami5/xcodebuild/commit/a8a20f6ef4fa0827a45e512e0866914208787793"><tt>a8a20f6</tt></a> Read from JSON file
 - <a href="https://github.com/tami5/xcodebuild/commit/2dceb23487dc8717e9d5cb6d09c4f9f88109cf70"><tt>2dceb23</tt></a> Compile flags
-- <a href="https://github.com/tami5/xcodebuild/commit/520b92f718a2260a9929198e88023c4c448bd5cd"><tt>520b92f</tt></a> Impl into_iter for compile database
+- <a href="https://github.com/tami5/xcodebuild/commit/d3a6b7809bddb4bf8517d2f23ccfeaa1fedcff09"><tt>d3a6b78</tt></a> Impl into_iter for compile database
 
 #### Logger
 

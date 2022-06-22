@@ -1038,7 +1038,7 @@ checksum = "c811ca4a8c853ef420abd8592ba53ddbbac90410fab6903b3e79972a631f7680"
 
 [[package]]
 name = "xclog"
-version = "0.2.8"
+version = "0.2.9"
 dependencies = [
  "anyhow",
  "async-stream",
