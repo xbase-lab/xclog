@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2022-06-25
+
+### <!-- 2 -->Refactor
+
+### Miscellaneous Tasks
+
+#### Release
+
+- <a href="https://github.com/tami5/xcodebuild/commit/2edaa8bf0abb1f95ea3c37e03db64dcc9cc114bd"><tt>2edaa8b</tt></a> V0.2.9
+
 ## [0.2.9] - 2022-06-22
 
 ### <!-- 0 -->Features
