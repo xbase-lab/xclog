@@ -17,8 +17,10 @@ pub enum XCOutputTask {
 #[derive(Clone, derive_deref_rs::Deref)]
 pub struct XCOutput {
     #[deref]
-    pub(crate) value: String,
-    pub(crate) kind: XCOutputTask,
+    /// output value
+    pub value: String,
+    /// output kind
+    pub kind: XCOutputTask,
 }
 
 impl XCOutput {

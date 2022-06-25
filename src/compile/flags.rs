@@ -13,11 +13,6 @@ impl XCCompileArgs {
     /// Generate compile flags from [`XCCompileCommand`] command field
     ///
     ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// XCCompileArgs::try_from_str(&compile_command.command);
-    /// ```
     ///
     /// [`XCCompileCommand`]: crate::XCCompileCommand
     pub fn try_from_str(command: &str) -> Result<Self> {

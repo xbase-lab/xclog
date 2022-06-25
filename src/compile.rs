@@ -7,9 +7,7 @@ mod tests;
 mod util;
 
 use crate::parser::XCLOG_MATCHER;
-use crate::XCLogger;
 use anyhow::{Context, Result};
-use process_stream::{Process, ProcessItem, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -35,50 +33,10 @@ impl IntoIterator for XCCompilationDatabase {
 }
 
 impl XCCompilationDatabase {
-    /// Generate completion database from running xcodebuild arguments in a given root.
-    pub async fn generate<P, I, S>(root: P, args: I) -> Result<Self>
-    where
-        P: AsRef<Path> + Send,
-        I: IntoIterator<Item = S> + Send,
-        S: AsRef<std::ffi::OsStr> + Send,
-    {
-        let mut process = Process::new("/usr/bin/xcodebuild");
-        process.current_dir(&root);
-        process.arg("clean");
-        process.args(args);
-        let result = process.spawn_and_stream()?.collect::<Vec<_>>().await;
-        if let Some(ProcessItem::Exit(code)) = result.iter().find(|item| item.is_exit()) {
-            if code != "0" {
-                let logs = XCLogger::new_from_lines(
-                    PathBuf::default(),
-                    result.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
-                )?
-                .stream
-                .collect::<Vec<_>>()
-                .await;
-
-                return Err(anyhow::anyhow!(
-                    "{}",
-                    logs.iter()
-                        .map(|l| l.to_string())
-                        .collect::<Vec<_>>()
-                        .join("\n")
-                ));
-            }
-        }
-
-        result
-            .into_iter()
-            .filter_map(|o| {
-                XCLOG_MATCHER
-                    .get_compile_command(o.to_string().as_str())
-                    .and_then(XCCompileCommand::from_compile_command_data)
-            })
-            .collect::<Vec<_>>()
-            .pipe(Self)
-            .pipe(Ok)
+    /// new XCCompilationDatabase from commands
+    pub fn new(commands: Vec<XCCompileCommand>) -> Self {
+        Self(commands)
     }
-
     /// Generate XCCompilationDatabase from a vector build log lines
     ///
     /// Note root is set to default

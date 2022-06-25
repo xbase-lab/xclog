@@ -1,9 +1,15 @@
-use crate::parser::{parse, XCOutput, XCOutputTask};
+use crate::parser::{parse, XCLOG_MATCHER};
+use crate::XCCompileCommand;
 use anyhow::Result;
-use process_stream::{Process, ProcessItem, Stream, StreamExt};
+use async_stream::stream;
+use process_stream::{ProcessExt, ProcessItem, Stream, StreamExt};
 use std::ffi;
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::{path::Path, pin::Pin};
+use tokio::process::Command;
+use tokio::sync::mpsc::Sender;
+use tokio::sync::Mutex;
 
 /// XCLogger struct
 #[derive(derive_deref_rs::Deref)]
@@ -11,7 +17,66 @@ pub struct XCLogger {
     #[allow(dead_code)]
     root: PathBuf,
     #[deref]
-    pub(crate) stream: Pin<Box<dyn Stream<Item = XCOutput> + Send>>,
+    inner: tokio::process::Command,
+    kill_send: Option<Sender<()>>,
+    /// Arc Reference to compile_commands
+    pub compile_commands: Arc<Mutex<Vec<XCCompileCommand>>>,
+}
+
+impl ProcessExt for XCLogger {
+    fn get_command(&mut self) -> &mut tokio::process::Command {
+        &mut self.inner
+    }
+
+    fn killer(&self) -> Option<Sender<()>> {
+        self.kill_send.clone()
+    }
+
+    fn set_killer(&mut self, killer: Sender<()>) {
+        self.kill_send = killer.into()
+    }
+
+    fn spawn_and_stream(
+        &mut self,
+    ) -> std::io::Result<Pin<Box<dyn Stream<Item = ProcessItem> + Send>>> {
+        let mut output_stream = self._spawn_and_stream()?;
+        let compile_commands = self.compile_commands.clone();
+
+        Ok(stream! {
+            let mut compile_commands = compile_commands.lock().await;
+            while let Some(output) = output_stream.next().await {
+                match output {
+                    ProcessItem::Error(line) => {
+                        match parse(line, &mut output_stream).await {
+                            Ok(Some(lines)) => {
+                                for line in lines.into_iter() {
+                                        yield ProcessItem::Error(line.to_string())
+                                } },
+                            Err(e) => tracing::error!("ParseError: {e}"),
+                            _ => ()
+                        }
+                    },
+                    ProcessItem::Output(line) => {
+                        if let Some(cmd) = XCLOG_MATCHER.get_compile_command(line.as_str()).and_then(XCCompileCommand::from_compile_command_data) {
+                            compile_commands.push(cmd);
+                        } else {
+                            match parse(line, &mut output_stream).await {
+                                Ok(Some(lines)) => {
+                                    for line in lines.into_iter() {
+                                            yield ProcessItem::Output(line.to_string())
+                                    } },
+                                Err(e) => tracing::error!("ParseError: {e}"),
+                                _ => ()
+                            }
+                        }
+
+                    },
+                    output => yield output
+                }
+            }
+        }
+        .boxed())
+    }
 }
 
 impl XCLogger {
@@ -22,67 +87,16 @@ impl XCLogger {
         I: IntoIterator<Item = S> + Send,
         S: AsRef<ffi::OsStr> + Send,
     {
-        let mut process = Process::new("/usr/bin/xcodebuild");
+        let mut inner = Command::new("/usr/bin/xcodebuild");
 
-        process.current_dir(&root);
-        process.args(args);
-
-        let output_stream = process.spawn_and_stream()?;
+        inner.current_dir(&root);
+        inner.args(args);
 
         Ok(Self {
             root: root.as_ref().to_path_buf(),
-            stream: output_stream_to_xclogger_stream(output_stream.boxed()),
+            inner,
+            kill_send: None,
+            compile_commands: Default::default(),
         })
     }
-
-    /// Create new XCLogger instance from log lines
-    pub fn new_from_lines<P: AsRef<Path> + Send>(root: P, lines: Vec<String>) -> Result<Self> {
-        let mut lines = lines.into_iter();
-        let output_stream = async_stream::stream! {
-            while let Some(line) = lines.next() {
-                yield ProcessItem::Output(line)
-            }
-        }
-        .boxed();
-        Ok(Self {
-            root: root.as_ref().to_path_buf(),
-            stream: output_stream_to_xclogger_stream(output_stream.boxed()),
-        })
-    }
-}
-
-impl TryFrom<Process> for XCLogger {
-    type Error = anyhow::Error;
-
-    fn try_from(mut process: Process) -> Result<Self, Self::Error> {
-        let output_stream = process.spawn_and_stream()?;
-
-        Ok(Self {
-            root: Default::default(),
-            stream: output_stream_to_xclogger_stream(output_stream.boxed()),
-        })
-    }
-}
-
-/// TODO: return MatchOutput or XCLoggerOutput
-fn output_stream_to_xclogger_stream(
-    mut output_stream: Pin<Box<dyn Stream<Item = process_stream::ProcessItem> + Send>>,
-) -> Pin<Box<dyn Stream<Item = XCOutput> + Send>> {
-    async_stream::stream! {
-        while let Some(output) = output_stream.next().await {
-            match output {
-                ProcessItem::Output(line) | ProcessItem::Error(line) => {
-                    match parse(line, &mut output_stream).await {
-                        Ok(Some(lines)) => { for line in lines.into_iter() { yield line } },
-                        Err(e) => tracing::error!("ParseError: {e}"),
-                        _ => ()
-                    }
-                },
-                ProcessItem::Exit(status) => yield XCOutput {
-                    value: format!("[Exit] {status}"), kind: XCOutputTask::Result
-                }
-            }
-        }
-    }
-    .boxed()
 }

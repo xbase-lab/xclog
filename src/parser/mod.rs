@@ -12,10 +12,8 @@ pub use output::*;
 
 pub(crate) type OutputStream = dyn tokio_stream::Stream<Item = ProcessItem> + Unpin + Send;
 
-pub(crate) async fn parse(
-    line: String,
-    stream: &mut OutputStream,
-) -> Result<Option<Vec<XCOutput>>> {
+/// Process a line with mutable OutputStream
+pub async fn parse(line: String, stream: &mut OutputStream) -> Result<Option<Vec<XCOutput>>> {
     if line.contains("ONLY_ACTIVE_ARCH=YES") {
         return Ok(None);
     }
@@ -75,10 +73,10 @@ pub(crate) async fn parse(
 #[ignore = "Local tests"]
 async fn test_case_2() {
     use crate::logger::XCLogger;
-    use process_stream::StreamExt;
+    use process_stream::{ProcessExt, StreamExt};
 
     let root = "/Users/tami5/repos/swift/yabaimaster";
-    let mut stream = XCLogger::new(root, &[
+    let mut logger = XCLogger::new(root, &[
         "clean",
         "build",
         "-configuration",
@@ -89,6 +87,8 @@ async fn test_case_2() {
         "CONFIGURATION_BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug",
         "BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug"
     ]).unwrap();
+
+    let mut stream = logger.spawn_and_stream().unwrap();
 
     while let Some(line) = stream.next().await {
         println!("{}", line)

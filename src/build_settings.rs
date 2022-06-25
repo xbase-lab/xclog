@@ -1,4 +1,4 @@
-use process_stream::{Process, StreamExt};
+use process_stream::{Process, ProcessExt, StreamExt};
 use std::{
     io::Read,
     path::{Path, PathBuf},

@@ -1,4 +1,5 @@
 use super::*;
+use process_stream::{ProcessExt, StreamExt};
 
 fn get_compile_commands(content: &str) -> XCCompilationDatabase {
     XCCompilationDatabase::try_from_lines(
@@ -11,7 +12,7 @@ fn get_compile_commands(content: &str) -> XCCompilationDatabase {
 
 async fn get_compile_commands_from_local_case_d() -> XCCompilationDatabase {
     let root = "/Users/tami5/repos/swift/yabaimaster";
-    XCCompilationDatabase::generate(root, &[
+    let mut logger = XCLogger::new(root, &[
         "clean",
         "build",
         "-configuration",
@@ -21,7 +22,11 @@ async fn get_compile_commands_from_local_case_d() -> XCCompilationDatabase {
         "SYMROOT=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug",
         "CONFIGURATION_BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug",
         "BUILD_DIR=/Users/tami5/Library/Caches/Xbase/swift_yabaimaster/YabaiMaster_Debug"
-        ]).await.unwrap()
+        ]).unwrap();
+    let compile_commands = logger.compile_commands.clone();
+    logger.spawn_and_stream().unwrap().collect::<Vec<_>>().await;
+    let compile_commands = compile_commands.lock().await;
+    XCCompilationDatabase::new(compile_commands.to_vec())
 }
 
 mod compile_commands {
