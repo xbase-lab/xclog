@@ -8,8 +8,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::{path::Path, pin::Pin};
 use tokio::process::Command;
-use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
+use tokio::sync::Notify;
 
 /// XCLogger struct
 #[derive(derive_deref_rs::Deref)]
@@ -18,7 +18,7 @@ pub struct XCLogger {
     root: PathBuf,
     #[deref]
     inner: tokio::process::Command,
-    kill_send: Option<Sender<()>>,
+    abort: Option<Arc<Notify>>,
     /// Arc Reference to compile_commands
     pub compile_commands: Arc<Mutex<Vec<XCCompileCommand>>>,
 }
@@ -26,14 +26,6 @@ pub struct XCLogger {
 impl ProcessExt for XCLogger {
     fn get_command(&mut self) -> &mut tokio::process::Command {
         &mut self.inner
-    }
-
-    fn killer(&self) -> Option<Sender<()>> {
-        self.kill_send.clone()
-    }
-
-    fn set_killer(&mut self, killer: Sender<()>) {
-        self.kill_send = killer.into()
     }
 
     fn spawn_and_stream(
@@ -77,6 +69,14 @@ impl ProcessExt for XCLogger {
         }
         .boxed())
     }
+
+    fn aborter(&self) -> Option<Arc<Notify>> {
+        self.abort.clone()
+    }
+
+    fn set_aborter(&mut self, aborter: Option<Arc<Notify>>) {
+        self.abort = aborter
+    }
 }
 
 impl XCLogger {
@@ -95,7 +95,7 @@ impl XCLogger {
         Ok(Self {
             root: root.as_ref().to_path_buf(),
             inner,
-            kill_send: None,
+            abort: None,
             compile_commands: Default::default(),
         })
     }

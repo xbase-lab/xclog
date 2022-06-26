@@ -1,4 +1,5 @@
 use super::*;
+use crate::XCLogger;
 use process_stream::{ProcessExt, StreamExt};
 
 fn get_compile_commands(content: &str) -> XCCompilationDatabase {
