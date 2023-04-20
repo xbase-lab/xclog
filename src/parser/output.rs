@@ -1,5 +1,5 @@
 /// Kinds of outputs
-#[derive(Clone, derive_is_enum_variant::is_enum_variant)]
+#[derive(Clone, derive_is_enum_variant::is_enum_variant, Debug)]
 pub enum XCOutputTask {
     /// Task like Compile, Mkdir ..
     Task,
@@ -11,10 +11,12 @@ pub enum XCOutputTask {
     Error,
     /// End Result
     Result,
+    /// Process exit
+    Exit
 }
 
 /// Formatted results of a given match
-#[derive(Clone, derive_deref_rs::Deref)]
+#[derive(Clone, derive_deref_rs::Deref, Debug)]
 pub struct XCOutput {
     #[deref]
     /// output value
