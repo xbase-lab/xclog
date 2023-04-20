@@ -939,7 +939,7 @@ define! [
     desc: r"duplicate symbols location",
     captures: [ message ],
     format: "{message}",
-    pattern: r"\s+(?P<message>/.*\.o[\)]?)$",
+    pattern: r"  (?P<message>/.*\.o[\)]?)$",
     tests: {}
 },
 {
