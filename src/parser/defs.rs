@@ -169,12 +169,32 @@ define! [
     }
 },
 {
+    ident: SwiftDriver,
+    kind: Task,
+    desc: r"Matches Swift driver step",
+    captures: [kind, target, project],
+    format: "[{target}] using swift deriver",
+    pattern: r"(?x)
+        # Swift driver step
+        (?P<kind>\w+)Driver\s(?P<target>[\w]+)\s.+?
+        # (in target '<target>' from project '<project>')
+        \(in\starget\s'(.*)'\sfrom\sproject\s'(?P<project>.*)'\)",
+    tests: {
+        "SwiftDriver XX normal arm64 com.apple.xcode.tools.swift.compiler (in target 'XX' from project 'XX')" =>
+            |captures| {
+                assert_eq!("Swift", &captures["kind"]);
+                assert_eq!("XX", &captures["target"]);
+                assert_eq!("XX", &captures["project"]);
+            }
+    }
+},
+{
     ident: CompileCommand,
     kind: Task,
     desc: r"Clang and swiftc command",
     captures: [ command, name, arguments ],
     format: "",
-    pattern: r"^\s{4}(?P<command>[^\s]+/(?P<name>swiftc|clang\+\+|clang))\s(?P<arguments>.*)",
+    pattern: r"^\s{4}(builtin-SwiftDriver -- )?(?P<command>[^\s]+/(?P<name>swift-frontend|swiftc|clang\+\+|clang))\s(?P<arguments>.*)",
     tests: {
         "    /TOOLCHAIN_BIN/clang -target arm64-apple-macos10.10 -r -isysroot /MACOS_SDK -L/BUILD_ROOT -L/MACOS_SDK/lib -o /BUILD_ROOT/file.o" =>
             |captures| {
@@ -185,6 +205,15 @@ define! [
             |captures| {
                 assert_eq!("/TOOLCHAIN_BIN/swiftc", &captures["command"]);
                 assert_eq!(r"-incremental -module-name Example -Onone -enable-batch-mode -enforce-exclusivity\=checked -working-directory /PROJECT_ROOT", &captures["arguments"]);
+            },
+        r"    builtin-SwiftDriver -- /TOOLCHAIN_BIN/swiftc -module-name XX -Onone -enforce-exclusivity\=checked" =>
+            |captures| {
+                assert_eq!("/TOOLCHAIN_BIN/swiftc", &captures["command"]);
+                assert_eq!(r"-module-name XX -Onone -enforce-exclusivity\=checked", &captures["arguments"]);
+            },
+        r"    /TOOLCHAIN_BIN/swift-frontend -c /source/HotReloaderMiddleware.swift /source/Extensions/UIApplication.swift" =>  |captures| {
+                assert_eq!("/TOOLCHAIN_BIN/swift-frontend", &captures["command"]);
+
             },
         r"    /TOOLCHAIN_BIN/swiftc -incremental -module-name Logging -Onone -enable-batch-mode -enforce-exclusivity\=checked @/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging.SwiftFileList -DSWIFT_PACKAGE -DDEBUG -DXcode -sdk /IPHONE_SDK -target armv7-apple-ios9.0 -g -Xfrontend -serialize-debugging-options -embed-bitcode-marker -enable-testing -swift-version 5 -I /BUILD_ROOT -I /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib -F /BUILD_ROOT -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -F /IPHONE_SDK/Developer/Library/Frameworks -c -j8 -output-file-map /BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging-OutputFileMap.json -parseable-output -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging.swiftmodule -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/swift-overrides.hmap -Xcc -I/BUILD_ROOT/include -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/DerivedSources-normal/armv7 -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/DerivedSources/armv7 -Xcc -I/BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /BUILD_ROOT/swift-log.build/Debug-iphoneos/Logging.build/Objects-normal/armv7/Logging-Swift.h -working-directory /DERIVED_DATA_ROOT/SourcePackages/checkouts/swift-log"
             => |captures| {
