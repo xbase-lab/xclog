@@ -61,7 +61,7 @@ impl XCCompileCommand {
             command.name = cap!(r"-module-name\s(\w+)\s", args).map(|(_, c)| c.into());
 
             if let Some(file_lists) = cap!(r"@(/.*.SwiftFileList)", args).map(|(_, c)| c) {
-                command.file_lists = vec![file_lists.into()];
+                command.file_lists = vec![file_lists.replace("\\", "").into()];
             };
         }
 
