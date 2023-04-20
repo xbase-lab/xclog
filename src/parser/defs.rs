@@ -221,6 +221,23 @@ define! [
     }
 },
 {
+    ident: SwiftCompile,
+    kind: Task,
+    desc: r"SwiftCompile",
+    captures: [ arch, filename, project, target ],
+    format: "[{target}] Compiling {filename}",
+    pattern: r"SwiftCompile\s(?P<arch>\S+)\s(?P<filepath>.+/)(?P<filename>[^/]+)\s\(in\starget\s'(?P<target>.*)'\sfrom\sproject\s'(?P<project>.*)'\)",
+    tests: {
+        "SwiftCompile normal arm64 /source/Home/State/HomeStateAction.swift (in target 'xxx' from project 'xxx')" =>
+            |captures| {
+                assert_eq!("normal", &captures["arch"]);
+                assert_eq!("HomeStateAction.swift", &captures["filename"]);
+                assert_eq!("xxx", &captures["project"]);
+                assert_eq!("xxx", &captures["target"]);
+            }
+    }
+},
+{
     ident: CompileStoryboard,
     kind: Task,
     desc: r"CompileStoryboard",
