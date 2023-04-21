@@ -129,6 +129,16 @@ mod compile_commands {
 
     #[tokio::test]
     #[tracing_test::traced_test]
+    async fn case_d() {
+        assert_eq!(
+            get_compile_commands(include_str!("../../tests/case_d.log")).len(),
+            1,
+            "Should produces one compile command"
+        )
+    }
+
+    #[tokio::test]
+    #[tracing_test::traced_test]
     #[ignore = "Local tests"]
     async fn test_get_compile_commands() {
         let compile_commands = get_compile_commands_from_local_case_d().await;
